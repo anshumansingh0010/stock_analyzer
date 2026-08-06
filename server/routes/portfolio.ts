@@ -17,23 +17,48 @@ import Portfolio from "../models/Portfolio.js";
 import { fetchStockQuote } from "../services/marketDataService.js";
 import { generateAlert } from "../services/alertService.js";
 
+const inMemoryStore: Record<string, any> = {
+  demoUser: {
+    userId: "demoUser",
+    displayName: "Demo Investor",
+    riskProfile: "MODERATE",
+    holdings: [
+      { stock: "RELIANCE", ticker: "RELIANCE", qty: 25, avgPrice: 2850.0, sector: "Energy", exchange: "NSE" },
+      { stock: "TCS", ticker: "TCS", qty: 15, avgPrice: 3950.0, sector: "Technology", exchange: "NSE" },
+      { stock: "HDFCBANK", ticker: "HDFCBANK", qty: 40, avgPrice: 1520.0, sector: "Banking", exchange: "NSE" },
+      { stock: "INFY", ticker: "INFY", qty: 30, avgPrice: 1610.0, sector: "Technology", exchange: "NSE" },
+      { stock: "ICICIBANK", ticker: "ICICIBANK", qty: 50, avgPrice: 1050.0, sector: "Banking", exchange: "NSE" },
+    ],
+  },
+};
+
 function dbAvailable(): boolean {
   return mongoose.connection.readyState === 1;
 }
 
 export default async function portfolioRoutes(fastify: FastifyInstance): Promise<void> {
-  fastify.get("/", async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get("/:userId", async (request: FastifyRequest, reply: FastifyReply) => {
     const { userId } = request.params as any;
     if (!dbAvailable()) {
-      return reply.status(503).send({
-        error:
-          "Database not connected. Set MONGODB_URI in .env to enable portfolio persistence.",
-      });
+      const portfolio = inMemoryStore[userId] || {
+        userId,
+        displayName: userId,
+        riskProfile: "MODERATE",
+        holdings: [],
+      };
+      return reply.send({ success: true, portfolio, inMemory: true });
     }
     try {
-      const portfolio = await Portfolio.findOne({ userId });
+      let portfolio = await Portfolio.findOne({ userId });
       if (!portfolio) {
-        return reply.status(404).send({ error: "Portfolio not found. Create one first." });
+        if (userId === "demoUser") {
+          portfolio = await Portfolio.create(inMemoryStore["demoUser"]);
+        } else {
+          return reply.send({
+            success: true,
+            portfolio: { userId, displayName: userId, holdings: [], riskProfile: "MODERATE" },
+          });
+        }
       }
       return reply.send({ success: true, portfolio });
     } catch (err: any) {
@@ -41,13 +66,21 @@ export default async function portfolioRoutes(fastify: FastifyInstance): Promise
     }
   });
 
-  fastify.post("/", async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post("/:userId", async (request: FastifyRequest, reply: FastifyReply) => {
     const { userId } = request.params as any;
-    if (!dbAvailable()) return reply.status(503).send({ error: "Database not connected." });
+    const { displayName, holdings = [], riskProfile } = request.body as any;
+
+    if (!dbAvailable()) {
+      inMemoryStore[userId] = {
+        userId,
+        displayName: displayName || userId,
+        holdings,
+        riskProfile: riskProfile || "MODERATE",
+      };
+      return reply.status(201).send({ success: true, portfolio: inMemoryStore[userId], inMemory: true });
+    }
 
     try {
-      const { displayName, holdings = [], riskProfile } = request.body as any;
-
       const portfolio = await Portfolio.findOneAndUpdate(
         { userId },
         {
@@ -69,16 +102,28 @@ export default async function portfolioRoutes(fastify: FastifyInstance): Promise
     }
   });
 
-  fastify.patch("/add", async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.patch("/:userId/add", async (request: FastifyRequest, reply: FastifyReply) => {
     const { userId } = request.params as any;
-    if (!dbAvailable()) return reply.status(503).send({ error: "Database not connected." });
+    const { stock, ticker, qty, avgPrice, sector } = request.body as any;
+    if (!ticker || !qty || !avgPrice) {
+      return reply.status(400).send({ error: "ticker, qty, avgPrice are required" });
+    }
+
+    if (!dbAvailable()) {
+      const ptf = inMemoryStore[userId] || { userId, displayName: userId, riskProfile: "MODERATE", holdings: [] };
+      ptf.holdings = ptf.holdings.filter((h: any) => h.ticker !== ticker.toUpperCase());
+      ptf.holdings.push({
+        stock: stock || ticker,
+        ticker: ticker.toUpperCase(),
+        qty,
+        avgPrice,
+        sector: sector || "Unknown",
+      });
+      inMemoryStore[userId] = ptf;
+      return reply.send({ success: true, portfolio: ptf, inMemory: true });
+    }
 
     try {
-      const { stock, ticker, qty, avgPrice, sector } = request.body as any;
-      if (!ticker || !qty || !avgPrice) {
-        return reply.status(400).send({ error: "ticker, qty, avgPrice are required" });
-      }
-
       const portfolio = await Portfolio.findOneAndUpdate(
         { userId },
         {
@@ -104,9 +149,18 @@ export default async function portfolioRoutes(fastify: FastifyInstance): Promise
     }
   });
 
-  fastify.patch("/remove", async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.patch("/:userId/remove", async (request: FastifyRequest, reply: FastifyReply) => {
     const { userId } = request.params as any;
-    if (!dbAvailable()) return reply.status(503).send({ error: "Database not connected." });
+    const { ticker } = request.body as any;
+    if (!ticker) return reply.status(400).send({ error: "ticker is required" });
+
+    if (!dbAvailable()) {
+      const ptf = inMemoryStore[userId];
+      if (ptf) {
+        ptf.holdings = ptf.holdings.filter((h: any) => h.ticker !== ticker.toUpperCase());
+      }
+      return reply.send({ success: true, portfolio: ptf || { userId, holdings: [] }, inMemory: true });
+    }
 
     try {
       const { ticker } = request.body as any;
@@ -125,9 +179,14 @@ export default async function portfolioRoutes(fastify: FastifyInstance): Promise
     }
   });
 
-  fastify.post("/sync", async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post("/:userId/sync", async (request: FastifyRequest, reply: FastifyReply) => {
     const { userId } = request.params as any;
-    if (!dbAvailable()) return reply.status(503).send({ error: "Database not connected." });
+
+    if (!dbAvailable()) {
+      const portfolio = inMemoryStore[userId];
+      if (!portfolio) return reply.status(404).send({ error: "Portfolio not found" });
+      return reply.send({ success: true, portfolio, syncedHoldings: portfolio.holdings?.length || 0, inMemory: true });
+    }
 
     try {
       const portfolio = await Portfolio.findOne({ userId });
@@ -162,9 +221,12 @@ export default async function portfolioRoutes(fastify: FastifyInstance): Promise
     }
   });
 
-  fastify.get("/alerts", async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get("/:userId/alerts", async (request: FastifyRequest, reply: FastifyReply) => {
     const { userId } = request.params as any;
-    if (!dbAvailable()) return reply.status(503).send({ error: "Database not connected." });
+
+    if (!dbAvailable()) {
+      return reply.send({ success: true, userId, alerts: [], moversFound: 0, inMemory: true });
+    }
 
     try {
       const portfolio = await Portfolio.findOne({ userId });

@@ -57,7 +57,7 @@ async function setupServer() {
   await server.register(stockRoutes, { prefix: "/api/stock" });
   await server.register(marketRoutes, { prefix: "/api/market" });
   await server.register(alertRoutes, { prefix: "/api/alerts" });
-  await server.register(portfolioRoutes, { prefix: "/api/portfolio/:userId" });
+  await server.register(portfolioRoutes, { prefix: "/api/portfolio" });
   await server.register(marketdataRoutes, { prefix: "/api/marketdata" });
 
   // Health check
@@ -118,11 +118,13 @@ async function startServer() {
 ╚══════════════════════════════════════════════╝
     `);
 
-    startScheduler({
-      intervalMs: 15 * 60 * 1000,
-      runImmediately: process.env.NODE_ENV !== "test",
-      portfolio: [],
-    });
+    if (process.env.DISABLE_NEWS_SCHEDULER !== "true") {
+      startScheduler({
+        intervalMs: 15 * 60 * 1000,
+        runImmediately: false,
+        portfolio: [],
+      });
+    }
   } catch (err: any) {
     server.log.error(err);
     process.exit(1);

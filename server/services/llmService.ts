@@ -51,7 +51,7 @@ export function getLLMClient(): OpenAI {
 
 export function getModel(options: LLMOptions = {}): string {
   const provider = process.env.LLM_PROVIDER || "openai";
-  return options.model || (provider === "gemini" ? "gemini-2.0-flash" : "gpt-4o-mini");
+  return options.model || (provider === "gemini" ? "gemini-3.6-flash" : "gpt-4o-mini");
 }
 
 export async function withRetry<T>(fn: () => Promise<T>, maxRetries = 5): Promise<T> {
@@ -64,8 +64,8 @@ export async function withRetry<T>(fn: () => Promise<T>, maxRetries = 5): Promis
       const isRateLimit = err.status === 429 || (err.message && err.message.includes("429"));
       if (!isRateLimit || attempt === maxRetries) throw err;
 
-      const baseDelay = Math.min(Math.pow(2, attempt + 1) * 1000, 60_000);
-      const jitter = baseDelay * (0.8 + Math.random() * 0.4);
+      const baseDelay = Math.min(1500 * (attempt + 1), 10_000);
+      const jitter = baseDelay * (0.9 + Math.random() * 0.2);
       const delay = Math.round(jitter);
       console.warn(
         `[LLM] Rate limit hit — retrying in ${(delay / 1000).toFixed(1)}s (attempt ${

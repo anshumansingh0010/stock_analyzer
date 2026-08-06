@@ -36,7 +36,7 @@ const NewsSchema = new Schema<INews>(
 // Prevent duplicate articles by headline + source
 NewsSchema.index({ headline: 1, source: 1 }, { unique: true });
 
-export const News: Model<INews> = mongoose.model<INews>("News", NewsSchema);
+export const News: Model<INews> = mongoose.models.News || mongoose.model<INews>("News", NewsSchema);
 
 // ─── Processed News (Layer 2 output) Interface & Schema ───────
 export interface ICompanyInsight {
@@ -97,7 +97,6 @@ const ProcessedNewsSchema = new Schema<IProcessedNews>(
   { timestamps: true }
 );
 
-export const ProcessedNews: Model<IProcessedNews> = mongoose.model<IProcessedNews>(
-  "ProcessedNews",
-  ProcessedNewsSchema
-);
+export const ProcessedNews: Model<IProcessedNews> =
+  mongoose.models.ProcessedNews ||
+  mongoose.model<IProcessedNews>("ProcessedNews", ProcessedNewsSchema);

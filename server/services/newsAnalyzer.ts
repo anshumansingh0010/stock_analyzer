@@ -57,7 +57,7 @@ export async function analyzeArticle(
   const provider = process.env.LLM_PROVIDER || "openai";
 
   const model =
-    options.model || (provider === "gemini" ? "gemini-2.0-flash" : "gpt-4o-mini");
+    options.model || (provider === "gemini" ? "gemini-3.6-flash" : "gpt-4o-mini");
 
   const messages: any[] = buildNewsMessages(article, portfolio);
 

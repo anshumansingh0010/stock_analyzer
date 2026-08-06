@@ -106,8 +106,7 @@ PortfolioSchema.statics.getAllTickers = async function (this: IPortfolioModel): 
   return result.map((r: { _id: string }) => r._id);
 };
 
-export const Portfolio = mongoose.model<IPortfolio, IPortfolioModel>(
-  "Portfolio",
-  PortfolioSchema
-);
+export const Portfolio =
+  (mongoose.models.Portfolio as IPortfolioModel) ||
+  mongoose.model<IPortfolio, IPortfolioModel>("Portfolio", PortfolioSchema);
 export default Portfolio;

@@ -157,7 +157,7 @@ export function startScheduler(options: StartSchedulerOptions = {}): void {
       runAnalysisCycle().catch((e) =>
         console.error("[NewsScheduler] Initial run error:", e.message)
       );
-    }, 30_000);
+    }, 60_000);
   }
 
   cache.nextRunAt = new Date(Date.now() + intervalMs).toISOString();

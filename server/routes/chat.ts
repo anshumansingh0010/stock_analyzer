@@ -8,6 +8,8 @@
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { chat, chatStream } from "../services/llmService.js";
+import { fetchFullMarketSnapshot } from "../services/marketDataService.js";
+import { getResults as getCachedNews, fetchLatestNews } from "../services/newsScheduler.js";
 
 export default async function chatRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.post("/", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -21,7 +23,52 @@ export default async function chatRoutes(fastify: FastifyInstance): Promise<void
         });
       }
 
-      const result = await chat(query.trim(), context, history, options);
+      // Auto-fill context if fields are missing so LLM has live stock, market & news data
+      const enrichedContext = { ...context };
+      if (!enrichedContext.marketData || !enrichedContext.stockData) {
+        try {
+          const snapshot = await fetchFullMarketSnapshot();
+          if (!enrichedContext.marketData) enrichedContext.marketData = snapshot;
+          if (!enrichedContext.stockData) enrichedContext.stockData = snapshot.allStocks;
+        } catch {
+          /* ignore fallback */
+        }
+      }
+      if (!enrichedContext.news || enrichedContext.news.length === 0) {
+        try {
+          const cached = getCachedNews();
+          if (cached && cached.length > 0) {
+            enrichedContext.news = cached;
+          } else {
+            enrichedContext.news = await fetchLatestNews();
+          }
+        } catch {
+          /* ignore fallback */
+        }
+      }
+
+      // Optimize prompt token size (~80% reduction) to stay within Gemini TPM limits
+      if (Array.isArray(enrichedContext.stockData)) {
+        const qUpper = query.toUpperCase();
+        const relevant = enrichedContext.stockData.filter((s: any) => {
+          const ticker = (s.ticker || s.stock || s.name || "").toUpperCase();
+          const name = (s.name || "").toUpperCase();
+          return ticker && (qUpper.includes(ticker) || (name.length > 3 && qUpper.includes(name)));
+        });
+
+        if (relevant.length > 0) {
+          enrichedContext.stockData = relevant;
+        } else {
+          enrichedContext.stockData = enrichedContext.stockData.slice(0, 8);
+        }
+      }
+
+      if (enrichedContext.marketData && (enrichedContext.marketData as any).allStocks) {
+        const { allStocks, ...conciseMarketData } = enrichedContext.marketData as any;
+        enrichedContext.marketData = conciseMarketData;
+      }
+
+      const result = await chat(query.trim(), enrichedContext, history, options);
 
       return reply.send({
         success: true,

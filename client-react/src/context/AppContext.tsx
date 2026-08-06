@@ -56,11 +56,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // ── Auto pre-fetch AI context on startup ───────────────────
+  const inittedRef = useRef(false);
+  const initAiContext = useCallback(async () => {
+    if (inittedRef.current) return;
+    inittedRef.current = true;
+    try {
+      const [mRes, sRes, nRes, pRes] = await Promise.allSettled([
+        fetch(`${API_BASE}/marketdata/snapshot`).then((r) => r.json()),
+        fetch(`${API_BASE}/stock/nifty50`).then((r) => r.json()),
+        fetch(`${API_BASE}/news/results`).then((r) => r.json()),
+        fetch(`${API_BASE}/portfolio/demoUser`).then((r) => r.json()),
+      ]);
+
+      const updates: Partial<AiContextState> = {};
+      if (mRes.status === "fulfilled" && mRes.value?.success) {
+        updates.marketData = mRes.value.snapshot || mRes.value;
+      }
+      if (sRes.status === "fulfilled" && sRes.value?.success) {
+        updates.stockData = sRes.value.stocks || sRes.value;
+      }
+      if (nRes.status === "fulfilled" && nRes.value?.success) {
+        updates.news = nRes.value.results || nRes.value.articles || [];
+      }
+      if (pRes.status === "fulfilled" && pRes.value?.success) {
+        updates.portfolio = pRes.value.portfolio?.holdings || [];
+      }
+
+      setAiContext((prev) => ({ ...prev, ...updates }));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   useEffect(() => {
     checkHealth();
+    initAiContext();
     const id = setInterval(checkHealth, 30_000);
     return () => clearInterval(id);
-  }, [checkHealth]);
+  }, [checkHealth, initAiContext]);
 
   return (
     <AppContext.Provider value={{
