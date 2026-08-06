@@ -8,44 +8,32 @@ interface HeaderProps {
   newsAlertCount: number;
 }
 
-const USER_PROFILE = {
-  name:   'Jay',
-  handle: '@jay_trader',
-  plan:   'Pro',
-  since:  'Apr 2025',
-  stats: [
-    { label: 'Holdings',   value: '4' },
-    { label: 'Watchlist',  value: '12' },
-    { label: 'Alerts',     value: '3' },
-  ],
-};
-
 function MoonIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
     </svg>
   );
 }
 
 function SunIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="5"/>
-      <line x1="12" y1="1" x2="12" y2="3"/>
-      <line x1="12" y1="21" x2="12" y2="23"/>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-      <line x1="1" y1="12" x2="3" y2="12"/>
-      <line x1="21" y1="12" x2="23" y2="12"/>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
     </svg>
   );
 }
 
 export default function Header({ activeTab, setActiveTab, newsAlertCount }: HeaderProps) {
-  const { niftyBadge, backendOnline, backendProvider } = useApp();
+  const { niftyBadge, backendOnline, backendProvider, user, logout, setIsAuthModalOpen, aiContext } = useApp();
   const [profileOpen, setProfileOpen] = useState<boolean>(false);
   const [isDark, setIsDark]           = useState<boolean>(true);
   const drawerRef = useRef<HTMLElement | null>(null);
@@ -58,9 +46,20 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount }: Head
     { id: 'portfolio', label: 'Portfolio' },
   ];
 
+  const userStats = [
+    { label: 'Holdings',  value: (aiContext.portfolio || []).length || '5' },
+    { label: 'Watchlist', value: '12' },
+    { label: 'Alerts',    value: '3' },
+  ];
+
   // Apply theme to <html>
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [isDark]);
 
   // Close drawer on outside click
@@ -128,17 +127,31 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount }: Head
               </span>
             </button>
 
-
-            <button
-              className={`profile-icon ${profileOpen ? 'active' : ''}`}
-              title="User Profile"
-              onClick={() => setProfileOpen(o => !o)}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-            </button>
+            {user ? (
+              <button
+                className={`profile-icon ${profileOpen ? 'active' : ''}`}
+                title="User Profile"
+                onClick={() => setProfileOpen(o => !o)}
+              >
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.name} className="header-avatar-img" />
+                ) : (
+                  <span className="header-avatar-initial">{user.name.charAt(0).toUpperCase()}</span>
+                )}
+              </button>
+            ) : (
+              <button
+                className="header-signin-btn"
+                onClick={() => setIsAuthModalOpen(true)}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                  <polyline points="10 17 15 12 10 7"/>
+                  <line x1="15" y1="12" x2="3" y2="12"/>
+                </svg>
+                <span>Sign In</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -147,93 +160,103 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount }: Head
       {profileOpen && <div className="profile-overlay" onClick={() => setProfileOpen(false)} />}
 
       {/* Profile Drawer */}
-      <aside className={`profile-drawer ${profileOpen ? 'open' : ''}`} ref={drawerRef}>
-        {/* Header */}
-        <div className="pd-header">
-          <div className="pd-avatar">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </div>
-          <div className="pd-identity">
-            <span className="pd-name">{USER_PROFILE.name}</span>
-            <span className="pd-handle">{USER_PROFILE.handle}</span>
-          </div>
-          <span className="pd-plan">{USER_PROFILE.plan}</span>
-          <button className="pd-close" onClick={() => setProfileOpen(false)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-
-        {/* Stats */}
-        <div className="pd-stats">
-          {USER_PROFILE.stats.map(s => (
-            <div key={s.label} className="pd-stat">
-              <span className="pd-stat-value">{s.value}</span>
-              <span className="pd-stat-label">{s.label}</span>
+      {user && (
+        <aside className={`profile-drawer ${profileOpen ? 'open' : ''}`} ref={drawerRef}>
+          {/* Header */}
+          <div className="pd-header">
+            <div className="pd-avatar">
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="pd-avatar-img" />
+              ) : (
+                <span className="pd-avatar-initial">{user.name.charAt(0).toUpperCase()}</span>
+              )}
             </div>
-          ))}
-        </div>
-
-        <div className="pd-divider" />
-
-        {/* Theme */}
-        <div className="pd-section-title">Appearance</div>
-        <div className="pd-theme-row">
-          <button
-            className={`pd-theme-btn ${isDark ? 'active' : ''}`}
-            onClick={() => setIsDark(true)}
-          >
-            <MoonIcon />
-            <span>Dark</span>
-          </button>
-          <button
-            className={`pd-theme-btn ${!isDark ? 'active' : ''}`}
-            onClick={() => setIsDark(false)}
-          >
-            <SunIcon />
-            <span>Light</span>
-          </button>
-        </div>
-
-        <div className="pd-divider" />
-
-        {/* Connection */}
-        <div className="pd-section-title">Connection</div>
-        <div className="pd-connection">
-          <span className={`pd-conn-dot ${backendOnline ? 'on' : 'off'}`} />
-          <span className="pd-conn-label">{backendOnline ? `Live · ${backendProvider}` : 'Backend Offline'}</span>
-        </div>
-
-        <div className="pd-divider" />
-
-        {/* Preferences */}
-        <div className="pd-section-title">Preferences</div>
-        <div className="pd-prefs">
-          {[
-            { icon: '🔔', label: 'Price Alerts',  value: 'On' },
-            { icon: '📊', label: 'Default View',  value: 'Chat' },
-            { icon: '🌐', label: 'Market',         value: 'NSE / BSE' },
-          ].map(p => (
-            <div key={p.label} className="pd-pref-row">
-              <span className="pd-pref-icon">{p.icon}</span>
-              <span className="pd-pref-label">{p.label}</span>
-              <span className="pd-pref-value">{p.value}</span>
+            <div className="pd-identity">
+              <span className="pd-name">{user.name}</span>
+              <span className="pd-handle">{user.handle}</span>
             </div>
-          ))}
-        </div>
+            <button className="pd-close" onClick={() => setProfileOpen(false)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
 
-        <div className="pd-divider" />
+          {/* Stats */}
+          <div className="pd-stats">
+            {userStats.map(s => (
+              <div key={s.label} className="pd-stat">
+                <span className="pd-stat-value">{s.value}</span>
+                <span className="pd-stat-label">{s.label}</span>
+              </div>
+            ))}
+          </div>
 
-        {/* Footer */}
-        <div className="pd-footer">
-          <span className="pd-since">Member since {USER_PROFILE.since}</span>
-          <button className="pd-signout">Sign Out</button>
-        </div>
-      </aside>
+          <div className="pd-divider" />
+
+          {/* Theme */}
+          <div className="pd-section-title">Appearance</div>
+          <div className="pd-theme-row">
+            <button
+              className={`pd-theme-btn ${isDark ? 'active' : ''}`}
+              onClick={() => setIsDark(true)}
+            >
+              <MoonIcon />
+              <span>Dark</span>
+            </button>
+            <button
+              className={`pd-theme-btn ${!isDark ? 'active' : ''}`}
+              onClick={() => setIsDark(false)}
+            >
+              <SunIcon />
+              <span>Light</span>
+            </button>
+          </div>
+
+          <div className="pd-divider" />
+
+          {/* Connection */}
+          <div className="pd-section-title">Connection</div>
+          <div className="pd-connection">
+            <span className={`pd-conn-dot ${backendOnline ? 'on' : 'off'}`} />
+            <span className="pd-conn-label">{backendOnline ? `Live · ${backendProvider}` : 'Backend Offline'}</span>
+          </div>
+
+          <div className="pd-divider" />
+
+          {/* Preferences */}
+          <div className="pd-section-title">Preferences</div>
+          <div className="pd-prefs">
+            {[
+              { icon: '🔔', label: 'Price Alerts',  value: 'On' },
+              { icon: '📊', label: 'Default View',  value: 'Chat' },
+              { icon: '🌐', label: 'Market',         value: 'NSE / BSE' },
+            ].map(p => (
+              <div key={p.label} className="pd-pref-row">
+                <span className="pd-pref-icon">{p.icon}</span>
+                <span className="pd-pref-label">{p.label}</span>
+                <span className="pd-pref-value">{p.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="pd-divider" />
+
+          {/* Footer */}
+          <div className="pd-footer">
+            <span className="pd-since">Member since {user.since}</span>
+            <button
+              className="pd-signout"
+              onClick={() => {
+                setProfileOpen(false);
+                logout();
+              }}
+            >
+              Sign Out
+            </button>
+          </div>
+        </aside>
+      )}
     </>
   );
 }

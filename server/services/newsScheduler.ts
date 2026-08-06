@@ -10,6 +10,7 @@
 
 import { analyzeBatch, AnalyzedArticleResult } from "./newsAnalyzer.js";
 import { NewsArticleInput } from "../prompts/newsPrompt.js";
+import { fetchCombinedRssNews } from "./rssService.js";
 
 export interface SchedulerCache {
   results: AnalyzedArticleResult[];
@@ -34,7 +35,22 @@ const cache: SchedulerCache = {
 let schedulerHandle: NodeJS.Timeout | null = null;
 const DEFAULT_INTERVAL_MS = 15 * 60 * 1000;
 
-export async function fetchLatestNews(): Promise<NewsArticleInput[]> {
+export async function fetchLatestNews(portfolio: any[] = []): Promise<NewsArticleInput[]> {
+  try {
+    const portfolioTickers = portfolio.map((p) => p.ticker || p.symbol).filter(Boolean);
+    const articles = await fetchCombinedRssNews({
+      portfolioTickers,
+      maxArticles: 25,
+    });
+
+    if (articles.length > 0) {
+      return articles;
+    }
+  } catch (err: any) {
+    console.warn(`[NewsScheduler] ⚠️ Live RSS fetch failed (${err.message}). Using fallback sample articles.`);
+  }
+
+  // Fallback to sample articles if RSS fails or returns empty
   return [
     {
       headline: "Reliance Industries reports record Q4 profit, beats estimates",
@@ -74,7 +90,7 @@ export async function runAnalysisCycle(): Promise<void> {
   );
 
   try {
-    const articles = await fetchLatestNews();
+    const articles = await fetchLatestNews(cache.portfolio);
     console.log(`[NewsScheduler] 📰 Fetched ${articles.length} articles`);
 
     if (articles.length === 0) {

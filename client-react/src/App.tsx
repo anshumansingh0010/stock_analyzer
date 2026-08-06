@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { AppProvider } from './context/AppContext';
 import Header       from './components/Header';
 import Toast        from './components/Toast';
+import AuthModal    from './components/AuthModal';
 import ChatTab      from './tabs/ChatTab/ChatTab';
 import MarketTab    from './tabs/MarketTab/MarketTab';
 import StocksTab    from './tabs/StocksTab/StocksTab';
@@ -32,6 +33,7 @@ export default function App() {
         {activeTab === 'news'      && <NewsTab onAlertCount={setNewsAlertCount} />}
         {activeTab === 'portfolio' && <PortfolioTab />}
       </main>
+      <AuthModal />
       <Toast />
     </AppProvider>
   );

@@ -1,0 +1,234 @@
+/* ═══════════════════════════════════════════════════════════════
+   NIFTY50GPT — Global Base Layout
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Universal tweakcn Theme Bridge */
+  --bg-base:          var(--background);
+  --bg-surface:       var(--card);
+  --bg-card:          var(--card);
+  --bg-elevated:      var(--muted);
+  --border-subtle:    var(--border);
+  --text-primary:      var(--foreground);
+  --text-secondary:    var(--muted-foreground);
+  --text-muted:        var(--muted-foreground);
+  --accent-primary:    var(--primary);
+
+  --accent-secondary: #00d4a8;
+  --accent-warn:      #f59e0b;
+  --accent-danger:    #ef4444;
+  --accent-bull:      #10b981;
+  --accent-bear:      #ef4444;
+
+  --header-h: 64px;
+  --sidebar-w: 240px;
+  --transition: 0.2s ease;
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 15px; scroll-behavior: smooth; transition: background-color 0.3s ease, color 0.3s ease; }
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 90vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Background grid (Clean & visible, perfectly balanced opacity) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(99,102,241,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,102,241,0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
+
+/* ═══ MAIN ═══════════════════════════════════════════════════ */
+.main {
+  margin-top: var(--header-h);
+  min-height: calc(100vh - var(--header-h));
+  position: relative;
+  z-index: 1;
+}
+
+/* Tab sections */
+.tab-section { display: none; height: calc(100vh - var(--header-h)); }
+.tab-section.active { display: flex; }
+
+/* ═══ PAGE TABS (Market & Portfolio) ═════════════════════════ */
+.tab-section#tab-market,
+.tab-section#tab-portfolio {
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.tab-section#tab-market.active,
+.tab-section#tab-portfolio.active {
+  display: flex;
+}
+
+.page-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 40px 48px 80px;
+  width: 100%;
+}
+
+.page-header {
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--text-primary), var(--accent-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.page-header p {
+  color: var(--text-secondary);
+  margin-top: 6px;
+  font-size: 0.9rem;
+}
+
+/* Data form grid */
+.data-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.data-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color var(--transition);
+}
+
+.data-card:hover { border-color: var(--border); }
+
+.data-card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.data-card-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: -6px;
+}
+
+.json-input {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 14px;
+  resize: vertical;
+  outline: none;
+  line-height: 1.6;
+  transition: border-color var(--transition);
+}
+
+.json-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+
+.json-input::placeholder { color: var(--text-muted); }
+
+.inject-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(0,212,168,0.1));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--accent-primary);
+  font-family: var(--font-sans);
+  font-size: 0.83rem;
+  font-weight: 500;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all var(--transition);
+  align-self: flex-start;
+}
+
+.inject-btn:hover {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+}
+
+/* ═══ TOAST ═══════════════════════════════════════════════════ */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 22px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 999;
+  pointer-events: none;
+  backdrop-filter: blur(12px);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast.success { border-color: var(--accent-bull); color: var(--accent-bull); }
+.toast.error   { border-color: var(--accent-danger); color: var(--accent-danger); }
+.toast.warn    { border-color: var(--accent-warn); color: var(--accent-warn); }
+
+/* ═══ RESPONSIVE ═════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .nav-pills { display: none; }
+  .chat-messages { padding: 16px; }
+  .chat-input-area { padding: 12px 16px 16px; }
+  .data-form-grid { grid-template-columns: 1fr; }
+  .page-container { padding: 24px 16px; }
+}
+
+@media (max-width: 600px) {
+  .header-inner { padding: 0 12px; }
+  .market-badge { display: none; }
+}

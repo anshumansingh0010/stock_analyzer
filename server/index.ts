@@ -21,6 +21,7 @@ import marketRoutes from "./routes/market.js";
 import alertRoutes from "./routes/alert.js";
 import portfolioRoutes from "./routes/portfolio.js";
 import marketdataRoutes from "./routes/marketdata.js";
+import authRoutes from "./routes/auth.js";
 import { startScheduler, getStatus as getNewsStatus } from "./services/newsScheduler.js";
 
 const server = Fastify({ logger: true });
@@ -52,6 +53,7 @@ async function setupServer() {
   });
 
   // ─── Route Registration (Layers 1–6) ─────────────────────────────
+  await server.register(authRoutes, { prefix: "/api/auth" });
   await server.register(chatRoutes, { prefix: "/api/chat" });
   await server.register(newsRoutes, { prefix: "/api/news" });
   await server.register(stockRoutes, { prefix: "/api/stock" });

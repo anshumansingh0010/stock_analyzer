@@ -89,6 +89,150 @@ const DEFAULT_NEWS_RESULTS = [
       shortTerm: "+2.0% to +3.2% upside momentum in EV & Auto OEM tickers",
       longTerm: "+15% expansion in domestic EV manufacturing capacity over next 3 years"
     }
+  },
+  {
+    id: 5,
+    headline: "TCS signs $1.2B multi-year cloud transformation contract with European telecom major",
+    summary: "Tata Consultancy Services secured a major $1.2 billion IT overhaul deal to modernize cloud infrastructure and AI automation for a European telecommunications leader.",
+    source: "Moneycontrol",
+    timestamp: new Date(Date.now() - 150 * 60 * 1000).toISOString(),
+    overallMarketSentiment: "BULLISH",
+    confidence: 93,
+    urgency: "MEDIUM",
+    sectorAffected: ["IT", "Telecom"],
+    companies: [
+      { ticker: "TCS", name: "Tata Consultancy Services", sentiment: "BULLISH", sentimentScore: 0.89, inUserPortfolio: true, reason: "Mega deal win strengthens long-term TCV order book visibility." }
+    ],
+    expectedImpact: {
+      shortTerm: "+1.2% to +1.8% gain on order book expansion announcement",
+      longTerm: "Sustained margin support over 5-year contract execution period"
+    }
+  },
+  {
+    id: 6,
+    headline: "HDFC Bank reports 18.2% YoY credit growth and stable net interest margins in Q4",
+    summary: "HDFC Bank registered robust loan book growth of 18.2% year-on-year, while asset quality remained steady with gross NPA dropping to 1.24%.",
+    source: "Financial Express",
+    timestamp: new Date(Date.now() - 180 * 60 * 1000).toISOString(),
+    overallMarketSentiment: "BULLISH",
+    confidence: 90,
+    urgency: "HIGH",
+    sectorAffected: ["Banking", "Financials"],
+    companies: [
+      { ticker: "HDFCBANK", name: "HDFC Bank", sentiment: "BULLISH", sentimentScore: 0.91, inUserPortfolio: true, reason: "Strong retail & corporate credit expansion with low delinquency rates." }
+    ],
+    expectedImpact: {
+      shortTerm: "+1.5% intraday surge expected on solid credit growth metrics",
+      longTerm: "+10% compounding expected as post-merger integration synergies kick in"
+    }
+  },
+  {
+    id: 7,
+    headline: "Tata Motors JLR global retail sales jump 14% on strong EV & luxury SUV demand",
+    summary: "Jaguar Land Rover posted a 14% rise in quarterly global retail sales driven by strong demand for Defender and Range Rover EV models across Europe and North America.",
+    source: "Economic Times",
+    timestamp: new Date(Date.now() - 210 * 60 * 1000).toISOString(),
+    overallMarketSentiment: "BULLISH",
+    confidence: 92,
+    urgency: "MEDIUM",
+    sectorAffected: ["Auto"],
+    companies: [
+      { ticker: "TATAMOTORS", name: "Tata Motors", sentiment: "BULLISH", sentimentScore: 0.87, inUserPortfolio: false, reason: "JLR free cash flow generation continues to de-leverage balance sheet." }
+    ],
+    expectedImpact: {
+      shortTerm: "+1.4% price appreciation expected on JLR retail volume expansion",
+      longTerm: "De-leveraging target achieved early boosting consolidated EPS"
+    }
+  },
+  {
+    id: 8,
+    headline: "State Bank of India Q4 net profit jumps 24% as asset quality reaches decade-best",
+    summary: "India's largest lender State Bank of India posted a 24% YoY rise in net profit to ₹16,690 crore. Net NPA fell below 0.6% reflecting pristine balance sheet quality.",
+    source: "Livemint",
+    timestamp: new Date(Date.now() - 240 * 60 * 1000).toISOString(),
+    overallMarketSentiment: "BULLISH",
+    confidence: 95,
+    urgency: "HIGH",
+    sectorAffected: ["PSU Banking", "Financials"],
+    companies: [
+      { ticker: "SBIN", name: "State Bank of India", sentiment: "BULLISH", sentimentScore: 0.93, inUserPortfolio: false, reason: "Decade-low NPA levels & strong ROA expansion." }
+    ],
+    expectedImpact: {
+      shortTerm: "+2.2% rally across PSU Bank index following SBI outperformance",
+      longTerm: "Sustained rerating of PSU banking majors led by SBI balance sheet strength"
+    }
+  },
+  {
+    id: 9,
+    headline: "Larsen & Toubro secures mega ₹8,500 Cr offshore EPC contract in Middle East",
+    summary: "L&T Hydrocarbon division won a mega offshore engineering and construction contract from a major Middle Eastern energy giant.",
+    source: "Business Standard",
+    timestamp: new Date(Date.now() - 270 * 60 * 1000).toISOString(),
+    overallMarketSentiment: "BULLISH",
+    confidence: 88,
+    urgency: "MEDIUM",
+    sectorAffected: ["Cap Goods", "Infrastructure"],
+    companies: [
+      { ticker: "LT", name: "Larsen & Toubro", sentiment: "BULLISH", sentimentScore: 0.86, inUserPortfolio: false, reason: "International order book inflow provides multi-year revenue execution visibility." }
+    ],
+    expectedImpact: {
+      shortTerm: "+1.1% gain following order win announcement",
+      longTerm: "+12% order backlog growth supporting revenue guidance"
+    }
+  },
+  {
+    id: 10,
+    headline: "Bharti Airtel tariff hikes drive ARPU up to ₹220 per user in Q4",
+    summary: "Bharti Airtel's average revenue per user (ARPU) expanded to ₹220 per month following entry-level tariff adjustments and 5G premium package upgrades.",
+    source: "CNBC TV18",
+    timestamp: new Date(Date.now() - 300 * 60 * 1000).toISOString(),
+    overallMarketSentiment: "BULLISH",
+    confidence: 91,
+    urgency: "HIGH",
+    sectorAffected: ["Telecom"],
+    companies: [
+      { ticker: "BHARTIARTL", name: "Bharti Airtel", sentiment: "BULLISH", sentimentScore: 0.90, inUserPortfolio: false, reason: "ARPU expansion directly translates to operating leverage and free cash flow." }
+    ],
+    expectedImpact: {
+      shortTerm: "+1.6% rise on strong monetization metrics",
+      longTerm: "Accelerated 5G capex payback and debt reduction"
+    }
+  },
+  {
+    id: 11,
+    headline: "Maruti Suzuki announces $1.5B investment for localized EV battery manufacturing",
+    summary: "Maruti Suzuki India confirmed a $1.5 billion capital expenditure plan to set up a dedicated EV battery plant in Gujarat to power its upcoming electric SUV lineup.",
+    source: "Economic Times",
+    timestamp: new Date(Date.now() - 330 * 60 * 1000).toISOString(),
+    overallMarketSentiment: "BULLISH",
+    confidence: 87,
+    urgency: "MEDIUM",
+    sectorAffected: ["Auto"],
+    companies: [
+      { ticker: "MARUTI", name: "Maruti Suzuki", sentiment: "BULLISH", sentimentScore: 0.84, inUserPortfolio: false, reason: "Local EV battery supply chain secures competitive cost pricing against imports." }
+    ],
+    expectedImpact: {
+      shortTerm: "+0.9% movement as market evaluates EV transition timeline",
+      longTerm: "Market share defense in EV segment starting 2027"
+    }
+  },
+  {
+    id: 12,
+    headline: "Sun Pharma receives US FDA final approval for specialty dermatology formulation",
+    summary: "Sun Pharmaceutical Industries announced US FDA approval for its NDA specialty drug used in chronic plaque psoriasis, expanding its high-margin US specialty pipeline.",
+    source: "Mint",
+    timestamp: new Date(Date.now() - 360 * 60 * 1000).toISOString(),
+    overallMarketSentiment: "BULLISH",
+    confidence: 94,
+    urgency: "HIGH",
+    sectorAffected: ["Pharma", "Healthcare"],
+    companies: [
+      { ticker: "SUNPHARMA", name: "Sun Pharma", sentiment: "BULLISH", sentimentScore: 0.92, inUserPortfolio: false, reason: "FDA approval adds exclusive US specialty revenue stream." }
+    ],
+    expectedImpact: {
+      shortTerm: "+2.1% price surge expected on FDA clearance catalyst",
+      longTerm: "High margin specialty business growth expanding gross margins"
+    }
   }
 ];
 
@@ -99,6 +243,8 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
   const [filter, setFilter]         = useState<string>('ALL');
   const [scheduler, setScheduler]   = useState<SchedulerInfo | null>(null);
   const [triggering, setTriggering] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const PAGE_SIZE = 10;
 
   // Custom article form
   const [headline, setHeadline] = useState<string>('');
@@ -166,12 +312,21 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
     finally { setAnalyzing(false); }
   }
 
+  const handleFilterChange = (f: string) => {
+    setFilter(f);
+    setCurrentPage(1);
+  };
+
   const filtered = results.filter(r => {
     if (filter === 'ALL')              return true;
     if (filter === 'PORTFOLIO IMPACT') return r.companies?.some((c: any) => c.inUserPortfolio);
     if (filter === 'HIGH IMPACT')      return r.urgency === 'HIGH';
     return r.overallMarketSentiment === filter;
   });
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const paginatedNews = filtered.slice(startIndex, startIndex + PAGE_SIZE);
 
   const schedulerLabel = !scheduler ? 'Offline' : scheduler.isRunning ? 'Analyzing Live Feed...' : 'Live Feed Active';
 
@@ -221,7 +376,7 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
         {/* Category & Impact Filter Chips */}
         <div className="news-filters">
           {FILTERS.map(f => (
-            <button key={f} className={`filter-chip ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>
+            <button key={f} className={`filter-chip ${filter === f ? 'active' : ''}`} onClick={() => handleFilterChange(f)}>
               {f === 'ALL' ? 'All News'
                 : f === 'BULLISH' ? '🟢 Bullish'
                 : f === 'BEARISH' ? '🔴 Bearish'
@@ -232,14 +387,44 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
           ))}
         </div>
 
-        {/* Structured News Cards Grid */}
+        {/* Structured News Cards Grid (Paginated 10 items) */}
         <div className="news-grid full-width-news">
           {filtered.length === 0 ? (
             <div className="news-empty" style={{ display: 'flex' }}>
               <p>No news matching current filter. Click <strong>Refresh Now</strong> to trigger Layer 2.</p>
             </div>
-          ) : filtered.map((r, i) => <RichNewsCard key={i} result={r} />)}
+          ) : paginatedNews.map((r, i) => <RichNewsCard key={i} result={r} />)}
         </div>
+
+        {/* News Pagination Bar */}
+        {filtered.length > 0 && (
+          <div className="news-pagination-bar">
+            <div className="pagination-info">
+              Showing <strong>{startIndex + 1}–{Math.min(startIndex + PAGE_SIZE, filtered.length)}</strong> of <strong>{filtered.length}</strong> news articles
+            </div>
+            <div className="pagination-controls">
+              <button 
+                className="pagination-btn" 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+                Previous
+              </button>
+              <span className="pagination-page-num">
+                Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
+              </span>
+              <button 
+                className="pagination-btn" 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage >= totalPages}
+              >
+                Next
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Custom Article Analyzer Card */}
         <div className="market-widget sf-widget" style={{ marginTop: 16 }}>

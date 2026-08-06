@@ -127,6 +127,17 @@ export interface AiContextState {
   portfolio: PortfolioHolding[];
 }
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  handle: string;
+  since: string;
+  avatarUrl?: string;
+  provider?: 'email' | 'google' | 'otp' | 'phone';
+}
+
 export interface AppContextType {
   aiContext: AiContextState;
   setAiContext: React.Dispatch<React.SetStateAction<AiContextState>>;
@@ -139,4 +150,13 @@ export interface AppContextType {
   backendProvider: string;
   toast: ToastState;
   showToast: (msg: string, type?: ToastState['type']) => void;
+  user: UserProfile | null;
+  setUser: React.Dispatch<React.SetStateAction<UserProfile | null>>;
+  login: (email: string, name?: string, avatarUrl?: string, provider?: 'email' | 'google' | 'otp') => void;
+  loginWithGoogle: () => Promise<void>;
+  sendOtp: (identifier: string) => Promise<{ success: boolean; otp?: string; message?: string }>;
+  verifyOtp: (identifier: string, otp: string, name?: string) => Promise<{ success: boolean; message?: string }>;
+  logout: () => void;
+  isAuthModalOpen: boolean;
+  setIsAuthModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
