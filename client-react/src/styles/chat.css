@@ -44,7 +44,7 @@
 }
 
 .quick-btn:hover {
-  background: rgba(99,102,241,0.1);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
   border-color: var(--accent-primary);
   color: var(--text-primary);
   transform: translateX(2px);
@@ -74,7 +74,7 @@
   transition: all var(--transition);
 }
 .ctx-dot.off { background: var(--text-muted); opacity: 0.4; }
-.ctx-dot.on { background: var(--accent-secondary); box-shadow: 0 0 6px rgba(0,212,168,0.5); }
+.ctx-dot.on { background: var(--accent-secondary); box-shadow: 0 0 6px color-mix(in srgb, var(--secondary) 50%, transparent); }
 
 /* Clear button */
 .clear-btn {
@@ -139,7 +139,7 @@
 }
 
 .message.assistant .msg-avatar {
-  background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(0,212,168,0.15));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 20%, transparent), color-mix(in srgb, var(--secondary) 15%, transparent));
   border: 1px solid var(--border);
   color: var(--accent-secondary);
 }
@@ -149,7 +149,7 @@
 }
 
 .message.user .msg-avatar {
-  background: linear-gradient(135deg, var(--accent-primary), #818cf8);
+background: linear-gradient(135deg, var(--accent-primary), var(--primary));
   color: white;
   font-size: 0.85rem;
 }
@@ -177,9 +177,9 @@
 .msg-badge {
   font-size: 0.68rem;
   font-weight: 500;
-  background: rgba(99,102,241,0.15);
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
   color: var(--accent-primary);
-  border: 1px solid rgba(99,102,241,0.25);
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
   border-radius: 99px;
   padding: 2px 8px;
 }
@@ -195,8 +195,8 @@
 }
 
 .message.user .msg-body {
-  background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(129,140,248,0.1));
-  border-color: rgba(99,102,241,0.25);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 15%, transparent), rgba(129,140,248,0.1));
+  border-color: color-mix(in srgb, var(--primary) 25%, transparent);
   border-radius: var(--radius-md) 0 var(--radius-md) var(--radius-md);
 }
 
@@ -209,7 +209,7 @@
 .msg-body .disclaimer {
   margin-top: 12px;
   padding: 8px 12px;
-  background: rgba(245,158,11,0.08);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   border-left: 3px solid var(--accent-warn);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   font-size: 0.82rem;
@@ -225,7 +225,7 @@
 .msg-body .section-insights { margin-bottom: 10px; }
 .msg-body .section-impact {
   padding: 10px 12px;
-  background: rgba(16,185,129,0.07);
+  background: color-mix(in srgb, var(--secondary) 7%, transparent);
   border-left: 3px solid var(--accent-bull);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   margin-top: 10px;
@@ -254,7 +254,7 @@
 }
 
 /* Welcome message special styling */
-.welcome-msg .msg-body { border-color: rgba(99,102,241,0.2); }
+.welcome-msg .msg-body { border-color: color-mix(in srgb, var(--primary) 20%, transparent); }
 
 /* ── Input Area ── */
 .chat-input-area {
@@ -264,8 +264,8 @@
 }
 
 .warnings-bar {
-  background: rgba(245,158,11,0.08);
-  border: 1px solid rgba(245,158,11,0.2);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
   border-radius: var(--radius-sm);
   padding: 8px 14px;
   margin-bottom: 12px;
@@ -290,7 +290,7 @@
 
 .input-wrapper:focus-within {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent);
 }
 
 textarea#chat-input {
@@ -313,7 +313,7 @@ textarea#chat-input::placeholder { color: var(--text-muted); }
 .send-btn {
   width: 48px; height: 48px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--accent-primary), #818cf8);
+background: linear-gradient(135deg, var(--accent-primary), var(--primary));
   border: none;
   cursor: pointer;
   display: flex;
@@ -321,14 +321,14 @@ textarea#chat-input::placeholder { color: var(--text-muted); }
   justify-content: center;
   transition: all var(--transition);
   flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .send-btn svg { width: 18px; height: 18px; stroke: white; }
 
 .send-btn:hover {
   transform: scale(1.06);
-  box-shadow: 0 6px 20px rgba(99,102,241,0.45);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 45%, transparent);
 }
 
 .send-btn:disabled {

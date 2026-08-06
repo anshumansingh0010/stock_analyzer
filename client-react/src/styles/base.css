@@ -14,11 +14,11 @@
   --text-muted:        var(--muted-foreground);
   --accent-primary:    var(--primary);
 
-  --accent-secondary: #00d4a8;
-  --accent-warn:      #f59e0b;
-  --accent-danger:    #ef4444;
-  --accent-bull:      #10b981;
-  --accent-bear:      #ef4444;
+  --accent-secondary: var(--secondary);
+  --accent-warn:      var(--accent);
+  --accent-danger:    var(--destructive);
+  --accent-bull:      var(--secondary);
+  --accent-bear:      var(--destructive);
 
   --header-h: 64px;
   --sidebar-w: 240px;
@@ -46,8 +46,8 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(99,102,241,0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99,102,241,0.035) 1px, transparent 1px);
+    linear-gradient(color-mix(in srgb, var(--primary) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--primary) 4%, transparent) 1px, transparent 1px);
   background-size: 48px 48px;
   pointer-events: none;
   z-index: 0;
@@ -160,7 +160,7 @@ body::before {
 
 .json-input:focus {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 .json-input::placeholder { color: var(--text-muted); }
@@ -169,7 +169,7 @@ body::before {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(0,212,168,0.1));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 15%, transparent), color-mix(in srgb, var(--secondary) 10%, transparent));
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--accent-primary);
@@ -178,15 +178,28 @@ body::before {
   font-weight: 500;
   padding: 10px 16px;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   align-self: flex-start;
 }
 
 .inject-btn:hover {
   background: var(--accent-primary);
   border-color: var(--accent-primary);
-  color: white;
-  box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+  color: var(--primary-foreground);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.inject-btn:active {
+  transform: scale(0.96);
+}
+
+/* ── UI Skills: Tactile Press Feedback for all Interactive Controls ── */
+button, .btn, .nav-pill, .action-btn, .pagination-btn, .tab-btn {
+  transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:active, .btn:active, .nav-pill:active, .action-btn:active, .pagination-btn:active, .tab-btn:active {
+  transform: scale(0.96);
 }
 
 /* ═══ TOAST ═══════════════════════════════════════════════════ */
