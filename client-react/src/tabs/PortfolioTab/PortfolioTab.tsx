@@ -9,6 +9,7 @@ import {
   MonthlyReturnsGrid,
   RiskAndSharpeWidget
 } from './PortfolioCharts';
+import { BarChart3, Briefcase, TrendingDown, TrendingUp, Zap } from 'lucide-react';
 
 interface RawHolding {
   stock?: string;
@@ -149,26 +150,26 @@ export default function PortfolioTab() {
             label="Total Invested"
             value={`₹${totalInvested.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
             sub="Capital Deployed"
-            icon="💼"
+            icon={<Briefcase className="w-4 h-4 text-indigo-400" />}
           />
           <SummaryCard
             label="Current Value"
             value={`₹${totalValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
             sub="Mark-to-Market"
-            icon="📊"
+            icon={<BarChart3 className="w-4 h-4 text-blue-400" />}
           />
           <SummaryCard
             label="Unrealized P&L"
             value={`${totalPnL >= 0 ? '+' : ''}₹${totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
             sub={`${Number(totalPct) >= 0 ? '+' : ''}${totalPct}% Total Return`}
-            icon={totalPnL >= 0 ? '▲' : '▼'}
+            icon={totalPnL >= 0 ? <TrendingUp className="w-4 h-4 text-emerald-400" /> : <TrendingDown className="w-4 h-4 text-rose-400" />}
             highlight={totalPnL >= 0 ? 'bull' : 'bear'}
           />
           <SummaryCard
             label="Sharpe Ratio"
             value="1.85"
             sub="Risk Adjusted Return"
-            icon="⚡"
+            icon={<Zap className="w-4 h-4 text-amber-400" />}
             highlight="bull"
           />
           <SummaryCard
@@ -265,7 +266,7 @@ interface SummaryCardProps {
   label: string;
   value: string | number;
   sub?: string;
-  icon: string;
+  icon: React.ReactNode;
   highlight?: 'bull' | 'bear';
 }
 

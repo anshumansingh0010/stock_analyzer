@@ -1,22 +1,23 @@
 import { useState } from 'react';
+import { Sparkles, BarChart3, Users, Landmark, FileText, Target, PieChart, TrendingUp, Briefcase } from 'lucide-react';
 
 interface StockFundamentalsProps {
   ticker: string;
-  stockName: string;
-  sector: string;
+  stockName?: string;
+  sector?: string;
   price?: number;
   reportHtml?: string;
   reportTime?: string;
 }
 
-export function StockFundamentals({ ticker, stockName, sector, price = 2840, reportHtml, reportTime }: StockFundamentalsProps) {
+export function StockFundamentals({ ticker, stockName, sector = 'Technology', reportHtml, reportTime }: StockFundamentalsProps) {
   const [viewTab, setViewTab] = useState<'overview' | 'financials' | 'peers' | 'shareholding' | 'all'>('overview');
 
   const peerList = [
-    { ticker: ticker, name: stockName, price: price, pe: 28.4, pb: 4.2, roe: 18.5, mcap: '19.2 Lakh Cr', rating: 'BUY' },
-    { ticker: 'TCS', name: 'Tata Consultancy', price: 4120, pe: 31.2, pb: 12.8, roe: 46.2, mcap: '14.8 Lakh Cr', rating: 'STRONG BUY' },
-    { ticker: 'INFY', name: 'Infosys Ltd', price: 1780, pe: 25.8, pb: 7.4, roe: 31.0, mcap: '7.4 Lakh Cr', rating: 'BUY' },
-    { ticker: 'HDFCBANK', name: 'HDFC Bank', price: 1640, pe: 18.6, pb: 2.8, roe: 16.8, mcap: '12.4 Lakh Cr', rating: 'BUY' },
+    { ticker: 'TCS', name: 'Tata Consultancy', price: 4120, pe: 30.2, pb: 12.8, roe: 48.2, mcap: '₹14.9 L Cr', rating: 'BUY' },
+    { ticker: 'INFY', name: 'Infosys Ltd', price: 1780, pe: 24.8, pb: 7.2, roe: 31.5, mcap: '₹7.4 L Cr', rating: 'BUY' },
+    { ticker: 'HCLTECH', name: 'HCL Technologies', price: 1540, pe: 23.1, pb: 5.6, roe: 25.8, mcap: '₹4.2 L Cr', rating: 'OUTPERFORM' },
+    { ticker: 'WIPRO', name: 'Wipro Ltd', price: 495, pe: 20.4, pb: 3.1, roe: 15.8, mcap: '₹2.6 L Cr', rating: 'HOLD' },
   ];
 
   return (
@@ -25,17 +26,18 @@ export function StockFundamentals({ ticker, stockName, sector, price = 2840, rep
       {/* View Section Navigation Tabs */}
       <div className="fundamentals-nav-tabs">
         {[
-          ['overview', '🧠 AI & Analyst Overview'],
-          ['financials', '📊 Financial Ratios & Quarterly'],
-          ['peers', '⚔️ Peer Benchmarking'],
-          ['shareholding', '🏛️ Shareholding & FII/DII'],
-          ['all', '📄 View All Sections'],
-        ].map(([key, label]) => (
+          ['overview', 'AI & Analyst Overview', <Sparkles className="w-4 h-4 text-indigo-400 inline mr-1.5" />],
+          ['financials', 'Financial Ratios & Quarterly', <BarChart3 className="w-4 h-4 text-blue-400 inline mr-1.5" />],
+          ['peers', 'Peer Benchmarking', <Users className="w-4 h-4 text-amber-400 inline mr-1.5" />],
+          ['shareholding', 'Shareholding & FII/DII', <Landmark className="w-4 h-4 text-emerald-400 inline mr-1.5" />],
+          ['all', 'View All Sections', <FileText className="w-4 h-4 text-slate-400 inline mr-1.5" />],
+        ].map(([key, label, icon]) => (
           <button
-            key={key}
+            key={key as string}
             className={`f-nav-btn ${viewTab === key ? 'active' : ''}`}
             onClick={() => setViewTab(key as any)}
           >
+            {icon}
             {label}
           </button>
         ))}
@@ -47,7 +49,7 @@ export function StockFundamentals({ ticker, stockName, sector, price = 2840, rep
           {reportHtml ? (
             <div className="market-widget sf-widget ai-summary-widget">
               <div className="widget-header">
-                <h4>🧠 AI Summary &amp; Comprehensive Report</h4>
+                <h4 className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-indigo-400" /> AI Summary &amp; Comprehensive Report</h4>
                 <span className="widget-tag bull">Layer 3 Analysis · {reportTime || 'Live'}</span>
               </div>
               <div className="stock-report-content" dangerouslySetInnerHTML={{ __html: reportHtml }} />
@@ -55,7 +57,7 @@ export function StockFundamentals({ ticker, stockName, sector, price = 2840, rep
           ) : (
             <div className="market-widget sf-widget ai-summary-widget">
               <div className="widget-header">
-                <h4>🧠 AI Technical &amp; Fundamental Summary</h4>
+                <h4 className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-indigo-400" /> AI Technical &amp; Fundamental Summary</h4>
                 <span className="widget-tag bull">Bullish Bias</span>
               </div>
               <div className="ai-summary-bullets">
@@ -84,7 +86,7 @@ export function StockFundamentals({ ticker, stockName, sector, price = 2840, rep
           {/* Analyst Ratings & Target Price Box */}
           <div className="market-widget sf-widget">
             <div className="widget-header">
-              <h4>🎯 Analyst Ratings &amp; Target Price</h4>
+              <h4 className="flex items-center gap-2"><Target className="w-5 h-5 text-indigo-400" /> Analyst Ratings &amp; Target Price</h4>
               <span className="widget-tag bull">Consensus: BUY</span>
             </div>
             <div className="analyst-ratings-body">
@@ -129,7 +131,7 @@ export function StockFundamentals({ ticker, stockName, sector, price = 2840, rep
           {/* Key Financial Ratios */}
           <div className="market-widget sf-widget">
             <div className="widget-header">
-              <h4>📊 Key Financial Ratios</h4>
+              <h4 className="flex items-center gap-2"><PieChart className="w-5 h-5 text-blue-400" /> Key Financial Ratios</h4>
               <span className="widget-tag">TTM Metrics</span>
             </div>
             <div className="ratios-grid">
@@ -179,7 +181,7 @@ export function StockFundamentals({ ticker, stockName, sector, price = 2840, rep
           {/* Quarterly Results */}
           <div className="market-widget sf-widget">
             <div className="widget-header">
-              <h4>📈 Quarterly Financial Results (₹ Cr)</h4>
+              <h4 className="flex items-center gap-2"><TrendingUp className="w-5 h-5 text-emerald-400" /> Quarterly Financial Results (₹ Cr)</h4>
               <span className="widget-tag">Consolidated</span>
             </div>
             <div className="quarterly-table-wrap">
@@ -230,7 +232,7 @@ export function StockFundamentals({ ticker, stockName, sector, price = 2840, rep
       {(viewTab === 'peers' || viewTab === 'all') && (
         <div className="market-widget sf-widget">
           <div className="widget-header">
-            <h4>⚔️ Peer Comparison &amp; Sector Benchmarking</h4>
+            <h4 className="flex items-center gap-2"><Users className="w-5 h-5 text-amber-400" /> Peer Comparison &amp; Sector Benchmarking</h4>
             <span className="widget-tag">{sector} Sector</span>
           </div>
           <div className="peers-table-wrap">
@@ -275,25 +277,25 @@ export function StockFundamentals({ ticker, stockName, sector, price = 2840, rep
           {/* Shareholding Pattern */}
           <div className="market-widget sf-widget">
             <div className="widget-header">
-              <h4>🏛️ Shareholding Pattern</h4>
+              <h4 className="flex items-center gap-2"><Landmark className="w-5 h-5 text-indigo-400" /> Shareholding Pattern</h4>
               <span className="widget-tag">Q3 FY25</span>
             </div>
             <div className="shareholding-list">
               <div className="sh-item">
                 <div className="sh-info"><span className="sh-name">Promoters</span><span className="sh-val">50.3%</span></div>
-                <div className="alloc-bar-bg"><div className="alloc-bar-fill" style={{ width: '50.3%', background: '#6366f1' }} /></div>
+                <div className="alloc-bar-bg"><div className="alloc-bar-fill" style={{ width: '50.3%', background: 'var(--primary)' }} /></div>
               </div>
               <div className="sh-item">
                 <div className="sh-info"><span className="sh-name">Foreign Institutions (FII)</span><span className="sh-val">22.4%</span></div>
-                <div className="alloc-bar-bg"><div className="alloc-bar-fill" style={{ width: '22.4%', background: '#00d4a8' }} /></div>
+                <div className="alloc-bar-bg"><div className="alloc-bar-fill" style={{ width: '22.4%', background: 'var(--secondary)' }} /></div>
               </div>
               <div className="sh-item">
                 <div className="sh-info"><span className="sh-name">Domestic Institutions (DII)</span><span className="sh-val">16.8%</span></div>
-                <div className="alloc-bar-bg"><div className="alloc-bar-fill" style={{ width: '16.8%', background: '#f59e0b' }} /></div>
+                <div className="alloc-bar-bg"><div className="alloc-bar-fill" style={{ width: '16.8%', background: 'var(--accent)' }} /></div>
               </div>
               <div className="sh-item">
                 <div className="sh-info"><span className="sh-name">Public &amp; Retail</span><span className="sh-val">10.5%</span></div>
-                <div className="alloc-bar-bg"><div className="alloc-bar-fill" style={{ width: '10.5%', background: '#94a3b8' }} /></div>
+                <div className="alloc-bar-bg"><div className="alloc-bar-fill" style={{ width: '10.5%', background: 'var(--muted-foreground)' }} /></div>
               </div>
             </div>
           </div>
@@ -301,7 +303,7 @@ export function StockFundamentals({ ticker, stockName, sector, price = 2840, rep
           {/* Institutional Holdings Trends */}
           <div className="market-widget sf-widget">
             <div className="widget-header">
-              <h4>💼 Institutional Holdings Trend</h4>
+              <h4 className="flex items-center gap-2"><Briefcase className="w-5 h-5 text-blue-400" /> Institutional Holdings Trend</h4>
               <span className="widget-tag bull">FII Buying +1.2%</span>
             </div>
             <div className="inst-trend-body">

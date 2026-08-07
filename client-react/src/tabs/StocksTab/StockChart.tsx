@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BarChart3 } from 'lucide-react';
 
 interface CandleData {
   time: string;
@@ -81,7 +82,7 @@ export function StockChart({ ticker, stockName, price = 2840 }: { ticker: string
       {/* Chart Header & Compact Indicator Bar */}
       <div className="widget-header">
         <div className="compact-header-title">
-          <h4>📊 Technical Candlestick Chart ({ticker})</h4>
+          <h4 className="flex items-center gap-2"><BarChart3 className="w-5 h-5 text-indigo-400" /> Technical Candlestick Chart ({ticker})</h4>
           <div className="ohlc-inline-legend">
             <span>O: <strong>₹{activeCandle.open.toFixed(1)}</strong></span>
             <span>H: <strong>₹{activeCandle.high.toFixed(1)}</strong></span>

@@ -381,35 +381,26 @@
 .full-width-news {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
 }
 
 .rich-news-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 28px 32px;
+  padding: 22px 26px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
   transition: all var(--transition);
   position: relative;
-  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .rich-news-card:hover {
   border-color: var(--border);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-}
-
-.rich-news-card.bullish { border-left: 4px solid var(--accent-bull); }
-.rich-news-card.bearish { border-left: 4px solid var(--accent-bear); }
-.rich-news-card.neutral { border-left: 4px solid var(--accent-warn); }
-
-.rich-news-card.portfolio-hit-card {
-  box-shadow: 0 0 20px color-mix(in srgb, var(--primary) 15%, transparent);
-  border-color: var(--border);
 }
 
 .rnc-top-bar {
@@ -423,63 +414,79 @@
 .rnc-badges {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .rnc-sentiment-badge {
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 99px;
-  display: flex;
+  padding: 4px 14px;
+  border-radius: 999px;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  letter-spacing: 0.03em;
 }
 
-.rnc-sentiment-badge.sentiment-BULLISH { background: color-mix(in srgb, var(--secondary) 14%, transparent); color: var(--accent-bull); border: 1px solid color-mix(in srgb, var(--secondary) 30%, transparent); }
-.rnc-sentiment-badge.sentiment-BEARISH { background: color-mix(in srgb, var(--destructive) 14%, transparent); color: var(--accent-bear); border: 1px solid color-mix(in srgb, var(--destructive) 30%, transparent); }
-.rnc-sentiment-badge.sentiment-NEUTRAL { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent-warn); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
-
-.rnc-confidence-badge {
-  font-size: 0.72rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  background: var(--bg-surface);
-  color: var(--accent-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 99px;
-  padding: 3px 10px;
+.rnc-sentiment-badge.sentiment-BULLISH {
+  background: color-mix(in srgb, var(--accent-bull) 15%, transparent);
+  color: var(--accent-bull);
+  border: 1px solid color-mix(in srgb, var(--accent-bull) 30%, transparent);
 }
 
-.rnc-urgency-badge {
-  font-size: 0.7rem;
+.rnc-sentiment-badge.sentiment-BEARISH {
+  background: color-mix(in srgb, var(--accent-bear) 15%, transparent);
+  color: var(--accent-bear);
+  border: 1px solid color-mix(in srgb, var(--accent-bear) 30%, transparent);
+}
+
+.rnc-sentiment-badge.sentiment-NEUTRAL {
+  background: color-mix(in srgb, var(--accent-warn) 15%, transparent);
+  color: var(--accent-warn);
+  border: 1px solid color-mix(in srgb, var(--accent-warn) 30%, transparent);
+}
+
+.rnc-pill-tag {
+  font-size: 0.76rem;
   font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 99px;
+  padding: 4px 14px;
+  border-radius: 999px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rnc-pill-tag.portfolio {
+  color: var(--accent-bull);
+  border-color: color-mix(in srgb, var(--accent-bull) 30%, transparent);
+  background: color-mix(in srgb, var(--accent-bull) 10%, transparent);
 }
 
 .rnc-time {
-  font-size: 0.74rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
-  font-family: var(--font-mono);
+  font-family: var(--font-mono, monospace);
+  margin-left: auto;
 }
 
 .rnc-headline {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.4;
   letter-spacing: -0.01em;
+  margin: 2px 0;
 }
 
 .rnc-summary {
   font-size: 0.88rem;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.55;
+  margin: 0;
 }
 
 /* Affected Stocks List */
@@ -489,16 +496,21 @@
   gap: 12px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
+  border-radius: 999px;
+  padding: 8px 18px;
   flex-wrap: wrap;
+  margin: 4px 0;
 }
 
 .rnc-sub-label {
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 700;
   color: var(--text-muted);
-  text-transform: uppercase;
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .rnc-stock-tags {
@@ -508,83 +520,90 @@
   flex-wrap: wrap;
 }
 
-.rnc-stock-tag {
-  display: flex;
+.rnc-stock-pill {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 4px 10px;
+  background: color-mix(in srgb, var(--accent-bull) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-bull) 25%, transparent);
+  color: var(--accent-bull);
+  border-radius: 999px;
+  padding: 3px 14px;
   font-size: 0.78rem;
-}
-
-.rnc-stock-tag.portfolio-stock {
-  border-color: var(--accent-primary);
-  background: color-mix(in srgb, var(--primary) 10%, transparent);
-}
-
-.rnc-st-ticker {
-  font-weight: 800;
-  font-family: var(--font-mono);
-  color: var(--text-primary);
-}
-
-.rnc-st-sent {
-  font-size: 0.72rem;
-  font-weight: 600;
-}
-
-.rnc-st-sent.sentiment-BULLISH { color: var(--accent-bull); }
-.rnc-st-sent.sentiment-BEARISH { color: var(--accent-bear); }
-.rnc-st-sent.sentiment-NEUTRAL { color: var(--accent-warn); }
-
-.rnc-st-mine {
-  font-size: 0.65rem;
+  font-family: var(--font-mono, monospace);
   font-weight: 700;
-  background: var(--accent-primary);
-  color: white;
-  padding: 1px 6px;
-  border-radius: 99px;
-}
-
-.rnc-st-none {
-  font-size: 0.78rem;
-  color: var(--text-muted);
 }
 
 /* Expected Impact Grid (Short Term vs Long Term) */
 .rnc-expected-impact-box {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 12px;
+  gap: 14px;
+  margin-top: 4px;
 }
 
 .impact-col {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 12px 14px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  transition: all var(--transition);
 }
 
-.impact-col.short-term { border-left: 3px solid var(--accent-secondary); }
-.impact-col.long-term { border-left: 3px solid var(--accent-primary); }
+.ic-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
 .ic-label {
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-muted);
-  text-transform: uppercase;
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ic-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+  font-family: var(--font-sans);
+}
+
+.ic-tag.sentiment-BULLISH {
+  background: color-mix(in srgb, var(--accent-bull) 15%, transparent);
+  color: var(--accent-bull);
+  border: 1px solid color-mix(in srgb, var(--accent-bull) 30%, transparent);
+}
+
+.ic-tag.sentiment-BEARISH {
+  background: color-mix(in srgb, var(--accent-bear) 15%, transparent);
+  color: var(--accent-bear);
+  border: 1px solid color-mix(in srgb, var(--accent-bear) 30%, transparent);
+}
+
+.ic-tag.sentiment-NEUTRAL {
+  background: color-mix(in srgb, var(--accent-warn) 15%, transparent);
+  color: var(--accent-warn);
+  border: 1px solid color-mix(in srgb, var(--accent-warn) 30%, transparent);
 }
 
 .ic-text {
-  font-size: 0.82rem;
+  font-size: 0.83rem;
   color: var(--text-primary);
-  line-height: 1.5;
-  font-weight: 500;
+  line-height: 1.45;
+  font-weight: 600;
 }
 
 

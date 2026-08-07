@@ -46,7 +46,7 @@
 
 /* Global cues strip */
 .global-cues-strip {
-  margin-top: 16px;
+  margin-top: 0;
 }
 .strip-title {
   font-size: 0.72rem;
@@ -54,12 +54,13 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--text-muted);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .cue-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+  margin-top: 4px;
 }
 .cue-item {
   display: flex;
@@ -74,7 +75,7 @@
 .cue-item.up   { border-color: color-mix(in srgb, var(--secondary) 25%, transparent); }
 .cue-item.down { border-color: color-mix(in srgb, var(--destructive) 25%, transparent); }
 .cue-icon  { font-size: 1rem; }
-.cue-info  { display: flex; flex-direction: column; gap: 1px; }
+.cue-info  { display: flex; flex-direction: column; gap: 3px; }
 .cue-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
 .cue-val   { font-size: 0.82rem; font-weight: 600; font-family: var(--font-mono); color: var(--text-primary); }
 .cue-item.up   .cue-val { color: var(--accent-bull); }
@@ -112,11 +113,12 @@
 .no-data { font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 12px 0; }
 
 /* Sector heatmap */
-.sector-heatmap-wrap { margin-top: 16px; }
+.sector-heatmap-wrap { margin-top: 0; }
 .sector-heatmap {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 6px;
+  gap: 8px;
+  margin-top: 4px;
 }
 .sector-cell {
   border-radius: var(--radius-sm);
@@ -472,7 +474,7 @@ background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   padding: 26px 30px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 18px;
 }
 
 .widget-header {
@@ -480,6 +482,11 @@ background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin-bottom: 16px;
+}
+
+.market-widget > .widget-header {
+  margin-bottom: 0;
 }
 
 .widget-header h4 {
@@ -584,7 +591,7 @@ background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .ac-header {

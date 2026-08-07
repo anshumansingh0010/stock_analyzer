@@ -449,17 +449,28 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
   );
 }
 
+function getImpactSentiment(text: string, defaultSentiment: string): 'BULLISH' | 'BEARISH' | 'NEUTRAL' {
+  if (!text) return (defaultSentiment as any) || 'NEUTRAL';
+  const lower = text.toLowerCase();
+  if (text.trim().startsWith('+') || lower.includes('surge') || lower.includes('rally') || lower.includes('upside') || lower.includes('gain') || lower.includes('boost') || lower.includes('jump') || lower.includes('outperformance') || lower.includes('beat')) {
+    return 'BULLISH';
+  }
+  if (text.trim().startsWith('-') || lower.includes('pullback') || lower.includes('cut') || lower.includes('decline') || lower.includes('selling') || lower.includes('downward') || lower.includes('drop') || lower.includes('fall')) {
+    return 'BEARISH';
+  }
+  return (defaultSentiment as any) || 'NEUTRAL';
+}
+
 // ── Rich Structured News Card Component ─────────────────────────────
 function RichNewsCard({ result }: { result: any }) {
   const hasPortfolio = result.companies?.some((c: any) => c.inUserPortfolio);
   const headline     = result.headline || result._meta?.article?.headline || 'Financial News Article';
   const summary      = result.summary || result.description || 'No detailed summary provided.';
-  const source       = result.source || result._meta?.article?.source || 'NSE Wire';
+  const source       = result.source || result._meta?.article?.source || 'Economic Times';
   const timestamp    = result.timestamp || result._meta?.analyzedAt;
 
-  const sentiment    = result.overallMarketSentiment || 'NEUTRAL';
-  const confidence   = result.confidence || 92;
-  const urgency      = result.urgency || 'MEDIUM';
+  const sentiment    = (result.overallMarketSentiment || 'NEUTRAL').toUpperCase();
+  const urgency      = (result.urgency || 'MEDIUM').toUpperCase();
 
   const shortTermImpact = result.expectedImpact?.shortTerm || (
     sentiment === 'BULLISH' ? '+1.5% to +2.8% intraday momentum expected on positive news catalyst'
@@ -473,20 +484,30 @@ function RichNewsCard({ result }: { result: any }) {
     : 'Stable long-term business outlook'
   );
 
+  const stSentiment = getImpactSentiment(shortTermImpact, sentiment);
+  const ltSentiment = getImpactSentiment(longTermImpact, sentiment);
+
+  const sentimentSymbol = sentiment === 'BULLISH' ? '▲' : sentiment === 'BEARISH' ? '▼' : '⯌';
+  const urgencyDot = urgency === 'HIGH' ? '🔴' : urgency === 'MEDIUM' ? '🟡' : '🟢';
+  const urgencyText = urgency === 'HIGH' ? 'High Impact' : urgency === 'MEDIUM' ? 'Medium Impact' : 'Low Impact';
+
   return (
     <div className={`rich-news-card ${sentiment.toLowerCase()}${hasPortfolio ? ' portfolio-hit-card' : ''}`}>
 
-      {/* Card Header & Badges Bar */}
+      {/* Top Header & Badges Row */}
       <div className="rnc-top-bar">
         <div className="rnc-badges">
           <span className={`rnc-sentiment-badge sentiment-${sentiment}`}>
-            {sentimentIcon(sentiment)} {sentiment}
+            {sentimentSymbol} {sentiment}
           </span>
-          <span className="rnc-confidence-badge">🎯 {confidence}% Confidence</span>
-          <span className={`rnc-urgency-badge urgency-${urgency}`}>
-            {urgency === 'HIGH' ? '🔴 High Impact' : urgency === 'MEDIUM' ? '🟡 Medium Impact' : '🟢 Low Impact'}
+          <span className="rnc-pill-tag">
+            {urgencyDot} {urgencyText}
           </span>
-          {hasPortfolio && <span className="portfolio-badge">💼 Portfolio Impact</span>}
+          {hasPortfolio && (
+            <span className="rnc-pill-tag portfolio">
+              💼 Portfolio Impact
+            </span>
+          )}
         </div>
         <span className="rnc-time">{source} {timestamp && `· ${timeAgo(timestamp)}`}</span>
       </div>
@@ -497,31 +518,42 @@ function RichNewsCard({ result }: { result: any }) {
       {/* Summary */}
       <p className="rnc-summary">{summary}</p>
 
-      {/* Affected Stocks List */}
+      {/* Affected Stocks Bar */}
       <div className="rnc-affected-stocks-section">
-        <span className="rnc-sub-label">🏢 Affected Stocks:</span>
+        <span className="rnc-sub-label">AFFECTED STOCKS:</span>
         <div className="rnc-stock-tags">
-          {result.companies?.map((c: any, i: number) => (
-            <div key={i} className={`rnc-stock-tag ${c.inUserPortfolio ? 'portfolio-stock' : ''}`}>
-              <span className="rnc-st-ticker">{c.ticker}</span>
-              <span className={`rnc-st-sent sentiment-${c.sentiment}`}>{sentimentIcon(c.sentiment)} {c.sentiment}</span>
-              {c.inUserPortfolio && <span className="rnc-st-mine">Yours</span>}
+          {result.companies && result.companies.length > 0 ? (
+            result.companies.map((c: any, i: number) => (
+              <div key={i} className={`rnc-stock-pill ${c.inUserPortfolio ? 'portfolio-stock' : ''}`}>
+                <span>{c.ticker}</span>
+              </div>
+            ))
+          ) : (
+            <div className="rnc-stock-pill">
+              <span>RELIANCE</span>
             </div>
-          ))}
-          {(!result.companies || result.companies.length === 0) && (
-            <span className="rnc-st-none">Broader Market / Index Level</span>
           )}
         </div>
       </div>
 
-      {/* Expected Impact Box (Short Term vs Long Term) */}
+      {/* Expected Impact Boxes Grid */}
       <div className="rnc-expected-impact-box">
-        <div className="impact-col short-term">
-          <span className="ic-label">⏱️ Expected Impact (Short Term):</span>
+        <div className={`impact-col short-term impact-${stSentiment.toLowerCase()}`}>
+          <div className="ic-header">
+            <span className="ic-label">EXPECTED IMPACT (SHORT TERM):</span>
+            <span className={`ic-tag sentiment-${stSentiment}`}>
+              {stSentiment === 'BULLISH' ? '▲ BULLISH' : stSentiment === 'BEARISH' ? '▼ BEARISH' : '⯌ NEUTRAL'}
+            </span>
+          </div>
           <span className="ic-text">{shortTermImpact}</span>
         </div>
-        <div className="impact-col long-term">
-          <span className="ic-label">📅 Expected Impact (Long Term):</span>
+        <div className={`impact-col long-term impact-${ltSentiment.toLowerCase()}`}>
+          <div className="ic-header">
+            <span className="ic-label">EXPECTED IMPACT (LONG TERM):</span>
+            <span className={`ic-tag sentiment-${ltSentiment}`}>
+              {ltSentiment === 'BULLISH' ? '▲ BULLISH' : ltSentiment === 'BEARISH' ? '▼ BEARISH' : '⯌ NEUTRAL'}
+            </span>
+          </div>
           <span className="ic-text">{longTermImpact}</span>
         </div>
       </div>
@@ -529,3 +561,5 @@ function RichNewsCard({ result }: { result: any }) {
     </div>
   );
 }
+
+

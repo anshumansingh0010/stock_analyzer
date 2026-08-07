@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { TrendingUp, PieChart } from 'lucide-react';
 
-// ── 1. Portfolio Growth Chart ───────────────────────────────────────
+// ── 1. Portfolio Growth Trajectory Chart ───────────────────────────
 export function PortfolioGrowthChart({ totalValue }: { totalValue: number }) {
   const [timeframe, setTimeframe] = useState<'1M' | '3M' | '6M' | '1Y' | 'ALL'>('6M');
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
@@ -85,7 +86,7 @@ export function PortfolioGrowthChart({ totalValue }: { totalValue: number }) {
     <div className="market-widget graph-widget">
       <div className="widget-header">
         <div>
-          <h4>📈 Portfolio Growth Trajectory</h4>
+          <h4 className="flex items-center gap-2"><TrendingUp className="w-5 h-5 text-emerald-400" /> Portfolio Growth Trajectory</h4>
           <span className="widget-subtitle">Historical portfolio net asset value performance</span>
         </div>
         <div className="timeframe-pills">
@@ -204,7 +205,7 @@ export function SectorAllocationChart({ holdings }: { holdings: any[] }) {
   return (
     <div className="market-widget graph-widget">
       <div className="widget-header">
-        <h4>🍰 Sector & Asset Allocation</h4>
+        <h4 className="flex items-center gap-2"><PieChart className="w-5 h-5 text-indigo-400" /> Sector & Asset Allocation</h4>
         <span className="widget-tag bull">{sectorList.length} Sectors</span>
       </div>
 

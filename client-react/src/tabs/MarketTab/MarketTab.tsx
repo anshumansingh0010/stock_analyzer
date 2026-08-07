@@ -2,13 +2,14 @@ import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { API_BASE, buildSSEReader } from '../../utils/api';
 import { formatMarketReport } from '../../utils/format';
+import { Landmark, TrendingUp, TrendingDown, Activity, Truck, BarChart3, Globe, Zap, Laptop, Droplet, Coins, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 interface MetricCardProps {
   label: string;
   sublabel?: string;
   value: string | number;
   change?: string | number | null;
-  icon?: string;
+  icon?: React.ReactNode;
   badge?: string;
   trend?: 'up' | 'down' | 'neutral';
 }
@@ -17,22 +18,19 @@ function MetricCard({ label, sublabel, value, change, icon, badge, trend }: Metr
   const numChg = change != null ? Number(String(change).replace(/[^0-9.-]/g, '')) : null;
   const isUp = trend === 'up' || (numChg != null && numChg > 0) || String(change).startsWith('+');
   const isDown = trend === 'down' || (numChg != null && numChg < 0) || String(change).startsWith('-');
-  const dirCls = isUp ? 'up' : isDown ? 'down' : '';
 
   return (
-    <div className={`metric-card ${dirCls}`}>
+    <div className="metric-card">
       <div className="mc-top">
         <span className="mc-label">{icon ? <span className="mc-icon">{icon}</span> : null}{label}</span>
-        {badge && <span className={`mc-badge ${dirCls}`}>{badge}</span>}
       </div>
       <div className="mc-value">{typeof value === 'number' ? value.toLocaleString('en-IN') : value}</div>
       <div className="mc-footer">
         {change != null && (
-          <span className={`mc-change ${dirCls}`}>
-            {isUp ? '▲ ' : isDown ? '▼ ' : ''}{change}{typeof change === 'number' ? '%' : ''}
+          <span className={`mc-change ${isUp ? 'up' : isDown ? 'down' : ''}`}>
+            {isUp ? <ArrowUpRight className="inline-block w-4 h-4 mr-0.5" /> : isDown ? <ArrowDownRight className="inline-block w-4 h-4 mr-0.5" /> : ''}{change}{typeof change === 'number' ? '%' : ''}
           </span>
         )}
-        {sublabel && <span className="mc-sub">{sublabel}</span>}
       </div>
     </div>
   );
@@ -74,29 +72,40 @@ function FiiDiiCard() {
   return (
     <div className="market-widget fii-dii-card">
       <div className="widget-header">
-        <h4>🏛️ FII / DII Institutional Activity</h4>
-        <span className="widget-tag">Cash Market</span>
+        <h4 className="flex items-center gap-2"> FII / DII Institutional Activity</h4>
+        <span className="widget-tag bull">Today's Activity</span>
       </div>
       <div className="fii-dii-grid">
         <div className="fii-stat fii">
           <span className="fs-title">FII Net Inflow</span>
           <span className="fs-val up">+₹1,842.50 Cr</span>
-          <span className="fs-sub">Foreign Institutional</span>
+          <span className="fs-sub">Foreign Institutional (Cash)</span>
         </div>
         <div className="fii-stat dii">
           <span className="fs-title">DII Net Inflow</span>
           <span className="fs-val up">+₹925.10 Cr</span>
-          <span className="fs-sub">Domestic Mutual Funds</span>
+          <span className="fs-sub">Domestic Mutual Funds (Cash)</span>
         </div>
         <div className="fii-stat total">
           <span className="fs-title">Net Institutional Flow</span>
           <span className="fs-val highlight">+₹2,767.60 Cr</span>
           <span className="fs-sub">Combined Institutional Support</span>
         </div>
-      </div>
-      <div className="flow-bar-container">
-        <div className="flow-bar fii-bar" style={{ width: '66.5%' }} title="FII 66.5%" />
-        <div className="flow-bar dii-bar" style={{ width: '33.5%' }} title="DII 33.5%" />
+        <div className="fii-stat index-fut">
+          <span className="fs-title">FII Index Futures Net</span>
+          <span className="fs-val up">+₹412.30 Cr</span>
+          <span className="fs-sub">Index Long Exposure</span>
+        </div>
+        <div className="fii-stat stock-fut">
+          <span className="fs-title">FII Stock Futures Net</span>
+          <span className="fs-val up">+₹685.20 Cr</span>
+          <span className="fs-sub">Single Stock Futures Buying</span>
+        </div>
+        <div className="fii-stat mtd-flow">
+          <span className="fs-title">MTD Net Inflow</span>
+          <span className="fs-val highlight">+₹14,850.00 Cr</span>
+          <span className="fs-sub">Month-to-Date Institutional Net</span>
+        </div>
       </div>
     </div>
   );
@@ -106,13 +115,13 @@ function OpenInterestCard() {
   return (
     <div className="market-widget oi-card">
       <div className="widget-header">
-        <h4>📈 Derivatives & Open Interest (OI)</h4>
+        <h4 className="flex items-center gap-2"> Derivatives & Open Interest (OI)</h4>
         <span className="widget-tag bull">PCR 1.18 (Bullish)</span>
       </div>
       <div className="oi-grid">
         <div className="oi-item">
           <span className="oi-label">Nifty Put-Call Ratio (PCR)</span>
-          <span className="oi-val up">1.18</span>
+          <span className="oi-val ">1.18</span>
           <span className="oi-sub">Bullish Bias</span>
         </div>
         <div className="oi-item">
@@ -122,18 +131,14 @@ function OpenInterestCard() {
         </div>
         <div className="oi-item">
           <span className="oi-label">Top Call OI Resistance</span>
-          <span className="oi-val bear">22,500 CE</span>
+          <span className="oi-val ">22,500 CE</span>
           <span className="oi-sub">14.2M Contracts</span>
         </div>
         <div className="oi-item">
           <span className="oi-label">Top Put OI Support</span>
-          <span className="oi-val bull">22,200 PE</span>
+          <span className="oi-val ">22,200 PE</span>
           <span className="oi-sub">18.5M Contracts</span>
         </div>
-      </div>
-      <div className="oi-summary-strip">
-        <span className="oi-icon">🎯</span>
-        <span><strong>Options Action:</strong> Strong Put writing at 22,200 indicates solid downside floor; Call unwinding seen near 22,450.</span>
       </div>
     </div>
   );
@@ -177,7 +182,7 @@ function MarketMoversAndActivity({ gainers, losers, allStocks }: { gainers: any[
       {/* Top Gainers */}
       <div className="activity-card gainers-card">
         <div className="ac-header">
-          <h4>🟢 Top Gainers</h4>
+          <h4 className="flex items-center gap-2"><TrendingUp className="w-5 h-5 text-emerald-400" /> Top Gainers</h4>
           <span className="ac-badge bull">Nifty 50</span>
         </div>
         <div className="ac-list">
@@ -200,7 +205,7 @@ function MarketMoversAndActivity({ gainers, losers, allStocks }: { gainers: any[
       {/* Top Losers */}
       <div className="activity-card losers-card">
         <div className="ac-header">
-          <h4>🔴 Top Losers</h4>
+          <h4 className="flex items-center gap-2"><TrendingDown className="w-5 h-5 text-rose-400" /> Top Losers</h4>
           <span className="ac-badge bear">Nifty 50</span>
         </div>
         <div className="ac-list">
@@ -223,8 +228,7 @@ function MarketMoversAndActivity({ gainers, losers, allStocks }: { gainers: any[
       {/* Top Volume */}
       <div className="activity-card volume-card">
         <div className="ac-header">
-          <h4>⚡ Top Volume (Traded Shares)</h4>
-          <span className="ac-badge">Liquidity</span>
+          <h4 className="flex items-center gap-2"><Zap className="w-5 h-5 text-amber-400" /> Top Volume (Traded Shares)</h4>
         </div>
         <div className="ac-list">
           {topVolume.map((v, i) => (
@@ -243,8 +247,7 @@ function MarketMoversAndActivity({ gainers, losers, allStocks }: { gainers: any[
       {/* Top Delivery % */}
       <div className="activity-card delivery-card">
         <div className="ac-header">
-          <h4>🚚 Top Delivery %</h4>
-          <span className="ac-badge bull">High Conviction</span>
+          <h4 className="flex items-center gap-2"><Truck className="w-5 h-5 text-blue-400" /> Top Delivery %</h4>
         </div>
         <div className="ac-list">
           {topDelivery.map((d, i) => {
@@ -273,8 +276,8 @@ function SectorHeatmap({ sectors }: { sectors: any[] }) {
 
   return (
     <div className="sector-heatmap-wrap">
-      <div className="widget-header">
-        <h4>📊 Sector Performance & Rotation</h4>
+      <div className="widget-header ">
+        <h4 className="flex items-center gap-2"><BarChart3 className="w-5 h-5 text-indigo-400" /> Sector Performance & Rotation</h4>
         <span className="widget-tag">NSE Sector Indices</span>
       </div>
       <div className="sector-heatmap">
@@ -297,12 +300,12 @@ function SectorHeatmap({ sectors }: { sectors: any[] }) {
 }
 
 function GlobalCuesStrip({ cues }: { cues: Record<string, any> }) {
-  const defaults: Record<string, { label: string; val: string; icon: string }> = {
-    dow: { label: 'Dow Jones', val: '38,980 (+0.42%)', icon: '🇺🇸' },
-    nasdaq: { label: 'Nasdaq 100', val: '18,240 (+0.85%)', icon: '💻' },
-    sgxNifty: { label: 'GIFT Nifty', val: '22,465 (+0.55%)', icon: '🇸🇬' },
-    crude: { label: 'Crude Oil', val: '$76.80 (-0.85%)', icon: '🛢️' },
-    gold: { label: 'Gold (₹/10g)', val: '₹72,450 (+0.35%)', icon: '🥇' },
+  const defaults: Record<string, { label: string; val: string }> = {
+    dow: { label: 'Dow Jones', val: '38,980 (+0.42%)'},
+    nasdaq: { label: 'Nasdaq 100', val: '18,240 (+0.85%)'},
+    sgxNifty: { label: 'GIFT Nifty', val: '22,465 (+0.55%)'},
+    crude: { label: 'Crude Oil', val: '$76.80 (-0.85%)'},
+    gold: { label: 'Gold (₹/10g)', val: '₹72,450 (+0.35%)'},
   };
 
   const cueEntries = Object.entries(cues).length > 0
@@ -310,14 +313,13 @@ function GlobalCuesStrip({ cues }: { cues: Record<string, any> }) {
         key: k,
         label: defaults[k]?.label || k,
         val: String(v),
-        icon: defaults[k]?.icon || '🌐'
       }))
-    : Object.entries(defaults).map(([k, d]) => ({ key: k, label: d.label, val: d.val, icon: d.icon }));
+    : Object.entries(defaults).map(([k, d]) => ({ key: k, label: d.label, val: d.val }));
 
   return (
     <div className="global-cues-strip">
       <div className="widget-header">
-        <h4>🌐 Global Cues & Macro Factors</h4>
+        <h4 className="flex items-center gap-2"><Globe className="w-5 h-5 text-indigo-400" /> Global Cues & Macro Factors</h4>
       </div>
       <div className="cue-items">
         {cueEntries.map((item) => {
@@ -325,7 +327,6 @@ function GlobalCuesStrip({ cues }: { cues: Record<string, any> }) {
           const isNeg = item.val.includes('-');
           return (
             <div key={item.key} className={`cue-item ${isPos ? 'up' : isNeg ? 'down' : ''}`}>
-              <span className="cue-icon">{item.icon}</span>
               <div className="cue-info">
                 <span className="cue-label">{item.label}</span>
                 <span className="cue-val">{item.val}</span>
@@ -485,19 +486,19 @@ export default function MarketTab() {
             </div>
 
             {/* ── Breadth & Market Status Strip ── */}
-            <div className="market-status-bar">
+            {/* <div className="market-status-bar">
               {derived && <BreadthPills derived={derived} />}
               <div className="adv-dec-strip">
                 <span className="ad-item adv">Advances: <strong>{snap.index?.advance ?? 32}</strong></span>
                 <span className="ad-item dec">Declines: <strong>{snap.index?.decline ?? 18}</strong></span>
                 <span className="ad-item unch">Unchanged: <strong>{snap.index?.unchanged ?? 0}</strong></span>
               </div>
-            </div>
+            </div> */}
 
             {/* ── Quick Take Banner ── */}
             {quickTake && (
               <div className="quicktake-banner">
-                <span className="qt-icon">⚡</span>
+                <Zap className="w-4 h-4 text-amber-400 flex-shrink-0" />
                 <span>{quickTake}</span>
               </div>
             )}
