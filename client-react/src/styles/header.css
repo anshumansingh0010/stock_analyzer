@@ -77,7 +77,7 @@
 
 .nav-pill:hover { color: var(--text-primary); background: color-mix(in srgb, var(--foreground) 6%, transparent); }
 .nav-pill.active {
-background: linear-gradient(135deg, var(--accent-primary), var(--primary));
+  background: linear-gradient(135deg, var(--accent-primary), var(--primary));
   color: var(--primary-foreground);
   box-shadow: 0 2px 12px color-mix(in srgb, var(--primary) 35%, transparent);
 }
@@ -389,7 +389,7 @@ background: linear-gradient(135deg, var(--accent-primary), var(--primary));
   border: 1px solid var(--border-subtle);
   border-radius: 99px;
   padding: 3px;
-  transition: all var(--transition);
+  transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
   position: relative;
   overflow: hidden;
 }
@@ -401,10 +401,22 @@ background: linear-gradient(135deg, var(--accent-primary), var(--primary));
   width: 26px;
   height: 26px;
   border-radius: 50%;
-background: linear-gradient(135deg, var(--accent-primary), var(--primary));
+  background: linear-gradient(135deg, var(--accent-primary), var(--primary));
   color: white;
-  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s ease, box-shadow 0.4s ease;
   box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.theme-toggle-thumb svg {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+
+.theme-toggle-btn:hover .theme-toggle-thumb svg {
+  transform: rotate(25deg) scale(1.15);
+}
+
+.theme-toggle-btn:active .theme-toggle-thumb {
+  transform: scale(0.88);
 }
 
 .theme-toggle-track.light .theme-toggle-thumb {
@@ -414,7 +426,7 @@ background: linear-gradient(135deg, var(--accent-primary), var(--primary));
 
 .theme-toggle-btn:hover .theme-toggle-track {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--primary) 20%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 25%, transparent);
 }
 
 /* ── Profile Drawer Theme Row ── */

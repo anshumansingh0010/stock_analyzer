@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { TrendingUp, PieChart } from 'lucide-react';
 
 // ── 1. Portfolio Growth Trajectory Chart ───────────────────────────
 export function PortfolioGrowthChart({ totalValue }: { totalValue: number }) {
@@ -86,7 +85,7 @@ export function PortfolioGrowthChart({ totalValue }: { totalValue: number }) {
     <div className="market-widget graph-widget">
       <div className="widget-header">
         <div>
-          <h4 className="flex items-center gap-2"><TrendingUp className="w-5 h-5 text-emerald-400" /> Portfolio Growth Trajectory</h4>
+          <h4>Portfolio Growth Trajectory</h4>
           <span className="widget-subtitle">Historical portfolio net asset value performance</span>
         </div>
         <div className="timeframe-pills">
@@ -205,7 +204,7 @@ export function SectorAllocationChart({ holdings }: { holdings: any[] }) {
   return (
     <div className="market-widget graph-widget">
       <div className="widget-header">
-        <h4 className="flex items-center gap-2"><PieChart className="w-5 h-5 text-indigo-400" /> Sector & Asset Allocation</h4>
+        <h4>Sector &amp; Asset Allocation</h4>
         <span className="widget-tag bull">{sectorList.length} Sectors</span>
       </div>
 
@@ -262,7 +261,7 @@ export function ProfitDistributionChart({ holdings }: { holdings: any[] }) {
   return (
     <div className="market-widget graph-widget">
       <div className="widget-header">
-        <h4>📊 Profit & Loss Contribution</h4>
+        <h4>Profit &amp; Loss Contribution</h4>
         <span className="widget-tag">Per Stock Return</span>
       </div>
 
@@ -313,7 +312,7 @@ export function MonthlyReturnsGrid() {
   return (
     <div className="market-widget graph-widget">
       <div className="widget-header">
-        <h4>📅 Monthly Returns Breakdown</h4>
+        <h4>Monthly Returns Breakdown</h4>
         <span className="widget-tag bull">2026 YTD +23.3%</span>
       </div>
 
@@ -337,7 +336,7 @@ export function RiskAndSharpeWidget() {
   return (
     <div className="market-widget graph-widget risk-sharpe-widget">
       <div className="widget-header">
-        <h4>⚡ Risk Meter & Quantitative Analytics</h4>
+        <h4>Risk Meter &amp; Quantitative Analytics</h4>
         <span className="widget-tag">Layer 5 Metrics</span>
       </div>
 

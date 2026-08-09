@@ -424,17 +424,62 @@ background: linear-gradient(135deg, var(--accent-primary), var(--primary));
    STOCK TECHNICAL CHART & FUNDAMENTAL ANALYSIS STYLING
    ═══════════════════════════════════════════════════════════════ */
 
-.stock-chart-card {
+.chart-header-controls {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.timeframe-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 2px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.timeframe-buttons button {
+  padding: 3px 8px !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  font-family: var(--font-mono) !important;
+  border-radius: 4px !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  line-height: 1.2 !important;
+  flex-shrink: 0 !important;
+  transition: all var(--transition);
+}
+
+.timeframe-buttons button.tf-active {
+  background: color-mix(in srgb, var(--accent-bull) 18%, var(--bg-elevated)) !important;
+  color: var(--accent-bull) !important;
+  border-color: color-mix(in srgb, var(--accent-bull) 35%, transparent) !important;
+}
+
+.timeframe-buttons button.tf-inactive {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+}
+
+.timeframe-buttons button.tf-inactive:hover {
+  color: var(--text-primary) !important;
+  background: var(--bg-elevated) !important;
 }
 
 .indicator-toggles {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .ind-toggle {

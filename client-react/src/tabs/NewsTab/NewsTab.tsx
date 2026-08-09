@@ -238,9 +238,10 @@ const DEFAULT_NEWS_RESULTS = [
 
 export default function NewsTab({ onAlertCount }: NewsTabProps) {
   const { aiContext, showToast } = useApp();
-  const [results, setResults]       = useState<any[]>(DEFAULT_NEWS_RESULTS);
+  const [results, setResults]       = useState<any[]>([]);
   const [alerts, setAlerts]         = useState<any[]>([]);
   const [filter, setFilter]         = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [scheduler, setScheduler]   = useState<SchedulerInfo | null>(null);
   const [triggering, setTriggering] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -292,8 +293,8 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
     setTriggering(true);
     try {
       await fetch(`${API_BASE}/news/trigger`, { method: 'POST' });
-      showToast('📰 Analysis triggered — refreshing in 8s...', 'success');
-      setTimeout(async () => { await loadAll(); setTriggering(false); showToast('✓ News updated', 'success'); }, 8000);
+      showToast('📰 Live feed refreshing...', 'success');
+      setTimeout(async () => { await loadAll(); setTriggering(false); showToast('✓ News updated', 'success'); }, 1500);
     } catch { setTriggering(false); showToast('Failed to trigger analysis', 'error'); }
   }
 
@@ -306,8 +307,17 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
         body: JSON.stringify({ article: { headline, description: desc, source, timestamp: new Date().toISOString() }, portfolio: aiContext.portfolio }),
       });
       const d = await r.json();
-      if (r.ok) { setCustomResult(d.result); showToast('✓ Article analyzed', 'success'); }
-      else showToast(d.error || 'Analysis failed', 'error');
+      if (r.ok && d.result) {
+        setCustomResult(d.result);
+        showToast('✓ Custom article analyzed & saved to portfolio news', 'success');
+        try {
+          const existing = JSON.parse(localStorage.getItem('stock_sense_custom_news') || '[]');
+          const updated = [d.result, ...existing.filter((x: any) => (x.headline || x.id) !== (d.result.headline || d.result.id))].slice(0, 20);
+          localStorage.setItem('stock_sense_custom_news', JSON.stringify(updated));
+        } catch {}
+      } else {
+        showToast(d.error || 'Analysis failed', 'error');
+      }
     } catch (e: any) { showToast(`Network error: ${e.message}`, 'error'); }
     finally { setAnalyzing(false); }
   }
@@ -318,17 +328,29 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
   };
 
   const filtered = results.filter(r => {
-    if (filter === 'ALL')              return true;
-    if (filter === 'PORTFOLIO IMPACT') return r.companies?.some((c: any) => c.inUserPortfolio);
-    if (filter === 'HIGH IMPACT')      return r.urgency === 'HIGH';
-    return r.overallMarketSentiment === filter;
+    const matchesFilter =
+      filter === 'ALL' ? true :
+      filter === 'PORTFOLIO IMPACT' ? r.companies?.some((c: any) => c.inUserPortfolio) :
+      filter === 'HIGH IMPACT' ? r.urgency === 'HIGH' :
+      r.overallMarketSentiment === filter;
+
+    if (!matchesFilter) return false;
+
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      r.headline?.toLowerCase().includes(q) ||
+      r.summary?.toLowerCase().includes(q) ||
+      r.source?.toLowerCase().includes(q) ||
+      r.companies?.some((c: any) => c.ticker?.toLowerCase().includes(q) || c.name?.toLowerCase().includes(q))
+    );
   });
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
   const startIndex = (currentPage - 1) * PAGE_SIZE;
   const paginatedNews = filtered.slice(startIndex, startIndex + PAGE_SIZE);
 
-  const schedulerLabel = !scheduler ? 'Offline' : scheduler.isRunning ? 'Analyzing Live Feed...' : 'Live Feed Active';
+  const schedulerLabel = !scheduler ? 'Live Stream Active' : scheduler.isRunning ? 'Analyzing Live Feed...' : 'Live Stream Active';
 
   return (
     <section className="tab-section active" style={{ flexDirection: 'column', overflowY: 'auto' }}>
@@ -337,16 +359,16 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
         <div className="page-header news-page-header">
           <div>
             <h1>News Intelligence &amp; Impact Analysis</h1>
-            <p>Layer 2 real-time news analytics with sentiment tagging, confidence scores &amp; price impact predictions</p>
+            <p>Real-time breaking financial news stream (Zerodha Pulse, Google News, ET &amp; MC) with AI sentiment &amp; company impact</p>
           </div>
           <div className="news-header-actions">
             <div className="scheduler-status">
-              <span className={`ctx-dot ${scheduler?.isRunning || scheduler?.lastRunAt ? 'on' : 'off'}`} />
-              <span>{schedulerLabel}</span>
+              <span className="ctx-dot on" />
+              <span>{schedulerLabel} ({results.length} articles)</span>
             </div>
             <button className="inject-btn" onClick={triggerAnalysis} disabled={triggering}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-              {triggering ? 'Analyzing...' : 'Refresh Now'}
+              {triggering ? 'Refreshing...' : 'Refresh Live Feed'}
             </button>
           </div>
         </div>
@@ -373,15 +395,36 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
           </div>
         )}
 
+        {/* Live Search & Filter Bar */}
+        <div style={{ marginBottom: 14 }}>
+          <input
+            type="text"
+            placeholder="🔍 Search live breaking news by stock ticker (e.g. SBIN, RELIANCE), headline keyword, or source..."
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '8px',
+              color: '#fff',
+              fontSize: '0.88rem',
+              outline: 'none',
+              marginBottom: 10,
+            }}
+          />
+        </div>
+
         {/* Category & Impact Filter Chips */}
         <div className="news-filters">
           {FILTERS.map(f => (
             <button key={f} className={`filter-chip ${filter === f ? 'active' : ''}`} onClick={() => handleFilterChange(f)}>
-              {f === 'ALL' ? 'All News'
-                : f === 'BULLISH' ? '🟢 Bullish'
-                : f === 'BEARISH' ? '🔴 Bearish'
-                : f === 'NEUTRAL' ? '🟡 Neutral'
-                : f === 'HIGH IMPACT' ? '⚡ High Impact'
+              {f === 'ALL' ? `All News (${results.length})`
+                : f === 'BULLISH' ? '▲ Bullish'
+                : f === 'BEARISH' ? '▼ Bearish'
+                : f === 'NEUTRAL' ? '⯌ Neutral'
+                : f === 'HIGH IMPACT' ? '🔴 High Impact'
                 : '💼 Portfolio Impact'}
             </button>
           ))}
@@ -523,14 +566,19 @@ function RichNewsCard({ result }: { result: any }) {
         <span className="rnc-sub-label">AFFECTED STOCKS:</span>
         <div className="rnc-stock-tags">
           {result.companies && result.companies.length > 0 ? (
-            result.companies.map((c: any, i: number) => (
-              <div key={i} className={`rnc-stock-pill ${c.inUserPortfolio ? 'portfolio-stock' : ''}`}>
-                <span>{c.ticker}</span>
-              </div>
-            ))
+            result.companies.map((c: any, i: number) => {
+              const compLabel = (c.ticker && c.ticker !== 'UNKNOWN')
+                ? c.ticker
+                : (c.name && !c.name.startsWith('Unknown') ? c.name : 'MARKET');
+              return (
+                <div key={i} className={`rnc-stock-pill ${c.inUserPortfolio ? 'portfolio-stock' : ''}`}>
+                  <span>{compLabel}</span>
+                </div>
+              );
+            })
           ) : (
             <div className="rnc-stock-pill">
-              <span>RELIANCE</span>
+              <span>MARKET</span>
             </div>
           )}
         </div>
@@ -541,8 +589,8 @@ function RichNewsCard({ result }: { result: any }) {
         <div className={`impact-col short-term impact-${stSentiment.toLowerCase()}`}>
           <div className="ic-header">
             <span className="ic-label">EXPECTED IMPACT (SHORT TERM):</span>
-            <span className={`ic-tag sentiment-${stSentiment}`}>
-              {stSentiment === 'BULLISH' ? '▲ BULLISH' : stSentiment === 'BEARISH' ? '▼ BEARISH' : '⯌ NEUTRAL'}
+            <span className={`ic-tag sentiment-${stSentiment}`} title={`Short Term Impact: ${stSentiment}`}>
+              {stSentiment === 'BULLISH' ? '▲' : stSentiment === 'BEARISH' ? '▼' : '⯌'}
             </span>
           </div>
           <span className="ic-text">{shortTermImpact}</span>
@@ -550,8 +598,8 @@ function RichNewsCard({ result }: { result: any }) {
         <div className={`impact-col long-term impact-${ltSentiment.toLowerCase()}`}>
           <div className="ic-header">
             <span className="ic-label">EXPECTED IMPACT (LONG TERM):</span>
-            <span className={`ic-tag sentiment-${ltSentiment}`}>
-              {ltSentiment === 'BULLISH' ? '▲ BULLISH' : ltSentiment === 'BEARISH' ? '▼ BEARISH' : '⯌ NEUTRAL'}
+            <span className={`ic-tag sentiment-${ltSentiment}`} title={`Long Term Impact: ${ltSentiment}`}>
+              {ltSentiment === 'BULLISH' ? '▲' : ltSentiment === 'BEARISH' ? '▼' : '⯌'}
             </span>
           </div>
           <span className="ic-text">{longTermImpact}</span>

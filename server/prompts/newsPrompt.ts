@@ -157,7 +157,16 @@ export function parseAndValidateNewsOutput(rawOutput: string): ParsedNewsOutput 
   try {
     parsed = JSON.parse(cleaned);
   } catch (e: any) {
-    throw new Error(`LLM returned invalid JSON: ${e.message}\nRaw: ${cleaned.slice(0, 200)}`);
+    try {
+      let repaired = cleaned;
+      if (!repaired.endsWith("}")) {
+        if (repaired.lastIndexOf("[") > repaired.lastIndexOf("]")) repaired += ']}';
+        else repaired += '}';
+      }
+      parsed = JSON.parse(repaired);
+    } catch {
+      throw new Error(`LLM returned invalid JSON: ${e.message}\nRaw: ${cleaned.slice(0, 200)}`);
+    }
   }
 
   if (!Array.isArray(parsed.companies)) {

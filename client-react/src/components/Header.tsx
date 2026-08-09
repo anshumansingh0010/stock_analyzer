@@ -54,12 +54,17 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount }: Head
 
   // Apply theme to <html>
   useEffect(() => {
+    document.documentElement.classList.add('theme-transitioning');
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
     if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+    const timer = setTimeout(() => {
+      document.documentElement.classList.remove('theme-transitioning');
+    }, 500);
+    return () => clearTimeout(timer);
   }, [isDark]);
 
   // Close drawer on outside click

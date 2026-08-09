@@ -450,8 +450,8 @@
 
 .month-card:hover { transform: translateY(-2px); }
 
-.month-card.up { border-top: 3px solid var(--accent-bull); background: color-mix(in srgb, var(--secondary) 6%, transparent); }
-.month-card.down { border-top: 3px solid var(--accent-bear); background: color-mix(in srgb, var(--destructive) 6%, transparent); }
+.month-card.up { background: color-mix(in srgb, var(--accent-bull) 12%, transparent); }
+.month-card.down { background: color-mix(in srgb, var(--accent-bear) 12%, transparent); }
 
 .mc-mname { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
 .mc-mret { font-size: 0.88rem; font-weight: 700; font-family: var(--font-mono); }

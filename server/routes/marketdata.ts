@@ -17,6 +17,7 @@ import {
   fetchStockQuote,
   fetchSectorPerformance,
   fetchFullMarketSnapshot,
+  fetchStockCandles,
 } from "../services/marketDataService.js";
 
 const cache = new Map<string, { data: any; ts: number }>();
@@ -100,6 +101,25 @@ export default async function marketdataRoutes(fastify: FastifyInstance): Promis
       if (!quote) return reply.status(404).send({ error: `No data found for ticker: ${ticker}` });
       toCache(key, quote);
       return reply.send({ success: true, cached: false, quote });
+    } catch (err: any) {
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  fastify.get("/candles/:ticker", async (request: FastifyRequest, reply: FastifyReply) => {
+    const { ticker } = request.params as any;
+    const query = request.query as any;
+    const interval = query.interval || "15m";
+    const days = parseInt(query.days || "25") || 25;
+
+    const key = `candles_${ticker.toUpperCase()}_${interval}_${days}`;
+    const cached = fromCache(key);
+    if (cached) return reply.send({ success: true, cached: true, ...cached });
+
+    try {
+      const result = await fetchStockCandles(ticker.toUpperCase(), interval, days);
+      toCache(key, result);
+      return reply.send({ success: true, cached: false, ...result });
     } catch (err: any) {
       return reply.status(500).send({ error: err.message });
     }

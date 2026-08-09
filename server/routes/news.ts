@@ -14,6 +14,7 @@
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { analyzeArticle, analyzeBatch } from "../services/newsAnalyzer.js";
+import { getLiveNewsFeed } from "../services/newsService.js";
 import {
   getResults,
   getStatus,
@@ -90,10 +91,12 @@ export default async function newsRoutes(fastify: FastifyInstance): Promise<void
   });
 
   fastify.get("/results", async (request: FastifyRequest, reply: FastifyReply) => {
-    const results = getResults();
+    const liveNews = await getLiveNewsFeed();
+    const schedulerResults = getResults();
+    const results = liveNews.length > 0 ? liveNews : schedulerResults;
     const { sentiment, urgency, sector, portfolio } = request.query as any;
 
-    let filtered = results;
+    let filtered: any[] = results;
 
     if (sentiment) {
       filtered = filtered.filter(
@@ -102,19 +105,19 @@ export default async function newsRoutes(fastify: FastifyInstance): Promise<void
     }
     if (urgency) {
       filtered = filtered.filter(
-        (r) => r.urgency === (urgency as string).toUpperCase()
+        (r: any) => r.urgency === (urgency as string).toUpperCase()
       );
     }
     if (sector) {
-      filtered = filtered.filter((r) =>
-        r.sectorAffected?.some((s) =>
+      filtered = filtered.filter((r: any) =>
+        r.sectorAffected?.some((s: any) =>
           s.toLowerCase().includes((sector as string).toLowerCase())
         )
       );
     }
     if (portfolio === "true") {
-      filtered = filtered.filter((r) =>
-        r.companies?.some((c) => c.inUserPortfolio)
+      filtered = filtered.filter((r: any) =>
+        r.companies?.some((c: any) => c.inUserPortfolio)
       );
     }
 
@@ -122,7 +125,8 @@ export default async function newsRoutes(fastify: FastifyInstance): Promise<void
       success: true,
       count: filtered.length,
       results: filtered,
-      cachedAt: getStatus().lastRunAt,
+      cachedAt: new Date().toISOString(),
+      source: "Live Breaking Financial News Stream (Zerodha Pulse, Google News, ET, MC)",
     });
   });
 

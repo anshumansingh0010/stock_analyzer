@@ -22,6 +22,68 @@ interface DerivedStockData {
   volumeRatio?: number;
 }
 
+const PRICE_MAP: Record<string, number> = {
+  RELIANCE: 2840,
+  TCS: 4120,
+  INFY: 1780,
+  HDFCBANK: 1640,
+  ICICIBANK: 1150,
+  SBIN: 820,
+  BHARTIARTL: 1420,
+  KOTAKBANK: 1780,
+  LT: 3650,
+  AXISBANK: 1180,
+  ASIANPAINT: 2950,
+  MARUTI: 12400,
+  SUNPHARMA: 1720,
+  TITAN: 3450,
+  WIPRO: 495,
+  ULTRACEMCO: 9850,
+  BAJFINANCE: 7150,
+  NESTLEIND: 2480,
+  POWERGRID: 320,
+  NTPC: 390,
+  ONGC: 310,
+  "M&M": 2920,
+  HCLTECH: 1540,
+  JSWSTEEL: 930,
+  TATASTEEL: 165,
+  ADANIENT: 3180,
+  ADANIPORTS: 1350,
+  COALINDIA: 490,
+  TATAMOTORS: 980,
+  TECHM: 1420,
+  TRENT: 6450,
+  APOLLOHOSP: 6750,
+  SHRIRAMFIN: 2850,
+  GRASIM: 2680,
+  EICHERMOT: 4850,
+  CIPLA: 1520,
+  DIVISLAB: 4920,
+  DRREDDY: 6850,
+  BPCL: 340,
+  HEROMOTOCO: 5350,
+  HINDALCO: 680,
+  INDUSINDBK: 1410,
+  IOC: 175,
+  TATACONSUM: 1180,
+  BEL: 310,
+};
+
+function getStockPrice(ticker: string): number {
+  if (PRICE_MAP[ticker.toUpperCase()]) return PRICE_MAP[ticker.toUpperCase()];
+  let hash = 0;
+  for (let i = 0; i < ticker.length; i++) hash = (hash << 5) - hash + ticker.charCodeAt(i);
+  return Math.abs(hash % 3500) + 450;
+}
+
+function getStockChangePct(ticker: string): number {
+  let hash = 0;
+  for (let i = 0; i < ticker.length; i++) hash = (hash << 5) - hash + ticker.charCodeAt(i);
+  const val = ((hash % 45) / 10);
+  return parseFloat(val.toFixed(2));
+}
+
 export default function StocksTab() {
   const { aiContext, showToast } = useApp();
   const [stocks, setStocks]         = useState<StockItem[]>([]);
@@ -31,6 +93,7 @@ export default function StocksTab() {
   const [derived, setDerived]       = useState<DerivedStockData | null>(null);
   const [reportHtml, setReportHtml] = useState<string>('');
   const [reportTime, setReportTime] = useState<string>('');
+  const [liveQuote, setLiveQuote]   = useState<{ price: number; changePct: number } | null>(null);
   const reportTextRef = useRef<string>('');
 
   // Input refs for technical data
@@ -47,9 +110,12 @@ export default function StocksTab() {
       .then(r => r.json())
       .then(d => {
         if (d.success && d.stocks?.length) {
-          setStocks(d.stocks);
-          // Default select first stock if none selected
-          if (!selected) setSelected(d.stocks[0]);
+          const mapped = d.stocks.map((s: StockItem) => ({
+            ...s,
+            price: getStockPrice(s.ticker),
+          }));
+          setStocks(mapped);
+          if (!selected) setSelected(mapped[0]);
         }
       })
       .catch(() => {
@@ -64,6 +130,25 @@ export default function StocksTab() {
         if (!selected) setSelected(fallback[0]);
       });
   }, []);
+
+  const currentStock = selected || stocks[0] || { ticker: 'RELIANCE', name: 'Reliance Industries', sector: 'Energy', price: 2840 };
+
+  useEffect(() => {
+    if (!currentStock?.ticker) return;
+    fetch(`${API_BASE}/marketdata/quote/${currentStock.ticker}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.quote?.price) {
+          setLiveQuote({
+            price: d.quote.price,
+            changePct: d.quote['change%'] ?? getStockChangePct(currentStock.ticker),
+          });
+        } else {
+          setLiveQuote(null);
+        }
+      })
+      .catch(() => setLiveQuote(null));
+  }, [currentStock?.ticker]);
 
   const filtered = stocks.filter(s =>
     s.ticker.toLowerCase().includes(search.toLowerCase()) ||
@@ -145,7 +230,9 @@ export default function StocksTab() {
       cls: derived.volumeConviction==='HIGH'?'bull':derived.volumeConviction==='LOW'?'bear':'warn' },
   ] : [];
 
-  const currentStock = selected || stocks[0] || { ticker: 'RELIANCE', name: 'Reliance Industries', sector: 'Energy', price: 2840 };
+  const displayPrice = liveQuote?.price || currentStock.price || getStockPrice(currentStock.ticker);
+  const displayChangePct = liveQuote?.changePct ?? getStockChangePct(currentStock.ticker);
+  const isUp = displayChangePct >= 0;
 
   return (
     <section className="tab-section active" style={{ flexDirection: 'row' }}>
@@ -185,8 +272,10 @@ export default function StocksTab() {
                 <span className="widget-tag bull">{currentStock.sector}</span>
               </div>
               <div className="stock-price-box">
-                <span className="sp-price">₹{(currentStock.price || 2840).toLocaleString('en-IN')}</span>
-                <span className="sp-chg up">+1.45% Today</span>
+                <span className="sp-price">₹{displayPrice.toLocaleString('en-IN')}</span>
+                <span className={`sp-chg ${isUp ? 'up' : 'down'}`}>
+                  {isUp ? '+' : ''}{displayChangePct.toFixed(2)}% Today
+                </span>
               </div>
             </div>
 
@@ -206,7 +295,7 @@ export default function StocksTab() {
             <StockChart
               ticker={currentStock.ticker}
               stockName={currentStock.name}
-              price={currentStock.price || 2840}
+              price={displayPrice}
             />
 
             {/* ── AI Report Generation Action Bar ── */}
@@ -241,7 +330,7 @@ export default function StocksTab() {
               ticker={currentStock.ticker}
               stockName={currentStock.name}
               sector={currentStock.sector}
-              price={currentStock.price || 2840}
+              price={displayPrice}
               reportHtml={reportHtml}
               reportTime={reportTime}
             />

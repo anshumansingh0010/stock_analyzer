@@ -115,8 +115,8 @@ async function startServer() {
 ║  📈  Layer 3: Stock Technical Analyst ACTIVE ║
 ║  🌐  Layer 4: Market Commentator ACTIVE      ║
 ║  🔔  Layer 5: Alert Engine ACTIVE            ║
-║  🗄️   Layer 6: DB ${db.connected ? "CONNECTED ✅" : "OFFLINE (in-memory)"} ${"".padEnd(db.connected ? 6 : 2)}║
-║  🤖  Provider: ${(process.env.LLM_PROVIDER || "openai").padEnd(28)}║
+║  🗄️   Layer 6: DB ${db.connected ? "CONNECTED ✅" : "OFFLINE (in-memory)"} ${"".padEnd(db.connected ? 15 : 7)}║
+║  🤖  Provider: ${(process.env.LLM_PROVIDER || "openai").padEnd(28)}  ║
 ╚══════════════════════════════════════════════╝
     `);
 

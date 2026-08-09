@@ -28,7 +28,15 @@
 /* ── Reset & Base ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { font-size: 15px; scroll-behavior: smooth; transition: background-color 0.3s ease, color 0.3s ease; }
+html { font-size: 15px; scroll-behavior: smooth; transition: background-color 0.4s ease, color 0.4s ease; }
+
+/* ── Smooth Dark/Light Theme Switch Animation ── */
+.theme-transitioning,
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+  transition: background-color 0.4s ease-in-out, border-color 0.4s ease-in-out, color 0.4s ease-in-out, box-shadow 0.4s ease-in-out, fill 0.4s ease-in-out, stroke 0.4s ease-in-out !important;
+}
 
 body {
   font-family: var(--font-sans);
@@ -38,6 +46,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 /* Background grid (Clean & visible, perfectly balanced opacity) */
@@ -67,9 +76,34 @@ body::before {
   z-index: 1;
 }
 
-/* Tab sections */
+/* Tab sections & Horizontal Slide Transition */
+@keyframes slideFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .tab-section { display: none; height: calc(100vh - var(--header-h)); }
-.tab-section.active { display: flex; }
+.tab-section.active {
+  display: flex;
+  animation: slideFromRight 0.25s ease-out;
+}
 
 /* ═══ PAGE TABS (Market & Portfolio) ═════════════════════════ */
 .tab-section#tab-market,
@@ -82,6 +116,18 @@ body::before {
 .tab-section#tab-market.active,
 .tab-section#tab-portfolio.active {
   display: flex;
+}
+
+.slide-right .tab-section.active,
+.slide-right .tab-section#tab-market.active,
+.slide-right .tab-section#tab-portfolio.active {
+  animation: slideFromRight 0.25s ease-out;
+}
+
+.slide-left .tab-section.active,
+.slide-left .tab-section#tab-market.active,
+.slide-left .tab-section#tab-portfolio.active {
+  animation: slideFromLeft 0.25s ease-out;
 }
 
 .page-container {

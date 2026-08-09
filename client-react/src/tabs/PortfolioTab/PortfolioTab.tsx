@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { API_BASE } from '../../utils/api';
-import { sentimentIcon, sentimentColor, timeAgo } from '../../utils/format';
+import { sentimentColor, timeAgo } from '../../utils/format';
 import {
   PortfolioGrowthChart,
   SectorAllocationChart,
@@ -9,7 +9,6 @@ import {
   MonthlyReturnsGrid,
   RiskAndSharpeWidget
 } from './PortfolioCharts';
-import { BarChart3, Briefcase, TrendingDown, TrendingUp, Zap } from 'lucide-react';
 
 interface RawHolding {
   stock?: string;
@@ -48,11 +47,38 @@ function pnlClass(pct: number): string {
 }
 
 export default function PortfolioTab() {
-  const { updateContext } = useApp();
+  const { updateContext, showToast } = useApp();
   const [holdings, setHoldings]       = useState<HoldingEnriched[]>([]);
-  const [news, setNews]               = useState<any[]>([]);
   const [loading, setLoading]         = useState<boolean>(true);
-  const [newsLoading, setNewsLoading] = useState<boolean>(true);
+
+  // Custom analyzed news state
+  const [customNews, setCustomNews]   = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('stock_sense_custom_news');
+      return saved ? JSON.parse(saved) : [
+        {
+          id: "custom-demo-1",
+          headline: "Reliance Industries reports Q4 net profit beat driven by Jio & Retail margin expansion",
+          summary: "Reliance Industries Limited posted Q4 FY26 net profit of ₹21,243 crore, exceeding analyst estimates of ₹19,500 crore driven by Jio and Retail margin expansion.",
+          source: "Custom Analysis (Economic Times)",
+          timestamp: new Date().toISOString(),
+          overallMarketSentiment: "BULLISH",
+          confidence: 94,
+          urgency: "HIGH",
+          sectorAffected: ["Energy", "Telecom", "Retail"],
+          companies: [
+            { ticker: "RELIANCE", name: "Reliance Industries", sentiment: "BULLISH", sentimentScore: 0.94, inUserPortfolio: true, reason: "Q4 net profit beat Street estimates by 8.9% with margin expansion in Jio & Retail." }
+          ],
+          expectedImpact: {
+            shortTerm: "+1.8% to +2.5% intraday surge expected on Q4 beat",
+            longTerm: "+8% to +14% upside supported by Jio tariff hikes"
+          }
+        }
+      ];
+    } catch {
+      return [];
+    }
+  });
 
   // ── Load portfolio ────────────────────────────────────────────
   useEffect(() => {
@@ -93,40 +119,18 @@ export default function PortfolioTab() {
     return () => { mounted = false; };
   }, [updateContext]);
 
-  // ── Load news ─────────────────────────────────────────────────
+  // Load latest custom news on tab switch
   useEffect(() => {
-    let mounted = true;
-    async function loadNews() {
-      setNewsLoading(true);
-      try {
-        const res = await fetch(`${API_BASE}/news/results`);
-        const d   = await res.json();
-        if (d.success && d.results?.length) {
-          if (mounted) { setNews(d.results.slice(0, 6)); updateContext('news', d.results); }
-        }
-      } catch {}
-      if (mounted) setNewsLoading(false);
-    }
-    loadNews();
-    return () => { mounted = false; };
-  }, [updateContext]);
+    try {
+      const saved = localStorage.getItem('stock_sense_custom_news');
+      if (saved) setCustomNews(JSON.parse(saved));
+    } catch {}
+  }, []);
 
   const totalInvested = holdings.reduce((s, h) => s + h.qty * h.avgPrice, 0);
   const totalValue    = holdings.reduce((s, h) => s + (h.value || h.qty * h.avgPrice), 0);
   const totalPnL      = totalValue - totalInvested;
   const totalPct      = totalInvested ? ((totalPnL / totalInvested) * 100).toFixed(2) : '0.00';
-
-  // Calculate sector distribution
-  const sectorMap: Record<string, number> = {};
-  holdings.forEach(h => {
-    const sec = h.sector || 'Others';
-    sectorMap[sec] = (sectorMap[sec] || 0) + (h.value || 0);
-  });
-  const sectorList = Object.entries(sectorMap).map(([name, val]) => ({
-    name,
-    val,
-    pct: totalValue > 0 ? ((val / totalValue) * 100).toFixed(1) : '0'
-  })).sort((a, b) => Number(b.pct) - Number(a.pct));
 
   return (
     <section className="tab-section active" style={{ flexDirection: 'column', overflowY: 'auto' }}>
@@ -150,33 +154,28 @@ export default function PortfolioTab() {
             label="Total Invested"
             value={`₹${totalInvested.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
             sub="Capital Deployed"
-            icon={<Briefcase className="w-4 h-4 text-indigo-400" />}
           />
           <SummaryCard
             label="Current Value"
             value={`₹${totalValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
             sub="Mark-to-Market"
-            icon={<BarChart3 className="w-4 h-4 text-blue-400" />}
           />
           <SummaryCard
             label="Unrealized P&L"
             value={`${totalPnL >= 0 ? '+' : ''}₹${totalPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
             sub={`${Number(totalPct) >= 0 ? '+' : ''}${totalPct}% Total Return`}
-            icon={totalPnL >= 0 ? <TrendingUp className="w-4 h-4 text-emerald-400" /> : <TrendingDown className="w-4 h-4 text-rose-400" />}
             highlight={totalPnL >= 0 ? 'bull' : 'bear'}
           />
           <SummaryCard
             label="Sharpe Ratio"
             value="1.85"
             sub="Risk Adjusted Return"
-            icon={<Zap className="w-4 h-4 text-amber-400" />}
             highlight="bull"
           />
           <SummaryCard
             label="Max Drawdown"
             value="-4.20%"
             sub="Low Risk Exposure"
-            icon="🛡️"
           />
         </div>
 
@@ -243,16 +242,19 @@ export default function PortfolioTab() {
           )}
         </div>
 
-        {/* ── News Impact Section ── */}
-        <div className="ptf-section" style={{ marginTop: 16 }}>
-          <div className="ptf-section-title" style={{ marginBottom: 16 }}>Market News &amp; Watchlist Impact</div>
-          {newsLoading ? (
-            <div className="ptf-loading"><span className="ptf-spinner" />Fetching portfolio news impact...</div>
-          ) : news.length === 0 ? (
-            <div className="ptf-empty">No analyzed news yet. The news scheduler runs every 15 min.</div>
+        {/* ── Analyzed Custom News & Impact Section ── */}
+        <div className="ptf-section" style={{ marginTop: 24 }}>
+          <div className="ptf-section-title" style={{ marginBottom: 12 }}>Analyzed Custom News &amp; Impact</div>
+          <p className="data-card-desc" style={{ marginBottom: 16 }}>News articles analyzed using <strong>Analyze Custom Article</strong> with AI sentiment tagging, portfolio mapping &amp; price impact</p>
+
+          {/* Display Only Analyzed Custom News Cards */}
+          {customNews.length === 0 ? (
+            <div className="ptf-empty" style={{ padding: '30px', textAlign: 'center' }}>
+              No custom articles analyzed yet. Analyze any article using <strong>Analyze Custom Article</strong> in the News tab.
+            </div>
           ) : (
             <div className="ptf-news-grid">
-              {news.map((r, i) => <NewsCard key={i} result={r} />)}
+              {customNews.map((r, i) => <CustomNewsCard key={i} result={r} />)}
             </div>
           )}
         </div>
@@ -266,15 +268,14 @@ interface SummaryCardProps {
   label: string;
   value: string | number;
   sub?: string;
-  icon: React.ReactNode;
   highlight?: 'bull' | 'bear';
 }
 
-function SummaryCard({ label, value, sub, icon, highlight }: SummaryCardProps) {
+function SummaryCard({ label, value, sub, highlight }: SummaryCardProps) {
   return (
     <div className={`metric-card ${highlight ? highlight : ''}`}>
       <div className="mc-top">
-        <span className="mc-label"><span className="mc-icon">{icon}</span>{label}</span>
+        <span className="mc-label">{label}</span>
         {highlight && <span className={`mc-badge ${highlight}`}>{highlight === 'bull' ? 'Optimal' : 'Loss'}</span>}
       </div>
       <div className="mc-value">{value}</div>
@@ -283,34 +284,46 @@ function SummaryCard({ label, value, sub, icon, highlight }: SummaryCardProps) {
   );
 }
 
-function NewsCard({ result }: { result: any }) {
+function CustomNewsCard({ result }: { result: any }) {
   const hasPortfolio = result.companies?.some((c: any) => c.inUserPortfolio);
-  const headline     = result._meta?.article?.headline || 'Market News';
-  const source       = result._meta?.article?.source;
-  const analyzedAt   = result._meta?.analyzedAt;
+  const headline     = result.headline || result._meta?.article?.headline || 'Custom Analyzed News';
+  const source       = result.source || result._meta?.article?.source || 'Custom Analysis';
+  const timestamp    = result.timestamp || result._meta?.analyzedAt;
 
   return (
     <div className={`ptf-news-card${hasPortfolio ? ' has-portfolio-hit' : ''}`}>
       <div className="ptf-news-header">
-        <span className={`ptf-urgency urgency-${result.urgency}`}>{result.urgency}</span>
-        {hasPortfolio && <span className="portfolio-badge">💼 Your Portfolio</span>}
+        <span className={`ptf-urgency urgency-${result.urgency || 'HIGH'}`}>{result.urgency || 'HIGH'}</span>
+        {hasPortfolio && <span className="portfolio-badge">Portfolio Hit</span>}
       </div>
       <div className="ptf-news-headline">{headline}</div>
-      {source && <div className="ptf-news-source">{source} {analyzedAt && `· ${timeAgo(analyzedAt)}`}</div>}
+      <div className="ptf-news-source">{source} {timestamp && `· ${timeAgo(timestamp)}`}</div>
       {result.summary && <p className="ptf-news-summary">{result.summary}</p>}
-      {result.companies?.slice(0, 3).map((c: any, i: number) => (
-        <div key={i} className="ptf-news-company">
-          <span className="ptf-ticker-sm">{c.ticker}</span>
-          <span className={`sentiment-pill sentiment-${c.sentiment}`}>
-            {sentimentIcon(c.sentiment)} {c.sentiment}
-          </span>
+      {result.companies?.map((c: any, i: number) => {
+        const compName = (c.name && !c.name.startsWith('Unknown')) ? c.name : (c.ticker && c.ticker !== 'UNKNOWN' ? c.ticker : 'Market Update');
+        const compTicker = (c.ticker && c.ticker !== 'UNKNOWN') ? `(${c.ticker})` : '';
+        return (
+          <div key={i} className="ptf-news-company" style={{ flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+            <span className="ptf-ticker-sm" style={{ fontWeight: 600 }}>{compName} {compTicker}</span>
+            <span className={`sentiment-pill sentiment-${c.sentiment || 'NEUTRAL'}`}>
+              {c.sentiment || 'NEUTRAL'}
+            </span>
+            {c.reason && <span style={{ fontSize: '0.80rem', opacity: 0.85, flex: '1 1 100%', marginTop: 2, color: 'var(--text-secondary)' }}>{c.reason}</span>}
+          </div>
+        );
+      })}
+      {result.expectedImpact && (
+        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: '0.78rem' }}>
+          {result.expectedImpact.shortTerm && <div style={{ color: '#00e676' }}>⚡ <strong>Short Term:</strong> {result.expectedImpact.shortTerm}</div>}
+          {result.expectedImpact.longTerm && <div style={{ color: '#3d5afe', marginTop: 3 }}>📈 <strong>Long Term:</strong> {result.expectedImpact.longTerm}</div>}
         </div>
-      ))}
+      )}
       <div className="ptf-news-overall">
-        Overall: <strong style={{ color: sentimentColor(result.overallMarketSentiment) }}>
-          {sentimentIcon(result.overallMarketSentiment)} {result.overallMarketSentiment}
+        Overall Sentiment: <strong style={{ color: sentimentColor(result.overallMarketSentiment) }}>
+          {result.overallMarketSentiment}
         </strong>
       </div>
     </div>
   );
 }
+

@@ -1,5 +1,22 @@
 /* ═══ LAYER 4 — MARKET TAB ADDITIONS ════════════════════════ */
 
+/* Card Animation & Hover Effects (Metric Card animation applied to fii-dii-card & widgets) */
+.metric-card,
+.fii-dii-card,
+.market-widget,
+.activity-card {
+  transition: all var(--transition);
+}
+
+.metric-card:hover,
+.fii-dii-card:hover,
+.market-widget:hover,
+.activity-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
 /* Index cards: up/down glow */
 .index-card.up   { border-color: color-mix(in srgb, var(--secondary) 30%, transparent); }
 .index-card.down { border-color: color-mix(in srgb, var(--destructive) 30%, transparent); }
@@ -70,7 +87,11 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   padding: 8px 12px;
-  transition: border-color var(--transition);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.cue-item:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
 }
 .cue-item.up   { border-color: color-mix(in srgb, var(--secondary) 25%, transparent); }
 .cue-item.down { border-color: color-mix(in srgb, var(--destructive) 25%, transparent); }
@@ -127,10 +148,13 @@
   flex-direction: column;
   gap: 3px;
   cursor: default;
-  transition: transform var(--transition);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   border: 1px solid color-mix(in srgb, var(--foreground) 5%, transparent);
 }
-.sector-cell:hover { transform: scale(1.03); }
+.sector-cell:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
 .sc-name { font-size: 0.75rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sc-perf { font-size: 0.72rem; font-family: var(--font-mono); font-weight: 600; }
 .sc-perf.up   { color: var(--accent-bull); }
@@ -365,13 +389,6 @@ background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   flex-direction: column;
   justify-content: space-between;
   gap: 12px;
-  transition: all var(--transition);
-}
-
-.metric-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--border);
-  box-shadow: var(--shadow-sm);
 }
 
 .metric-card.up { border-top: 3px solid var(--accent-bull); }
@@ -522,6 +539,12 @@ background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   display: flex;
   flex-direction: column;
   gap: 4px;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.fii-stat:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 25%, transparent);
+  background: var(--bg-elevated);
 }
 
 .fs-title { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); }
@@ -556,6 +579,12 @@ background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   display: flex;
   flex-direction: column;
   gap: 4px;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.oi-item:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 25%, transparent);
+  background: var(--bg-elevated);
 }
 
 .oi-label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); }
@@ -631,11 +660,12 @@ background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   padding: 8px 10px;
   background: var(--bg-surface);
   border-radius: var(--radius-sm);
-  transition: background var(--transition);
+  transition: background var(--transition), transform 0.2s ease;
 }
 
 .mover-row-item:hover {
   background: var(--bg-elevated);
+  transform: translateX(4px);
 }
 
 .mri-info {
@@ -663,13 +693,15 @@ background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  white-space: nowrap;
 }
 
 .mri-val {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   font-family: var(--font-mono);
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .mri-chg {
