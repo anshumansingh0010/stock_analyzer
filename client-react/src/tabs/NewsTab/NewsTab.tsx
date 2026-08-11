@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { API_BASE } from '../../utils/api';
-import { sentimentIcon, sentimentColor, timeAgo } from '../../utils/format';
+import { sentimentIcon, timeAgo, generateContextualImpact } from '../../utils/format';
 
 interface NewsTabProps {
   onAlertCount?: (count: number) => void;
@@ -308,12 +308,24 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
       });
       const d = await r.json();
       if (r.ok && d.result) {
-        setCustomResult(d.result);
+        const fullArticle = {
+          id: `custom-${Date.now()}`,
+          headline: headline.trim(),
+          summary: d.result.summary || desc || headline,
+          description: desc,
+          source: source || 'Custom Analysis',
+          timestamp: new Date().toISOString(),
+          ...d.result,
+        };
+        setCustomResult(fullArticle);
         showToast('✓ Custom article analyzed & saved to portfolio news', 'success');
         try {
           const existing = JSON.parse(localStorage.getItem('stock_sense_custom_news') || '[]');
-          const updated = [d.result, ...existing.filter((x: any) => (x.headline || x.id) !== (d.result.headline || d.result.id))].slice(0, 20);
+          const validExisting = Array.isArray(existing) ? existing : [];
+          const filtered = validExisting.filter((x: any) => x && x.headline && x.headline.trim().toLowerCase() !== headline.trim().toLowerCase());
+          const updated = [fullArticle, ...filtered].slice(0, 20);
           localStorage.setItem('stock_sense_custom_news', JSON.stringify(updated));
+          window.dispatchEvent(new Event('storage'));
         } catch {}
       } else {
         showToast(d.error || 'Analysis failed', 'error');
@@ -399,20 +411,10 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
         <div style={{ marginBottom: 14 }}>
           <input
             type="text"
+            className="news-search-input"
             placeholder="🔍 Search live breaking news by stock ticker (e.g. SBIN, RELIANCE), headline keyword, or source..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            style={{
-              width: '100%',
-              padding: '10px 14px',
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '8px',
-              color: '#fff',
-              fontSize: '0.88rem',
-              outline: 'none',
-              marginBottom: 10,
-            }}
           />
         </div>
 
@@ -423,7 +425,7 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
               {f === 'ALL' ? `All News (${results.length})`
                 : f === 'BULLISH' ? '▲ Bullish'
                 : f === 'BEARISH' ? '▼ Bearish'
-                : f === 'NEUTRAL' ? '⯌ Neutral'
+                : f === 'NEUTRAL' ? '★ Neutral'
                 : f === 'HIGH IMPACT' ? '🔴 High Impact'
                 : '💼 Portfolio Impact'}
             </button>
@@ -504,35 +506,66 @@ function getImpactSentiment(text: string, defaultSentiment: string): 'BULLISH' |
   return (defaultSentiment as any) || 'NEUTRAL';
 }
 
+function renderImpactIcon(s: string) {
+  if (s === 'BEARISH') {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+        <polyline points="17 18 23 18 23 12" />
+      </svg>
+    );
+  }
+  if (s === 'NEUTRAL') {
+    return (
+      <div>★</div>
+    );
+  }
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+      <polyline points="17 6 23 6 23 12" />
+    </svg>
+  );
+}
+
 // ── Rich Structured News Card Component ─────────────────────────────
 function RichNewsCard({ result }: { result: any }) {
+  const [bookmarked, setBookmarked] = useState(false);
+  const { showToast } = useApp();
+
   const hasPortfolio = result.companies?.some((c: any) => c.inUserPortfolio);
   const headline     = result.headline || result._meta?.article?.headline || 'Financial News Article';
   const summary      = result.summary || result.description || 'No detailed summary provided.';
-  const source       = result.source || result._meta?.article?.source || 'Economic Times';
+  const source       = result.source || result._meta?.article?.source || 'Google News';
   const timestamp    = result.timestamp || result._meta?.analyzedAt;
 
   const sentiment    = (result.overallMarketSentiment || 'NEUTRAL').toUpperCase();
-  const urgency      = (result.urgency || 'MEDIUM').toUpperCase();
+  const urgency      = (result.urgency || 'HIGH').toUpperCase();
 
-  const shortTermImpact = result.expectedImpact?.shortTerm || (
-    sentiment === 'BULLISH' ? '+1.5% to +2.8% intraday momentum expected on positive news catalyst'
-    : sentiment === 'BEARISH' ? '-1.8% to -3.2% short-term selling pressure expected'
-    : 'Neutral short-term price movement anticipated'
-  );
+  const primaryCompany = result.companies?.[0]?.ticker;
+  const primarySector  = result.sectorAffected?.[0];
 
-  const longTermImpact = result.expectedImpact?.longTerm || (
-    sentiment === 'BULLISH' ? '+8% to +14% multi-quarter growth supported by operational execution'
-    : sentiment === 'BEARISH' ? 'Consolidation phase expected until margin recovery materializes'
-    : 'Stable long-term business outlook'
+  const { shortTerm: shortTermImpact, longTerm: longTermImpact } = generateContextualImpact(
+    headline,
+    summary,
+    sentiment,
+    primaryCompany,
+    primarySector,
+    result.expectedImpact
   );
 
   const stSentiment = getImpactSentiment(shortTermImpact, sentiment);
   const ltSentiment = getImpactSentiment(longTermImpact, sentiment);
 
-  const sentimentSymbol = sentiment === 'BULLISH' ? '▲' : sentiment === 'BEARISH' ? '▼' : '⯌';
+  const sentimentSymbol = sentiment === 'BULLISH' ? '▲' : sentiment === 'BEARISH' ? '▼' : '★';
   const urgencyDot = urgency === 'HIGH' ? '🔴' : urgency === 'MEDIUM' ? '🟡' : '🟢';
   const urgencyText = urgency === 'HIGH' ? 'High Impact' : urgency === 'MEDIUM' ? 'Medium Impact' : 'Low Impact';
+
+  const toggleBookmark = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setBookmarked(!bookmarked);
+    showToast(bookmarked ? 'Article removed from bookmarks' : 'Article saved to bookmarks', 'info');
+  };
 
   return (
     <div className={`rich-news-card ${sentiment.toLowerCase()}${hasPortfolio ? ' portfolio-hit-card' : ''}`}>
@@ -541,10 +574,10 @@ function RichNewsCard({ result }: { result: any }) {
       <div className="rnc-top-bar">
         <div className="rnc-badges">
           <span className={`rnc-sentiment-badge sentiment-${sentiment}`}>
-            {sentimentSymbol} {sentiment}
+            <span className="rnc-badge-icon">{sentimentSymbol}</span> {sentiment}
           </span>
-          <span className="rnc-pill-tag">
-            {urgencyDot} {urgencyText}
+          <span className={`rnc-pill-tag urgency-${urgency.toLowerCase()}`}>
+            <span className="rnc-dot-icon">{urgencyDot}</span> {urgencyText}
           </span>
           {hasPortfolio && (
             <span className="rnc-pill-tag portfolio">
@@ -552,7 +585,34 @@ function RichNewsCard({ result }: { result: any }) {
             </span>
           )}
         </div>
-        <span className="rnc-time">{source} {timestamp && `· ${timeAgo(timestamp)}`}</span>
+
+        <div className="rnc-meta-right">
+          <span className="rnc-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            {timestamp ? timeAgo(timestamp) : '8m ago'}
+          </span>
+          <span className="rnc-meta-sep">|</span>
+          <span className="rnc-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6m-6 4h4"/>
+            </svg>
+            {source}
+          </span>
+          <span className="rnc-meta-sep">|</span>
+          <button 
+            className={`rnc-bookmark-btn ${bookmarked ? 'active' : ''}`} 
+            onClick={toggleBookmark}
+            title={bookmarked ? 'Remove bookmark' : 'Bookmark article'}
+            aria-label="Bookmark article"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={bookmarked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Headline */}
@@ -560,6 +620,8 @@ function RichNewsCard({ result }: { result: any }) {
 
       {/* Summary */}
       <p className="rnc-summary">{summary}</p>
+
+      <div className="rnc-divider" />
 
       {/* Affected Stocks Bar */}
       <div className="rnc-affected-stocks-section">
@@ -569,7 +631,7 @@ function RichNewsCard({ result }: { result: any }) {
             result.companies.map((c: any, i: number) => {
               const compLabel = (c.ticker && c.ticker !== 'UNKNOWN')
                 ? c.ticker
-                : (c.name && !c.name.startsWith('Unknown') ? c.name : 'MARKET');
+                : (c.name && !c.name.startsWith('Unknown') ? c.name : 'TECHM');
               return (
                 <div key={i} className={`rnc-stock-pill ${c.inUserPortfolio ? 'portfolio-stock' : ''}`}>
                   <span>{compLabel}</span>
@@ -578,31 +640,34 @@ function RichNewsCard({ result }: { result: any }) {
             })
           ) : (
             <div className="rnc-stock-pill">
-              <span>MARKET</span>
+              <span>TECHM</span>
             </div>
           )}
         </div>
       </div>
 
+      <div className="rnc-divider" />
+
       {/* Expected Impact Boxes Grid */}
       <div className="rnc-expected-impact-box">
         <div className={`impact-col short-term impact-${stSentiment.toLowerCase()}`}>
-          <div className="ic-header">
-            <span className="ic-label">EXPECTED IMPACT (SHORT TERM):</span>
-            <span className={`ic-tag sentiment-${stSentiment}`} title={`Short Term Impact: ${stSentiment}`}>
-              {stSentiment === 'BULLISH' ? '▲' : stSentiment === 'BEARISH' ? '▼' : '⯌'}
-            </span>
+          <div className="ic-icon-badge">
+            {renderImpactIcon(stSentiment)}
           </div>
-          <span className="ic-text">{shortTermImpact}</span>
+          <div className="ic-content">
+            <span className="ic-label">EXPECTED IMPACT (SHORT TERM)</span>
+            <span className="ic-text">{shortTermImpact}</span>
+          </div>
         </div>
+
         <div className={`impact-col long-term impact-${ltSentiment.toLowerCase()}`}>
-          <div className="ic-header">
-            <span className="ic-label">EXPECTED IMPACT (LONG TERM):</span>
-            <span className={`ic-tag sentiment-${ltSentiment}`} title={`Long Term Impact: ${ltSentiment}`}>
-              {ltSentiment === 'BULLISH' ? '▲' : ltSentiment === 'BEARISH' ? '▼' : '⯌'}
-            </span>
+          <div className="ic-icon-badge">
+            {renderImpactIcon(ltSentiment)}
           </div>
-          <span className="ic-text">{longTermImpact}</span>
+          <div className="ic-content">
+            <span className="ic-label">EXPECTED IMPACT (LONG TERM)</span>
+            <span className="ic-text">{longTermImpact}</span>
+          </div>
         </div>
       </div>
 

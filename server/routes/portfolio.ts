@@ -13,7 +13,7 @@
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import mongoose from "mongoose";
-import Portfolio from "../models/Portfolio.js";
+import { Portfolio } from "../models/Portfolio.js";
 import { fetchStockQuote } from "../services/marketDataService.js";
 import { generateAlert } from "../services/alertService.js";
 
@@ -196,10 +196,10 @@ export default async function portfolioRoutes(fastify: FastifyInstance): Promise
       }
 
       const quotes = await Promise.all(
-        portfolio.holdings.map((h) => fetchStockQuote(h.ticker).catch(() => null))
+        portfolio.holdings.map((h: any) => fetchStockQuote(h.ticker).catch(() => null))
       );
 
-      portfolio.holdings.forEach((holding, i) => {
+      portfolio.holdings.forEach((holding: any, i: number) => {
         const quote = quotes[i];
         if (quote?.price) {
           holding.currentPrice = quote.price;
@@ -233,7 +233,7 @@ export default async function portfolioRoutes(fastify: FastifyInstance): Promise
       if (!portfolio) return reply.status(404).send({ error: "Portfolio not found" });
 
       const movers = portfolio.holdings.filter(
-        (h) => h.pnlPercent != null && Math.abs(h.pnlPercent) >= 1
+        (h: any) => h.pnlPercent != null && Math.abs(h.pnlPercent) >= 1
       );
 
       const alerts: any[] = [];

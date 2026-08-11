@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Sparkles, BarChart3, Users, Landmark, FileText, Target, PieChart, TrendingUp, Briefcase } from 'lucide-react';
 
 interface StockFundamentalsProps {
   ticker: string;
@@ -125,18 +124,17 @@ export function StockFundamentals({ ticker, stockName, sector = 'Technology', pr
       {/* View Section Navigation Tabs */}
       <div className="fundamentals-nav-tabs">
         {[
-          ['overview', 'AI & Analyst Overview', <Sparkles className="w-4 h-4 text-indigo-400 inline mr-1.5" />],
-          ['financials', 'Financial Ratios & Quarterly', <BarChart3 className="w-4 h-4 text-blue-400 inline mr-1.5" />],
-          ['peers', 'Peer Benchmarking', <Users className="w-4 h-4 text-amber-400 inline mr-1.5" />],
-          ['shareholding', 'Shareholding & FII/DII', <Landmark className="w-4 h-4 text-emerald-400 inline mr-1.5" />],
-          ['all', 'View All Sections', <FileText className="w-4 h-4 text-slate-400 inline mr-1.5" />],
-        ].map(([key, label, icon]) => (
+          ['overview', 'AI & Analyst Overview'],
+          ['financials', 'Financial Ratios & Quarterly'],
+          ['peers', 'Peer Benchmarking'],
+          ['shareholding', 'Shareholding & FII/DII'],
+          ['all', 'View All Sections'],
+        ].map(([key, label]) => (
           <button
             key={key as string}
             className={`f-nav-btn ${viewTab === key ? 'active' : ''}`}
             onClick={() => setViewTab(key as any)}
           >
-            {icon}
             {label}
           </button>
         ))}
@@ -148,7 +146,7 @@ export function StockFundamentals({ ticker, stockName, sector = 'Technology', pr
           {reportHtml ? (
             <div className="market-widget sf-widget ai-summary-widget">
               <div className="widget-header">
-                <h4 className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-indigo-400" /> AI Summary &amp; Comprehensive Report</h4>
+                <h4 className="flex items-center gap-2">AI Summary &amp; Comprehensive Report</h4>
                 <span className="widget-tag bull">Layer 3 Analysis · {reportTime || 'Live'}</span>
               </div>
               <div className="stock-report-content" dangerouslySetInnerHTML={{ __html: reportHtml }} />
@@ -156,24 +154,21 @@ export function StockFundamentals({ ticker, stockName, sector = 'Technology', pr
           ) : (
             <div className="market-widget sf-widget ai-summary-widget">
               <div className="widget-header">
-                <h4 className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-indigo-400" /> AI Technical &amp; Fundamental Summary</h4>
+                <h4 className="flex items-center gap-2">AI Technical &amp; Fundamental Summary</h4>
                 <span className="widget-tag bull">Bullish Bias</span>
               </div>
               <div className="ai-summary-bullets">
                 <div className="as-bullet bull">
-                  <span className="as-icon">🟢</span>
                   <div>
                     <strong>Strong Technical Momentum:</strong> {ticker} is trading above its 20-day &amp; 50-day Exponential Moving Averages with healthy volume expansion.
                   </div>
                 </div>
                 <div className="as-bullet info">
-                  <span className="as-icon">🛡️</span>
                   <div>
                     <strong>Solid Balance Sheet &amp; Earnings Quality:</strong> Robust return on equity (ROE &gt; {f.roe}%) and healthy debt-to-equity ratio of {f.debtEquity}x.
                   </div>
                 </div>
                 <div className="as-bullet warn">
-                  <span className="as-icon">⚠️</span>
                   <div>
                     <strong>Key Resistance Zone:</strong> Nearing 52-week resistance cluster; RSI at 62.4 indicates firm buying without overbought fatigue.
                   </div>
@@ -185,7 +180,7 @@ export function StockFundamentals({ ticker, stockName, sector = 'Technology', pr
           {/* Analyst Ratings & Target Price Box */}
           <div className="market-widget sf-widget">
             <div className="widget-header">
-              <h4 className="flex items-center gap-2"><Target className="w-5 h-5 text-indigo-400" /> Analyst Ratings &amp; Target Price</h4>
+              <h4 className="flex items-center gap-2">Analyst Ratings &amp; Target Price</h4>
               <span className={`widget-tag ${f.consensus === 'HOLD' ? 'warn' : 'bull'}`}>Consensus: {f.consensus}</span>
             </div>
             <div className="analyst-ratings-body">
@@ -230,7 +225,7 @@ export function StockFundamentals({ ticker, stockName, sector = 'Technology', pr
           {/* Key Financial Ratios */}
           <div className="market-widget sf-widget">
             <div className="widget-header">
-              <h4 className="flex items-center gap-2"><PieChart className="w-5 h-5 text-blue-400" /> Key Financial Ratios</h4>
+              <h4 className="flex items-center gap-2">Key Financial Ratios</h4>
               <span className="widget-tag">TTM Metrics</span>
             </div>
             <div className="ratios-grid">
@@ -280,7 +275,7 @@ export function StockFundamentals({ ticker, stockName, sector = 'Technology', pr
           {/* Quarterly Results */}
           <div className="market-widget sf-widget">
             <div className="widget-header">
-              <h4 className="flex items-center gap-2"><TrendingUp className="w-5 h-5 text-emerald-400" /> Quarterly Financial Results (₹ Cr)</h4>
+              <h4 className="flex items-center gap-2">Quarterly Financial Results (₹ Cr)</h4>
               <span className="widget-tag">Consolidated</span>
             </div>
             <div className="quarterly-table-wrap">
@@ -331,7 +326,7 @@ export function StockFundamentals({ ticker, stockName, sector = 'Technology', pr
       {(viewTab === 'peers' || viewTab === 'all') && (
         <div className="market-widget sf-widget">
           <div className="widget-header">
-            <h4 className="flex items-center gap-2"><Users className="w-5 h-5 text-amber-400" /> Peer Comparison &amp; Sector Benchmarking</h4>
+            <h4 className="flex items-center gap-2">Peer Comparison &amp; Sector Benchmarking</h4>
             <span className="widget-tag">{sector} Sector</span>
           </div>
           <div className="peers-table-wrap">
@@ -376,7 +371,7 @@ export function StockFundamentals({ ticker, stockName, sector = 'Technology', pr
           {/* Shareholding Pattern */}
           <div className="market-widget sf-widget">
             <div className="widget-header">
-              <h4 className="flex items-center gap-2"><Landmark className="w-5 h-5 text-indigo-400" /> Shareholding Pattern</h4>
+              <h4 className="flex items-center gap-2">Shareholding Pattern</h4>
               <span className="widget-tag">Q3 FY25</span>
             </div>
             <div className="shareholding-list">
@@ -402,7 +397,7 @@ export function StockFundamentals({ ticker, stockName, sector = 'Technology', pr
           {/* Institutional Holdings Trends */}
           <div className="market-widget sf-widget">
             <div className="widget-header">
-              <h4 className="flex items-center gap-2"><Briefcase className="w-5 h-5 text-blue-400" /> Institutional Holdings Trend</h4>
+              <h4 className="flex items-center gap-2">Institutional Holdings Trend</h4>
               <span className="widget-tag bull">FII Buying +1.2%</span>
             </div>
             <div className="inst-trend-body">

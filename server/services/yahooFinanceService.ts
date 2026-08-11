@@ -2,14 +2,14 @@
  * ╔══════════════════════════════════════════════════════════════════════╗
  * ║        NIFTY50GPT — LIVE NSE MARKET DATA SERVICE (YAHOO)             ║
  * ║                                                                      ║
- * ║  Fetches real live stock quotes and historical OHLC candlestick data  ║
+ * ║  Fetches real live stock quotes and historical OHLC candlestick data ║
  * ║  directly from exchange market feeds for Indian NSE/BSE equities.    ║
  * ╚══════════════════════════════════════════════════════════════════════╝
  */
 
 import axios from "axios";
 import { GrowwCandle } from "./growwService.js";
-import { NIFTY50_STOCKS } from "../routes/stock.js";
+import { NIFTY50_STOCKS } from "../constants/nifty50.js";
 
 export interface RealStockQuote {
   ticker: string;
@@ -26,6 +26,12 @@ export interface RealStockQuote {
   source: string;
 }
 
+export function getYahooSymbol(ticker: string): string {
+  const clean = ticker.toUpperCase().replace(".NS", "").replace(".BO", "");
+  if (clean === "TATAMOTORS") return "TMPV.NS";
+  return `${clean}.NS`;
+}
+
 /**
  * Dynamically fetches 100% REAL OHLC Candlestick data for ANY NSE/BSE stock ticker.
  */
@@ -34,8 +40,7 @@ export async function fetchRealYahooCandles(
   interval: string = "1d",
   days: number = 30
 ): Promise<{ candles: GrowwCandle[]; meta: any }> {
-  const cleanTicker = ticker.toUpperCase().replace(".NS", "").replace(".BO", "");
-  const symbol = `${cleanTicker}.NS`;
+  const symbol = getYahooSymbol(ticker);
   const rangeStr = days <= 5 ? "5d" : days <= 30 ? "1mo" : "3mo";
   const intervalStr = interval === "1d" ? "1d" : "15m";
 
@@ -149,10 +154,12 @@ export async function fetchRealIndices() {
         const meta = result?.meta;
         if (meta && meta.regularMarketPrice) {
           const price = parseFloat(meta.regularMarketPrice.toFixed(2));
-          const closes = (result.indicators?.quote?.[0]?.close || []).filter((c: any) => c != null);
-          let prev = meta.chartPreviousClose || meta.previousClose;
-          if (closes.length >= 2) {
-            prev = closes[closes.length - 2];
+          let prev = meta.regularMarketPreviousClose || meta.chartPreviousClose || meta.previousClose;
+          if (!prev || prev <= 0) {
+            const closes = (result.indicators?.quote?.[0]?.close || []).filter((c: any) => c != null);
+            if (closes.length >= 2) {
+              prev = closes[closes.length - 2];
+            }
           }
           if (!prev || prev <= 0) prev = price;
           const changePct = parseFloat((((price - prev) / prev) * 100).toFixed(2));
@@ -176,6 +183,8 @@ export async function fetchRealIndices() {
     indiaVix: vix.price,
     vixChangePct: vix.changePct,
     "change%": nifty.changePct,
+    bankNiftyChangePct: bank.changePct,
+    sensexChangePct: sensex.changePct,
     dayHigh: parseFloat((nifty.price * 1.004).toFixed(2)),
     dayLow: parseFloat((nifty.price * 0.992).toFixed(2)),
     advance: 26,
@@ -190,7 +199,7 @@ export async function fetchRealIndices() {
  * Dynamically fetches live Commodities (Gold, Crude Oil) & Global Market Indices.
  */
 export async function fetchRealGlobalCues() {
-  const symbols = ["^DJI", "^NDX", "GC=F", "CL=F"];
+  const symbols = ["^DJI", "^NDX", "GC=F", "CL=F", "INR=X"];
   const quotes: Record<string, { price: number; changePct: number }> = {};
 
   await Promise.all(
@@ -205,10 +214,12 @@ export async function fetchRealGlobalCues() {
         const meta = result?.meta;
         if (meta && meta.regularMarketPrice) {
           const price = parseFloat(meta.regularMarketPrice.toFixed(2));
-          const closes = (result.indicators?.quote?.[0]?.close || []).filter((c: any) => c != null);
-          let prev = meta.chartPreviousClose || meta.previousClose;
-          if (closes.length >= 2) {
-            prev = closes[closes.length - 2];
+          let prev = meta.regularMarketPreviousClose || meta.chartPreviousClose || meta.previousClose;
+          if (!prev || prev <= 0) {
+            const closes = (result.indicators?.quote?.[0]?.close || []).filter((c: any) => c != null);
+            if (closes.length >= 2) {
+              prev = closes[closes.length - 2];
+            }
           }
           if (!prev || prev <= 0) prev = price;
           const changePct = parseFloat((((price - prev) / prev) * 100).toFixed(2));
@@ -226,9 +237,10 @@ export async function fetchRealGlobalCues() {
   const goldChg = quotes["GC=F"]?.changePct || 3.72;
   const crudePrice = quotes["CL=F"]?.price || 78.18;
   const crudeChg = quotes["CL=F"]?.changePct || 1.15;
+  const usdInr = quotes["INR=X"]?.price || 84.0;
 
   // Convert International Gold (USD/oz) to Domestic Indian 24K Gold per 10g
-  const goldInr10g = Math.round((goldOz / 31.1034768) * 10 * 84 * 1.313);
+  const goldInr10g = Math.round((goldOz / 31.1034768) * 10 * usdInr * 1.313);
 
   return {
     gold: {
@@ -280,36 +292,45 @@ export async function fetchRealMovers() {
     BAJFINANCE: 38.70,
   };
 
-  await Promise.all(
-    dynamicTickers.map(async (t) => {
-      try {
-        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${t}.NS?interval=1d&range=5d`;
-        const res = await axios.get(url, {
-          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
-          timeout: 4000,
-        });
-        const meta = res.data?.chart?.result?.[0]?.meta;
-        if (meta && meta.regularMarketPrice) {
-          const price = parseFloat(meta.regularMarketPrice.toFixed(2));
-          const prev = parseFloat((meta.chartPreviousClose || meta.previousClose || price).toFixed(2));
-          const changePct = prev > 0 ? parseFloat((((price - prev) / prev) * 100).toFixed(2)) : 0;
-          const matched = NIFTY50_STOCKS.find((s) => s.ticker === t);
-          const delPct = realDeliveryMap[t] || parseFloat((35 + (Math.abs(changePct) * 1.5) % 15).toFixed(2));
-
-          stocks.push({
-            stock: t,
-            name: matched?.name || t,
-            price,
-            "change%": changePct,
-            volume: meta.regularMarketVolume || Math.floor(1000000 + Math.random() * 5000000),
-            deliveryPct: delPct,
+  // Batch requests to avoid rate limits / IP bans from Yahoo Finance
+  for (let i = 0; i < dynamicTickers.length; i += 10) {
+    const batch = dynamicTickers.slice(i, i + 10);
+    await Promise.all(
+      batch.map(async (t) => {
+        try {
+          const symbol = getYahooSymbol(t);
+          const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d`;
+          const res = await axios.get(url, {
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
+            timeout: 4000,
           });
+          const meta = res.data?.chart?.result?.[0]?.meta;
+          if (meta && meta.regularMarketPrice) {
+            const price = parseFloat(meta.regularMarketPrice.toFixed(2));
+            const prev = parseFloat((meta.regularMarketPreviousClose || meta.chartPreviousClose || meta.previousClose || price).toFixed(2));
+            const changePct = prev > 0 ? parseFloat((((price - prev) / prev) * 100).toFixed(2)) : 0;
+            const matched = NIFTY50_STOCKS.find((s) => s.ticker === t);
+            const delPct = realDeliveryMap[t] || parseFloat((35 + (Math.abs(changePct) * 1.5) % 15).toFixed(2));
+
+            stocks.push({
+              stock: t,
+              name: matched?.name || t,
+              price,
+              "change%": changePct,
+              volume: meta.regularMarketVolume || Math.floor(1000000 + Math.random() * 5000000),
+              deliveryPct: delPct,
+            });
+          }
+        } catch {
+          /* skip */
         }
-      } catch {
-        /* skip */
-      }
-    })
-  );
+      })
+    );
+    // 500ms delay between batches
+    if (i + 10 < dynamicTickers.length) {
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
 
   const sorted = [...stocks].sort((a, b) => b["change%"] - a["change%"]);
   const gainers = sorted.slice(0, 5);

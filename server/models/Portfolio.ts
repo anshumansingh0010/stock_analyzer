@@ -109,4 +109,3 @@ PortfolioSchema.statics.getAllTickers = async function (this: IPortfolioModel): 
 export const Portfolio =
   (mongoose.models.Portfolio as IPortfolioModel) ||
   mongoose.model<IPortfolio, IPortfolioModel>("Portfolio", PortfolioSchema);
-export default Portfolio;

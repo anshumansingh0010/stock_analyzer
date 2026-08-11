@@ -1,13 +1,5 @@
-/**
- * ╔══════════════════════════════════════════════════════════════════════╗
- * ║       NIFTY50GPT — ALERT SERVICE (Layer 5)                          ║
- * ║                                                                      ║
- * ║  Generates context-rich push alerts from raw market events.         ║
- * ║  In-memory alert history with max-cap for demo/MVP.                 ║
- * ╚══════════════════════════════════════════════════════════════════════╝
- */
+// Alert Service — generates context-rich push alerts from raw market events, with in-memory storage.
 
-import OpenAI from "openai";
 import {
   buildAlertMessages,
   deriveAlertMeta,
@@ -16,20 +8,11 @@ import {
   AlertUserContext,
   AlertMeta,
 } from "../prompts/alertPrompt.js";
-
-function getLLMClient(): OpenAI {
-  const provider = process.env.LLM_PROVIDER || "openai";
-  if (provider === "gemini") {
-    return new OpenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-    });
-  }
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-}
+import { getLLMClient, getModel } from "./llmService.js";
+import { Alert, IAlert } from "../models/Alert.js";
 
 export interface StoredAlert {
-  id: number;
+  id: string;
   title: string;
   body: string;
   sentiment: string;
@@ -50,19 +33,20 @@ export interface StoredAlert {
 }
 
 const MAX_ALERTS = 100;
-const alertStore: StoredAlert[] = [];
-let alertSeq = 1;
 
-function storeAlert(alert: Omit<StoredAlert, "id" | "createdAt" | "read">): StoredAlert {
-  const entry: StoredAlert = {
-    id: alertSeq++,
-    ...alert,
-    createdAt: new Date().toISOString(),
-    read: false,
-  };
-  alertStore.unshift(entry);
-  if (alertStore.length > MAX_ALERTS) alertStore.pop();
-  return entry;
+async function storeAlert(alertData: Omit<StoredAlert, "id" | "createdAt" | "read">): Promise<StoredAlert> {
+  const doc = await Alert.create({ ...alertData, read: false });
+  
+  // Maintain max limit by deleting oldest
+  const count = await Alert.countDocuments();
+  if (count > MAX_ALERTS) {
+    const oldest = await Alert.find().sort({ createdAt: 1 }).limit(count - MAX_ALERTS);
+    const idsToDelete = oldest.map(a => a._id);
+    await Alert.deleteMany({ _id: { $in: idsToDelete } });
+  }
+
+  const obj = doc.toObject();
+  return { ...obj, id: obj._id.toString() } as unknown as StoredAlert;
 }
 
 export interface GenerateAlertOptions {
@@ -85,8 +69,7 @@ export async function generateAlert(
   options: GenerateAlertOptions = {}
 ): Promise<GenerateAlertResult> {
   const client = getLLMClient();
-  const provider = process.env.LLM_PROVIDER || "openai";
-  const model = options.model || (provider === "gemini" ? "gemini-2.0-flash" : "gpt-4o-mini");
+  const model = getModel(options);
 
   const derived = deriveAlertMeta(eventType, stock, trigger);
   const messages: any[] = buildAlertMessages(eventType, stock, trigger, news, userContext);
@@ -132,7 +115,7 @@ export async function generateAlert(
     },
   };
 
-  const stored = storeAlert(enrichedPayload);
+  const stored = await storeAlert(enrichedPayload);
 
   return { alert: stored, derived, stored };
 }
@@ -173,28 +156,31 @@ export async function generateAlertBatch(
   return results;
 }
 
-export function getAlertHistory(limit = 50): StoredAlert[] {
-  return alertStore.slice(0, limit);
+export async function getAlertHistory(limit = 50): Promise<StoredAlert[]> {
+  const alerts = await Alert.find().sort({ createdAt: -1 }).limit(limit).lean();
+  return alerts.map(a => {
+    const obj = { ...a, id: (a._id as any).toString() };
+    delete (obj as any)._id;
+    delete (obj as any).__v;
+    return obj;
+  }) as unknown as StoredAlert[];
 }
 
-export function getUnreadCount(): number {
-  return alertStore.filter((a) => !a.read).length;
+export async function getUnreadCount(): Promise<number> {
+  return await Alert.countDocuments({ read: false });
 }
 
-export function markAllRead(): { marked: number } {
-  alertStore.forEach((a) => {
-    a.read = true;
-  });
-  return { marked: alertStore.length };
+export async function markAllRead(): Promise<{ marked: number }> {
+  const result = await Alert.updateMany({ read: false }, { $set: { read: true } });
+  return { marked: result.modifiedCount };
 }
 
-export function markRead(id: number): boolean {
-  const alert = alertStore.find((a) => a.id === id);
-  if (alert) alert.read = true;
-  return !!alert;
+export async function markRead(id: string): Promise<boolean> {
+  const result = await Alert.updateOne({ _id: id }, { $set: { read: true } });
+  return result.modifiedCount > 0;
 }
 
-export function clearHistory(): { cleared: boolean } {
-  alertStore.length = 0;
+export async function clearHistory(): Promise<{ cleared: boolean }> {
+  await Alert.deleteMany({});
   return { cleared: true };
 }

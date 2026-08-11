@@ -98,7 +98,9 @@ export async function runAnalysisCycle(): Promise<void> {
       return;
     }
 
-    const results = await analyzeBatch(articles, cache.portfolio, {
+    // Limit background LLM pre-tagging to top 3 articles to conserve API quota for user chat queries
+    const bgBatch = articles.slice(0, 3);
+    const results = await analyzeBatch(bgBatch, cache.portfolio, {
       concurrency: 1,
       onProgress: (done, total, result) => {
         const headline = result?._meta?.article?.headline?.slice(0, 50) || "?";

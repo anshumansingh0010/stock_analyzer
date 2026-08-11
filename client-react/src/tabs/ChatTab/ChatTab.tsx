@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { useApp } from '../../context/AppContext';
 import { formatResponse } from '../../utils/format';
-import { API_BASE } from '../../utils/api';
+import { apiFetch } from '../../utils/api';
 import ChatSidebar from './ChatSidebar';
 import { ChatMessage } from '../../types';
 import { 
@@ -71,7 +71,7 @@ export default function ChatTab() {
     setMessages(prev => [...prev, { role: 'typing', id: typingId, content: '' }]);
 
     try {
-      const res = await fetch(`${API_BASE}/chat`, {
+      const res = await apiFetch(`/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -89,7 +89,10 @@ export default function ChatTab() {
         return;
       }
 
-      if (data.warnings?.length) setWarnings(data.warnings);
+      if (data.warnings?.length) {
+        const filtered = data.warnings.filter((w: string) => !w.toLowerCase().includes('rate limit') && !w.toLowerCase().includes('synthesized'));
+        setWarnings(filtered);
+      }
 
       const assistantMsg: ChatMessage = { role: 'assistant', content: data.answer };
       setMessages(prev => [...prev, assistantMsg]);
@@ -351,7 +354,7 @@ function AssistantBubble({
         />
 
         {/* Action Suggestion Chips */}
-        <div className="msg-actions-v2 flex items-center gap-2 mt-2">
+        <div className="msg-actions-v2">
           <button 
             className="ma-chip" 
             onClick={() => onSuggestPrompt('Summarize key takeaways in 3 bullet points')}

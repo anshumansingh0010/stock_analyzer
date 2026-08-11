@@ -14,15 +14,17 @@ interface MetricCardProps {
 
 function MetricCard({ label, sublabel, value, change, badge, trend }: MetricCardProps) {
   const numChg = change != null ? Number(String(change).replace(/[^0-9.-]/g, '')) : null;
-  const isUp = trend === 'up' || (numChg != null && numChg > 0) || String(change).startsWith('+');
-  const isDown = trend === 'down' || (numChg != null && numChg < 0) || String(change).startsWith('-');
+  const isUp = trend === 'up' || (trend == null && ((numChg != null && numChg > 0) || String(change).startsWith('+')));
+  const isDown = trend === 'down' || (trend == null && ((numChg != null && numChg < 0) || String(change).startsWith('-')));
 
   return (
     <div className="metric-card">
       <div className="mc-top">
         <span className="mc-label">{label}</span>
       </div>
-      <div className="mc-value">{typeof value === 'number' ? value.toLocaleString('en-IN') : value}</div>
+      <div className="mc-value">
+        {typeof value === 'number' ? value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : value}
+      </div>
       <div className="mc-footer">
         {change != null && (
           <span className={`mc-change ${isUp ? 'up' : isDown ? 'down' : ''}`}>
@@ -101,14 +103,15 @@ function OpenInterestCard({ data, niftyVal = 24570 }: { data?: any; niftyVal?: n
   const maxPain = data?.maxPain || (Math.round(niftyVal / 100) * 100);
   const callStrike = data?.callStrike || (maxPain + 100);
   const putStrike = data?.putStrike || (maxPain - 100);
-  const pcr = data?.pcr || 1.12;
-  const pcrBias = data?.pcrBias || "Mildly Bullish";
+  const pcr = data?.pcr != null ? data.pcr : 1.05;
+  const pcrBias = data?.pcrBias || "Neutral / Balanced";
+  const tagClass = pcr >= 1.05 ? 'bull' : pcr <= 0.95 ? 'bear' : 'neutral';
 
   return (
     <div className="market-widget oi-card">
       <div className="widget-header">
         <h4>Derivatives &amp; Open Interest (OI)</h4>
-        <span className="widget-tag bull">PCR {pcr} ({pcrBias})</span>
+        <span className={`widget-tag ${tagClass}`}>PCR {pcr} ({pcrBias})</span>
       </div>
       <div className="oi-grid">
         <div className="oi-item">
@@ -148,22 +151,25 @@ function MarketMoversAndActivity({ gainers, losers, allStocks }: { gainers: any[
   const topVolume = [...sampleStocks].sort((a, b) => (b.volume || 0) - (a.volume || 0)).slice(0, 5);
   const topDelivery = [...sampleStocks].sort((a, b) => (b.deliveryPct || 0) - (a.deliveryPct || 0)).slice(0, 5);
 
-  const StockRow = ({ symbol, name, valueText, changePct, isUp }: { symbol: string; name?: string; valueText: string; changePct?: number; isUp?: boolean }) => (
-    <div className="mover-row-item">
-      <div className="mri-info">
-        <span className="mri-ticker">{symbol}</span>
-        {name && <span className="mri-name">{name}</span>}
+  const StockRow = ({ symbol, name, valueText, changePct, isUp }: { symbol: string; name?: string; valueText: string; changePct?: number; isUp?: boolean }) => {
+    const isPositive = isUp ?? (changePct != null && changePct >= 0);
+    return (
+      <div className="mover-row-item">
+        <div className="mri-info">
+          <span className="mri-ticker">{symbol}</span>
+          {name && <span className="mri-name">{name}</span>}
+        </div>
+        <div className="mri-meta">
+          <span className="mri-val">{valueText}</span>
+          {changePct != null && (
+            <span className={`mri-chg ${isPositive ? 'up' : 'down'}`}>
+              {changePct >= 0 ? '+' : ''}{changePct.toFixed(2)}%
+            </span>
+          )}
+        </div>
       </div>
-      <div className="mri-meta">
-        <span className="mri-val">{valueText}</span>
-        {changePct != null && (
-          <span className={`mri-chg ${isUp || changePct >= 0 ? 'up' : 'down'}`}>
-            {changePct >= 0 ? '+' : ''}{changePct.toFixed(1)}%
-          </span>
-        )}
-      </div>
-    </div>
-  );
+    );
+  };
 
   const activeGainers = gainers.length ? gainers : sampleStocks.slice(0, 5);
   const activeLosers = losers.length ? losers : sampleStocks.slice(4, 9);
@@ -390,10 +396,12 @@ export default function MarketTab() {
   const niftyVal  = snap.index?.nifty50 ?? 24570.65;
   const niftyChg  = snap.index?.['change%'] ?? -0.82;
   const bankVal   = snap.index?.bankNifty ?? 57746.45;
+  const bankChg   = snap.index?.bankNiftyChangePct ?? -0.86;
   const sensexVal = snap.index?.sensex ?? 78499.17;
+  const sensexChg = snap.index?.sensexChangePct ?? -0.18;
   const vixVal    = snap.index?.indiaVix ?? 12.16;
   const vixChg    = snap.index?.vixChangePct != null
-    ? `${snap.index.vixChangePct > 0 ? '+' : ''}${Number(snap.index.vixChangePct).toFixed(2)}%`
+    ? `${snap.index.vixChangePct >= 0 ? '+' : ''}${Number(snap.index.vixChangePct).toFixed(2)}%`
     : '0.00%';
 
   return (
@@ -416,24 +424,27 @@ export default function MarketTab() {
           <>
             {/* ── Top Key Indicators Grid ── */}
             {(() => {
-              const goldStr = snap.globalCues?.gold || '₹1,18,821 (+7.43%)';
-              const goldParts = goldStr.split(' ');
-              const goldVal = goldParts[0] || '₹1,18,821';
-              const goldChg = goldParts[1] ? goldParts[1].replace(/[()]/g, '') : '+7.43%';
+              const goldObj = snap.globalCues?.gold;
+              const goldVal = typeof goldObj === 'object' && goldObj?.priceStr ? goldObj.priceStr : (typeof goldObj === 'string' ? goldObj.split(' ')[0] : '₹1,18,821');
+              const goldChg = typeof goldObj === 'object' && goldObj?.changeStr ? goldObj.changeStr : (typeof goldObj === 'string' ? (goldObj.split(' ')[1] || '').replace(/[()]/g, '') : '+7.43%');
 
-              const crudeStr = snap.globalCues?.crude || '$78.18 (+3.18%)';
-              const crudeParts = crudeStr.split(' ');
-              const crudeVal = crudeParts[0] || '$78.18';
-              const crudeChg = crudeParts[1] ? crudeParts[1].replace(/[()]/g, '') : '+3.18%';
+              const crudeObj = snap.globalCues?.crude;
+              const crudeVal = typeof crudeObj === 'object' && crudeObj?.priceStr ? crudeObj.priceStr : (typeof crudeObj === 'string' ? crudeObj.split(' ')[0] : '$78.18');
+              const crudeChg = typeof crudeObj === 'object' && crudeObj?.changeStr ? crudeObj.changeStr : (typeof crudeObj === 'string' ? (crudeObj.split(' ')[1] || '').replace(/[()]/g, '') : '+3.18%');
+
+              const formatChg = (val: number | string) => {
+                if (typeof val === 'number') return `${val >= 0 ? '+' : ''}${val.toFixed(2)}%`;
+                return String(val);
+              };
 
               return (
                 <div className="metrics-hero-grid">
-                  <MetricCard label="NIFTY 50" value={niftyVal} change={`${niftyChg>=0?'+':''}${niftyChg}%`} badge="Benchmark" />
-                  <MetricCard label="BANK NIFTY" value={bankVal} change="-0.86%" badge="Banking" />
-                  <MetricCard label="SENSEX" value={sensexVal} change="-0.18%" badge="BSE 30" />
-                  <MetricCard label="India VIX" value={vixVal} change={vixChg} sublabel="Volatility Index" trend="up" badge="Volatile" />
-                  <MetricCard label="Gold (₹/10g)" value={goldVal} change={goldChg} sublabel="Commodity" trend={goldChg.startsWith('+') ? 'up' : 'down'} />
-                  <MetricCard label="Crude Oil (Brent)" value={crudeVal} change={crudeChg} sublabel="Energy" trend={crudeChg.startsWith('+') ? 'up' : 'down'} />
+                  <MetricCard label="NIFTY 50" value={niftyVal} change={formatChg(niftyChg)} badge="Benchmark" />
+                  <MetricCard label="BANK NIFTY" value={bankVal} change={formatChg(bankChg)} badge="Banking" />
+                  <MetricCard label="SENSEX" value={sensexVal} change={formatChg(sensexChg)} badge="BSE 30" />
+                  <MetricCard label="India VIX" value={vixVal} change={vixChg} sublabel="Volatility Index" badge="Volatile" />
+                  <MetricCard label="Gold (₹/10g)" value={goldVal} change={goldChg} sublabel="Commodity" />
+                  <MetricCard label="Crude Oil (Brent)" value={crudeVal} change={crudeChg} sublabel="Energy" />
                 </div>
               );
             })()}

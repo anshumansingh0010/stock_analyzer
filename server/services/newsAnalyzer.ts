@@ -1,33 +1,12 @@
-/**
- * ╔══════════════════════════════════════════════════════════════════════╗
- * ║       NIFTY50GPT — NEWS ANALYZER SERVICE (Layer 2)                  ║
- * ║                                                                      ║
- * ║  Calls the LLM with the Layer 2 News Prompt to analyze a single     ║
- * ║  news article and return structured JSON sentiment data.             ║
- * ╚══════════════════════════════════════════════════════════════════════╝
- */
+// News Analyzer — calls the LLM with the news prompt and returns structured sentiment JSON.
 
-import OpenAI from "openai";
 import {
   buildNewsMessages,
   parseAndValidateNewsOutput,
   NewsArticleInput,
   ParsedNewsOutput,
 } from "../prompts/newsPrompt.js";
-import { withRetry } from "./llmService.js";
-
-function getLLMClient(): OpenAI {
-  const provider = process.env.LLM_PROVIDER || "openai";
-
-  if (provider === "gemini") {
-    return new OpenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-    });
-  }
-
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-}
+import { getLLMClient, getModel, withRetry } from "./llmService.js";
 
 export interface AnalyzeArticleOptions {
   model?: string;
@@ -54,11 +33,8 @@ export async function analyzeArticle(
   options: AnalyzeArticleOptions = {}
 ): Promise<AnalyzedArticleResult> {
   const client = getLLMClient();
+  const model = getModel(options);
   const provider = process.env.LLM_PROVIDER || "openai";
-
-  const model =
-    options.model || (provider === "gemini" ? "gemini-3.6-flash" : "gpt-4o-mini");
-
   const messages: any[] = buildNewsMessages(article, portfolio);
 
   try {
@@ -68,8 +44,7 @@ export async function analyzeArticle(
         messages,
         temperature: 0.1,
         max_tokens: 2500,
-        response_format:
-          provider === "openai" ? { type: "json_object" } : undefined,
+        response_format: provider === "openai" ? { type: "json_object" } : undefined,
       })
     );
 

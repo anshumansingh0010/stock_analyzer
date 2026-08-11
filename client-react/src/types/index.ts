@@ -12,7 +12,7 @@ export interface ToastState {
   visible: boolean;
 }
 
-export interface StockChartPoint {
+interface StockChartPoint {
   time: string;
   close: number;
   open?: number;
@@ -21,7 +21,7 @@ export interface StockChartPoint {
   volume?: number;
 }
 
-export interface StockData {
+interface StockData {
   symbol: string;
   companyName?: string;
   name?: string;
@@ -47,7 +47,7 @@ export interface StockData {
   [key: string]: any;
 }
 
-export interface IndexData {
+interface IndexData {
   name: string;
   value: string | number;
   change: string | number;
@@ -55,13 +55,13 @@ export interface IndexData {
   dir?: 'up' | 'down' | 'flat' | string;
 }
 
-export interface SectorData {
+interface SectorData {
   name: string;
   change: string | number;
   sentiment?: 'BULLISH' | 'BEARISH' | 'NEUTRAL' | string;
 }
 
-export interface MarketOverview {
+interface MarketOverview {
   indices?: Record<string, IndexData> | IndexData[];
   breadth?: {
     advances: number;
@@ -76,7 +76,7 @@ export interface MarketOverview {
   [key: string]: any;
 }
 
-export interface NewsItem {
+interface NewsItem {
   id?: string | number;
   title: string;
   source: string;
@@ -91,7 +91,7 @@ export interface NewsItem {
   tags?: string[];
 }
 
-export interface PortfolioHolding {
+interface PortfolioHolding {
   symbol?: string;
   stock?: string;
   ticker?: string;
@@ -159,4 +159,7 @@ export interface AppContextType {
   logout: () => void;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  customShortcuts: Record<string, string | null>;
+  updateCustomShortcut: (id: string, key: string | null) => void;
+  resetCustomShortcuts: () => void;
 }

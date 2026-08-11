@@ -8,7 +8,7 @@
  */
 
 import { fetchCombinedRssNews } from "./rssService.js";
-import { NIFTY50_STOCKS } from "../routes/stock.js";
+import { NIFTY50_STOCKS } from "../constants/nifty50.js";
 
 export interface AnalyzedLiveArticle {
   id: string | number;
@@ -92,17 +92,24 @@ function tagAndAnalyzeArticle(article: { headline: string; description: string; 
     }
   });
 
-  // Extract sectors
+  // Extract sectors with exact word boundaries
   const sectorSet = new Set<string>();
-  if (fullText.includes("bank") || fullText.includes("rbi") || fullText.includes("lending")) sectorSet.add("Banking");
-  if (fullText.includes("it ") || fullText.includes("tech") || fullText.includes("software") || fullText.includes("ai ")) sectorSet.add("IT");
-  if (fullText.includes("auto") || fullText.includes("ev") || fullText.includes("car") || fullText.includes("vehicle")) sectorSet.add("Auto");
-  if (fullText.includes("pharma") || fullText.includes("fda") || fullText.includes("health")) sectorSet.add("Pharma");
-  if (fullText.includes("oil") || fullText.includes("gas") || fullText.includes("energy")) sectorSet.add("Energy");
-  if (fullText.includes("metal") || fullText.includes("steel") || fullText.includes("copper")) sectorSet.add("Metal");
+  if (/\b(bank|banking|rbi|lending|loan|nbfcs)\b/i.test(fullText)) sectorSet.add("Banking");
+  if (/\b(telecom|trai|1601|airtel|jio|spectrum|5g|communication|cpaas)\b/i.test(fullText)) sectorSet.add("Telecom");
+  if (/\b(courier|logistics|shipping|freight|express)\b/i.test(fullText)) sectorSet.add("Logistics");
+  if (/\b(utility|utilities|power|grid|electricity)\b/i.test(fullText)) sectorSet.add("Utilities");
+  if (/\b(it|technology|software|cloud|saas|ai)\b/i.test(fullText) && !/\butilities\b/i.test(fullText)) sectorSet.add("IT");
+  if (/\b(auto|ev|car|vehicle|automobile)\b/i.test(fullText)) sectorSet.add("Auto");
+  if (/\b(pharma|fda|health|healthcare|drug)\b/i.test(fullText)) sectorSet.add("Pharma");
+  if (/\b(oil|gas|energy|petro)\b/i.test(fullText)) sectorSet.add("Energy");
+  if (/\b(metal|steel|copper|aluminum|mining)\b/i.test(fullText)) sectorSet.add("Metal");
   if (sectorSet.size === 0) sectorSet.add("Markets");
 
   const isHighImpact = fullText.includes("rbi") || fullText.includes("nifty") || fullText.includes("sensex") || fullText.includes("fed") || matchedCompanies.length > 0;
+
+  const primaryCompany = matchedCompanies[0]?.ticker;
+  const primarySector = Array.from(sectorSet)[0];
+  const expectedImpact = generateContextualImpactServer(article.headline, article.description, sentiment, primaryCompany, primarySector);
 
   return {
     id: `live-${Date.now()}-${index}`,
@@ -124,11 +131,59 @@ function tagAndAnalyzeArticle(article: { headline: string; description: string; 
         reason: "Broad Indian equity market commentary & macroeconomic trend.",
       }
     ],
-    expectedImpact: {
-      shortTerm: sentiment === "BULLISH" ? "+0.5% to +1.5% positive momentum intraday" : sentiment === "BEARISH" ? "-0.5% to -1.5% cautious consolidation intraday" : "Range-bound intraday movement",
-      longTerm: sentiment === "BULLISH" ? "Positive structural trajectory supported by fundamentals" : sentiment === "BEARISH" ? "Near-term consolidation phase awaiting earnings catalysts" : "Neutral long-term outlook",
-    },
+    expectedImpact,
   };
+}
+
+function generateContextualImpactServer(headline: string, description: string, sentiment: "BULLISH" | "BEARISH" | "NEUTRAL", companyTicker?: string, sector?: string) {
+  const text = `${headline} ${description}`.toLowerCase();
+  const subject = companyTicker && companyTicker !== "NIFTY50" ? companyTicker : (sector || "market");
+
+  // 0. TRAI / Telecom / 1601 Series / Spam / DLT Directives
+  if (text.includes("trai") || text.includes("1601") || text.includes("telecom") || text.includes("caller") || text.includes("spam") || text.includes("dlt")) {
+    if (sentiment === "BULLISH") return { shortTerm: "+0.8% to +1.6% upside momentum as enterprise voice/SMS compliance volume increases for Telecom carriers", longTerm: "Sustained enterprise CPaaS revenue growth & DLT network monetization for Telecom operators" };
+    if (sentiment === "BEARISH") return { shortTerm: "-0.5% to -1.5% compliance cost burden expected on commercial voice senders", longTerm: "Higher operational overhead for enterprise senders complying with TRAI headers & numbering standards" };
+    return { shortTerm: "Neutral price action as Telecom operators & enterprise senders implement TRAI's 1601 series routing", longTerm: "Enhanced anti-spam DLT compliance & fraud prevention with steady enterprise communication revenues" };
+  }
+
+  // 1. Employment / Unemployment / Labor Force / LFPR / Job Market
+  if (text.includes("unemployment") || text.includes("labor") || text.includes("labour") || text.includes("lfpr") || text.includes("hiring") || text.includes("payroll") || text.includes("jobs") || text.includes("employment")) {
+    if (sentiment === "BULLISH") return { shortTerm: "+0.6% to +1.4% positive sentiment as expanding employment signals strong economic activity & consumer confidence", longTerm: "Higher labor force participation drives urban disposable income growth, boosting retail, FMCG, and consumer durables" };
+    if (sentiment === "BEARISH") return { shortTerm: "-0.5% to -1.5% intraday caution as dipping LFPR signals potential softness in urban household income & consumer sentiment", longTerm: "Muted urban wage growth & labor participation may constrain consumer discretionary spending & FMCG/retail volume growth" };
+    return { shortTerm: "Range-bound market reaction as labor market indicators remain broadly steady", longTerm: "Balanced economic outlook with steady labor participation supporting consumption stability" };
+  }
+
+  // 2. Interest Rates / Central Bank / Inflation / Monetary Policy
+  if (text.includes("interest rate") || text.includes("repo rate") || text.includes("fed rate") || text.includes("rate hike") || text.includes("rate cut") || text.includes("rbi") || text.includes("fed") || text.includes("inflation") || text.includes("boj") || text.includes("monetary") || text.includes("yield")) {
+    if (sentiment === "BULLISH") return { shortTerm: "+0.8% to +1.8% relief rally expected as rate trajectory favors equity valuations", longTerm: `Lower cost of capital & NIM stabilization expected to expand P/E multiples for ${subject}` };
+    if (sentiment === "BEARISH") return { shortTerm: "-0.8% to -2.0% pressure expected as rate hawkishness & inflation risks weigh on trading", longTerm: `Elevated borrowing costs may temper capital expenditure & earnings expansion for ${subject}` };
+    return { shortTerm: "Range-bound price action expected as markets digest monetary policy & inflation signals", longTerm: "Balanced macro posture with policy stance remaining data-dependent over coming quarters" };
+  }
+
+  if (text.includes("profit") || text.includes("revenue") || text.includes("q4") || text.includes("q3") || text.includes("guidance") || text.includes("result") || text.includes("margin") || text.includes("earnings") || text.includes("beat") || text.includes("miss")) {
+    if (sentiment === "BULLISH") return { shortTerm: "+1.5% to +3.0% post-earnings surge driven by strong financial beat & operating leverage", longTerm: `Multi-quarter earnings compounding backed by revenue momentum & margin expansion for ${subject}` };
+    if (sentiment === "BEARISH") return { shortTerm: "-2.0% to -4.2% intraday pullback following earnings/guidance disappointment", longTerm: `Consolidation phase until discretionary demand & margin recovery materialize for ${subject}` };
+    return { shortTerm: "In-line financial performance likely to keep stock trading in a tight consolidation range", longTerm: "Stable cash flow generation & steady operating trajectory aligned with market expectations" };
+  }
+
+  if (text.includes("deal") || text.includes("contract") || text.includes("order") || text.includes("acquisition") || text.includes("expansion") || text.includes("partnership") || text.includes("ipo") || text.includes("subscribe")) {
+    if (sentiment === "BULLISH") return { shortTerm: "+1.2% to +2.5% upside momentum following major deal & revenue visibility announcement", longTerm: `Sustained top-line compounding & market share gains over multi-year contract term for ${subject}` };
+    if (sentiment === "BEARISH") return { shortTerm: "-0.8% to -1.8% cautious market reaction as investors evaluate execution & integration risks", longTerm: `Margin compression risks if project implementation encounters cost overruns for ${subject}` };
+    return { shortTerm: "Neutral price action as subscription & deal terms are evaluated relative to current valuations", longTerm: "Gradual strategic contribution aligned with management's long-term business roadmap" };
+  }
+
+  if (text.includes("policy") || text.includes("pli") || text.includes("government") || text.includes("cabinet") || text.includes("scheme") || text.includes("tax") || text.includes("probe") || text.includes("penalty") || text.includes("fda")) {
+    if (sentiment === "BULLISH") return { shortTerm: "+1.0% to +2.2% policy-driven momentum across sector beneficiaries", longTerm: `Structural tailwinds & government incentives enhancing domestic competitiveness for ${subject}` };
+    if (sentiment === "BEARISH") return { shortTerm: "-1.2% to -2.8% regulatory overhang creating short-term valuation discount", longTerm: `Compliance overhead & regulatory scrutiny tempering long-term valuation multiples for ${subject}` };
+    return { shortTerm: "Limited immediate price reaction as policy guidelines await formal implementation details", longTerm: "Neutral structural impact with compliance costs balanced by domestic market opportunity" };
+  }
+
+  const cleanHeadline = headline.split("-")[0].split(":")[0].replace(/[^a-zA-Z0-9 ]/g, "").trim();
+  const topicSnippet = cleanHeadline.length > 5 && cleanHeadline.length < 45 ? cleanHeadline : subject;
+
+  if (sentiment === "BULLISH") return { shortTerm: `+0.8% to +2.0% positive momentum expected as market sentiment favors ${topicSnippet}`, longTerm: `Positive structural growth trajectory with potential multi-quarter re-rating for ${subject}` };
+  if (sentiment === "BEARISH") return { shortTerm: `-0.8% to -2.2% selling pressure & consolidation expected on ${topicSnippet}`, longTerm: `Near-term consolidation phase until fundamental catalysts & demand rebound for ${subject}` };
+  return { shortTerm: `Range-bound intraday movement as market participants evaluate developments in ${topicSnippet}`, longTerm: `Balanced risk-reward outlook with steady fundamental positioning for ${subject}` };
 }
 
 /**

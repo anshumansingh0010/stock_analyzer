@@ -524,6 +524,10 @@
 .assistant-body strong { color: var(--text-primary); font-weight: 700; }
 
 .msg-actions-v2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
   flex-wrap: wrap;
 }
 
@@ -899,4 +903,21 @@ textarea#chat-input::placeholder {
   border-radius: var(--radius-sm, 10px);
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
+}
+
+/* ── RESPONSIVE MOBILE CHAT ── */
+@media (max-width: 768px) {
+  .chat-sidebar-v2 {
+    display: none !important;
+  }
+  .chat-main-v2 {
+    width: 100% !important;
+    flex: 1 !important;
+  }
+  .chat-messages-v2 {
+    padding: 14px 12px;
+  }
+  .chat-input-container-v2 {
+    padding: 10px 12px 14px;
+  }
 }

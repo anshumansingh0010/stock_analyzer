@@ -40,6 +40,10 @@ export interface ParsedNewsOutput {
   sectorAffected: string[];
   urgency: "HIGH" | "MEDIUM" | "LOW";
   summary: string;
+  expectedImpact?: {
+    shortTerm: string;
+    longTerm: string;
+  };
 }
 
 export const NEWS_SYSTEM_PROMPT = `
@@ -87,7 +91,11 @@ Do NOT add markdown code fences.
   "overallMarketSentiment": "BULLISH | BEARISH | NEUTRAL",
   "sectorAffected": ["Banking", "IT"],
   "urgency": "HIGH | MEDIUM | LOW",
-  "summary": "One-line plain-English summary of the news impact"
+  "summary": "One-line plain-English summary of the news impact",
+  "expectedImpact": {
+    "shortTerm": "Specific 1-line forecast on expected short-term price movement, percentage range, or intraday trading volatility",
+    "longTerm": "Specific 1-line forecast on multi-quarter structural outlook, fundamental growth, or business trajectory"
+  }
 }
 
 ═══ SCORING GUIDE ═══
@@ -197,11 +205,19 @@ export function parseAndValidateNewsOutput(rawOutput: string): ParsedNewsOutput 
     };
   });
 
+  const expectedImpact = parsed.expectedImpact && typeof parsed.expectedImpact.shortTerm === "string" && typeof parsed.expectedImpact.longTerm === "string"
+    ? {
+        shortTerm: parsed.expectedImpact.shortTerm,
+        longTerm: parsed.expectedImpact.longTerm,
+      }
+    : undefined;
+
   return {
     companies,
     overallMarketSentiment: parsed.overallMarketSentiment,
     sectorAffected: Array.isArray(parsed.sectorAffected) ? parsed.sectorAffected : [],
     urgency: parsed.urgency,
     summary: parsed.summary || "",
+    expectedImpact,
   };
 }

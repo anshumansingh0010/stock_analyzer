@@ -3,7 +3,7 @@
  * ║       NIFTY50GPT — RSS FEED AGGREGATOR SERVICE                       ║
  * ║                                                                      ║
  * ║  Fetches, cleans, and aggregates stock market news from multiple     ║
- * ║  RSS feeds (Zerodha Pulse, Google News, Economic Times, MC).          ║
+ * ║  RSS feeds (Zerodha Pulse, Google News, Economic Times, MC).         ║
  * ╚══════════════════════════════════════════════════════════════════════╝
  */
 

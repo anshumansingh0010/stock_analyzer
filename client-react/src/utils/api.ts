@@ -2,8 +2,21 @@
 // Vite proxy forwards /api → http://localhost:3001/api
 export const API_BASE = '/api';
 
+function getAuthToken(): string | null {
+  return localStorage.getItem("stock_sense_token");
+}
+
 export async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
-  const res = await fetch(`${API_BASE}${path}`, options);
+  const token = getAuthToken();
+  const headers = new Headers(options.headers || {});
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers,
+  });
   return res;
 }
 

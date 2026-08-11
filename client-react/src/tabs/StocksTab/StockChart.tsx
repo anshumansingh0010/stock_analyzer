@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BarChart3, RefreshCw, Zap } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 interface RawCandle {
   time: string;
@@ -159,10 +159,9 @@ export function StockChart({ ticker, stockName, price = 2840 }: { ticker: string
       <div className="widget-header flex flex-wrap items-center justify-between gap-4">
         <div className="compact-header-title flex flex-col gap-1.5 min-w-0">
           <h4 className="flex flex-wrap items-center gap-2 m-0">
-            <BarChart3 className="w-5 h-5 text-indigo-400 shrink-0" />
-            <span className="font-bold text-slate-100">Technical Candlestick Chart ({ticker})</span>
-            <span className={`text-xs px-2 py-0.5 rounded font-mono flex items-center gap-1 border shrink-0 ${dataSource.includes('Live') || dataSource.includes('NSE') || dataSource.includes('Groww') ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800/60' : 'bg-amber-950/80 text-amber-300 border-amber-800/60'}`}>
-              <Zap className={`w-3 h-3 ${dataSource.includes('Live') || dataSource.includes('NSE') || dataSource.includes('Groww') ? 'text-emerald-400 fill-emerald-400' : 'text-amber-400 fill-amber-400'}`} /> {dataSource}
+            <span className="font-bold">Technical Candlestick Chart ({ticker})</span>
+            <span className={`text-xs px-2 py-0.5 rounded font-mono flex items-center gap-1 border shrink-0 ${dataSource.includes('Live') || dataSource.includes('NSE') || dataSource.includes('Groww') ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/60'}`}>
+              {dataSource}
             </span>
           </h4>
           <div className="ohlc-inline-legend flex flex-wrap items-center gap-3 text-xs">

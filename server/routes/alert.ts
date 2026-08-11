@@ -86,12 +86,12 @@ export default async function alertRoutes(fastify: FastifyInstance): Promise<voi
   fastify.get("/history", async (request: FastifyRequest, reply: FastifyReply) => {
     const query = request.query as any;
     const limit = parseInt(query?.limit || "50") || 50;
-    const alerts = getAlertHistory(Math.min(limit, 100));
+    const alerts = await getAlertHistory(Math.min(limit, 100));
 
     return reply.send({
       success: true,
       count: alerts.length,
-      unread: getUnreadCount(),
+      unread: await getUnreadCount(),
       alerts,
     });
   });
@@ -99,25 +99,25 @@ export default async function alertRoutes(fastify: FastifyInstance): Promise<voi
   fastify.get("/unread", async (_request: FastifyRequest, reply: FastifyReply) => {
     return reply.send({
       success: true,
-      unread: getUnreadCount(),
+      unread: await getUnreadCount(),
     });
   });
 
   fastify.post("/read", async (request: FastifyRequest, reply: FastifyReply) => {
     const body = request.body as any;
     if (body?.all) {
-      const result = markAllRead();
+      const result = await markAllRead();
       return reply.send({ success: true, ...result });
     }
     if (body?.id != null) {
-      const found = markRead(parseInt(body.id));
+      const found = await markRead(body.id.toString());
       return reply.send({ success: true, found });
     }
     return reply.status(400).send({ error: "Provide 'id' or 'all: true'" });
   });
 
   fastify.delete("/clear", async (_request: FastifyRequest, reply: FastifyReply) => {
-    const result = clearHistory();
+    const result = await clearHistory();
     return reply.send({ success: true, ...result });
   });
 

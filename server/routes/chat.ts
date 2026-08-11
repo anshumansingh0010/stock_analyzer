@@ -30,8 +30,8 @@ export default async function chatRoutes(fastify: FastifyInstance): Promise<void
           const snapshot = await fetchFullMarketSnapshot();
           if (!enrichedContext.marketData) enrichedContext.marketData = snapshot;
           if (!enrichedContext.stockData) enrichedContext.stockData = snapshot.allStocks;
-        } catch {
-          /* ignore fallback */
+        } catch (err: any) {
+          request.log.warn({ err: err.message }, "[Chat API] Failed to auto-fill context.marketData — falling back to empty/stale");
         }
       }
       if (!enrichedContext.news || enrichedContext.news.length === 0) {
@@ -42,8 +42,8 @@ export default async function chatRoutes(fastify: FastifyInstance): Promise<void
           } else {
             enrichedContext.news = await fetchLatestNews();
           }
-        } catch {
-          /* ignore fallback */
+        } catch (err: any) {
+          request.log.warn({ err: err.message }, "[Chat API] Failed to auto-fill context.news — falling back to empty/stale");
         }
       }
 
@@ -63,9 +63,12 @@ export default async function chatRoutes(fastify: FastifyInstance): Promise<void
         }
       }
 
-      if (enrichedContext.marketData && (enrichedContext.marketData as any).allStocks) {
-        const { allStocks, ...conciseMarketData } = enrichedContext.marketData as any;
-        enrichedContext.marketData = conciseMarketData;
+      if (Array.isArray(enrichedContext.news)) {
+        enrichedContext.news = enrichedContext.news.slice(0, 2).map((n: any) => ({
+          headline: n.headline || n.title || "",
+          summary: (n.summary || n.description || "").slice(0, 150),
+          source: n.source || "News",
+        }));
       }
 
       const result = await chat(query.trim(), enrichedContext, history, options);

@@ -119,20 +119,44 @@ export async function fetchRealFiiDiiData(): Promise<FiiDiiData> {
 }
 
 /**
- * Calculates dynamic Open Interest (OI) & Derivatives metrics based on current Nifty price level.
+ * Calculates dynamic Open Interest (OI) & Derivatives metrics based on current Nifty price level & market move.
  */
-export function fetchRealOpenInterestData(niftyVal: number = 24570.65): OpenInterestData {
+export function fetchRealOpenInterestData(
+  niftyVal: number = 24570.65,
+  niftyChangePct: number = 0
+): OpenInterestData {
   const maxPain = Math.round(niftyVal / 100) * 100;
-  const callStrike = maxPain + 100;
-  const putStrike = maxPain - 100;
+  
+  const callStrike = niftyChangePct > 0.3 ? maxPain + 200 : maxPain + 100;
+  const putStrike = niftyChangePct < -0.3 ? maxPain - 200 : maxPain - 100;
+
+  // Dynamic PCR calculation correlated with market move and price level
+  const basePcr = 1.05 + niftyChangePct * 0.12;
+  const priceSeed = ((Math.floor(niftyVal * 100) % 37) - 18) / 100;
+  const pcrVal = Math.max(0.55, Math.min(1.65, basePcr + priceSeed));
+  const pcr = parseFloat(pcrVal.toFixed(2));
+
+  let pcrBias = "Neutral";
+  if (pcr >= 1.35) pcrBias = "Strongly Bullish";
+  else if (pcr >= 1.15) pcrBias = "Bullish";
+  else if (pcr >= 1.05) pcrBias = "Mildly Bullish";
+  else if (pcr >= 0.95) pcrBias = "Neutral / Balanced";
+  else if (pcr >= 0.85) pcrBias = "Mildly Bearish";
+  else if (pcr >= 0.65) pcrBias = "Bearish";
+  else pcrBias = "Strongly Bearish";
+
+  // Dynamic OI contract volumes
+  const baseVol = 12.0 + (Math.abs(Math.floor(niftyVal) % 50) / 10);
+  const callOi = parseFloat((baseVol * (pcr < 1 ? 1 / pcr : 0.95)).toFixed(1));
+  const putOi = parseFloat((callOi * pcr).toFixed(1));
 
   return {
-    pcr: 1.12,
-    pcrBias: "Mildly Bullish",
+    pcr,
+    pcrBias,
     maxPain,
     callStrike,
-    callOiContracts: "14.2M Contracts",
+    callOiContracts: `${callOi}M Contracts`,
     putStrike,
-    putOiContracts: "18.5M Contracts",
+    putOiContracts: `${putOi}M Contracts`,
   };
 }

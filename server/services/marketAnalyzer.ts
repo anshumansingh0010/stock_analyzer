@@ -1,13 +1,5 @@
-/**
- * ╔══════════════════════════════════════════════════════════════════════╗
- * ║       NIFTY50GPT — MARKET ANALYZER SERVICE (Layer 4)                ║
- * ║                                                                      ║
- * ║  Powers "Why is Nifty up/down?" + Morning/Closing Briefing.         ║
- * ║  Supports standard + SSE streaming responses.                       ║
- * ╚══════════════════════════════════════════════════════════════════════╝
- */
+// Market Analyzer — powers "Why is Nifty up/down?" briefings with standard and streaming LLM responses.
 
-import OpenAI from "openai";
 import {
   buildMarketMessages,
   deriveMarketMetrics,
@@ -20,17 +12,7 @@ import {
   UserPortfolioItem,
   DerivedMarketMetrics,
 } from "../prompts/marketPrompt.js";
-
-function getLLMClient(): OpenAI {
-  const provider = process.env.LLM_PROVIDER || "openai";
-  if (provider === "gemini") {
-    return new OpenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-    });
-  }
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-}
+import { getLLMClient, getModel, withRetry } from "./llmService.js";
 
 export interface AnalyzeMarketOptions {
   model?: string;
@@ -60,8 +42,7 @@ export async function analyzeMarket(
   options: AnalyzeMarketOptions = {}
 ): Promise<AnalyzeMarketResult> {
   const client = getLLMClient();
-  const provider = process.env.LLM_PROVIDER || "openai";
-  const model = options.model || (provider === "gemini" ? "gemini-2.0-flash" : "gpt-4o-mini");
+  const model = getModel(options);
 
   const derived = deriveMarketMetrics(gainers, losers, sectors, index);
   const messages: any[] = buildMarketMessages(
@@ -75,13 +56,15 @@ export async function analyzeMarket(
     briefingType
   );
 
-  const completion = await client.chat.completions.create({
-    model,
-    messages,
-    temperature: 0.35,
-    max_tokens: 1600,
-    ...options.extra,
-  });
+  const completion = await withRetry(() =>
+    client.chat.completions.create({
+      model,
+      messages,
+      temperature: 0.35,
+      max_tokens: 1600,
+      ...options.extra,
+    })
+  );
 
   const commentary = completion.choices[0]?.message?.content ?? "No analysis generated.";
 
@@ -110,8 +93,7 @@ export async function analyzeMarketStream(
   options: AnalyzeMarketOptions = {}
 ): Promise<{ derived: DerivedMarketMetrics; meta: { briefingType: BriefingType; generatedAt: string; model: string } }> {
   const client = getLLMClient();
-  const provider = process.env.LLM_PROVIDER || "openai";
-  const model = options.model || (provider === "gemini" ? "gemini-2.0-flash" : "gpt-4o-mini");
+  const model = getModel(options);
 
   const derived = deriveMarketMetrics(gainers, losers, sectors, index);
   const messages: any[] = buildMarketMessages(
@@ -125,20 +107,22 @@ export async function analyzeMarketStream(
     briefingType
   );
 
-  const stream = await client.chat.completions.create({
-    model,
-    messages,
-    temperature: 0.35,
-    max_tokens: 1600,
-    stream: true,
-  });
+  const stream = await withRetry(() =>
+    client.chat.completions.create({
+      model,
+      messages,
+      temperature: 0.35,
+      max_tokens: 1600,
+      stream: true,
+    })
+  );
 
   let fullText = "";
   for await (const chunk of stream) {
     const token = chunk.choices[0]?.delta?.content || "";
     if (token) {
       fullText += token;
-      if (typeof onChunk === "function") onChunk(token);
+      onChunk?.(token);
     }
   }
 

@@ -23,6 +23,7 @@ import portfolioRoutes from "./routes/portfolio.js";
 import marketdataRoutes from "./routes/marketdata.js";
 import authRoutes from "./routes/auth.js";
 import { startScheduler, getStatus as getNewsStatus } from "./services/newsScheduler.js";
+import { requireAuth } from "./middleware/auth.js";
 
 const server = Fastify({ logger: true });
 const PORT = parseInt(process.env.PORT || "3001") || 3001;
@@ -52,15 +53,19 @@ async function setupServer() {
     timeWindow: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "60000") || 60_000,
   });
 
-  // ─── Route Registration (Layers 1–6) ─────────────────────────────
   await server.register(authRoutes, { prefix: "/api/auth" });
-  await server.register(chatRoutes, { prefix: "/api/chat" });
   await server.register(newsRoutes, { prefix: "/api/news" });
   await server.register(stockRoutes, { prefix: "/api/stock" });
   await server.register(marketRoutes, { prefix: "/api/market" });
-  await server.register(alertRoutes, { prefix: "/api/alerts" });
-  await server.register(portfolioRoutes, { prefix: "/api/portfolio" });
   await server.register(marketdataRoutes, { prefix: "/api/marketdata" });
+
+  // ── Protected Routes ─────────────────────────────────────────
+  await server.register(async (protectedServer) => {
+    protectedServer.addHook("preHandler", requireAuth);
+    await protectedServer.register(chatRoutes, { prefix: "/api/chat" });
+    await protectedServer.register(portfolioRoutes, { prefix: "/api/portfolio" });
+    await protectedServer.register(alertRoutes, { prefix: "/api/alerts" });
+  });
 
   // Health check
   server.get("/api/health", async (_request: FastifyRequest, reply: FastifyReply) => {

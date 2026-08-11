@@ -4,7 +4,7 @@ import { API_BASE, buildSSEReader } from '../../utils/api';
 import { formatStockReport } from '../../utils/format';
 import { StockChart } from './StockChart';
 import { StockFundamentals } from './StockFundamentals';
-import { Sparkles, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface StockItem {
   ticker: string;
@@ -112,7 +112,7 @@ export default function StocksTab() {
         if (d.success && d.stocks?.length) {
           const mapped = d.stocks.map((s: StockItem) => ({
             ...s,
-            price: getStockPrice(s.ticker),
+            price: s.price || getStockPrice(s.ticker),
           }));
           setStocks(mapped);
           if (!selected) setSelected(mapped[0]);
@@ -301,7 +301,7 @@ export default function StocksTab() {
             {/* ── AI Report Generation Action Bar ── */}
             <div className="market-widget tech-inputs-card">
               <div className="widget-header">
-                <h4 className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-indigo-400" /> AI Technical &amp; Fundamental Report Engine</h4>
+                <h4 className="flex items-center gap-2">AI Technical &amp; Fundamental Report Engine</h4>
                 <span className="widget-tag bull">Layer 3 Generator</span>
               </div>
 

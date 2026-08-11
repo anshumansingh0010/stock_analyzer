@@ -1,14 +1,5 @@
-/**
- * ╔══════════════════════════════════════════════════════════════════════╗
- * ║       NIFTY50GPT — STOCK ANALYZER SERVICE (Layer 3)                 ║
- * ║                                                                      ║
- * ║  Calls the LLM with the Layer 3 Stock Prompt.                       ║
- * ║  Returns a structured analyst report.                               ║
- * ║  Supports single stock + streaming for real-time UI.                ║
- * ╚══════════════════════════════════════════════════════════════════════╝
- */
+// Stock Analyzer — calls the LLM with the stock prompt and returns a structured analyst report.
 
-import OpenAI from "openai";
 import {
   buildStockMessages,
   deriveTechnicalSummary,
@@ -18,18 +9,7 @@ import {
   UserHoldingData,
   TechnicalSummary,
 } from "../prompts/stockPrompt.js";
-import { withRetry } from "./llmService.js";
-
-function getLLMClient(): OpenAI {
-  const provider = process.env.LLM_PROVIDER || "openai";
-  if (provider === "gemini") {
-    return new OpenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-    });
-  }
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-}
+import { getLLMClient, getModel, withRetry } from "./llmService.js";
 
 export interface AnalyzeStockOptions {
   model?: string;
@@ -56,8 +36,7 @@ export async function analyzeStock(
   options: AnalyzeStockOptions = {}
 ): Promise<AnalyzeStockResult> {
   const client = getLLMClient();
-  const provider = process.env.LLM_PROVIDER || "openai";
-  const model = options.model || (provider === "gemini" ? "gemini-2.0-flash" : "gpt-4o-mini");
+  const model = getModel(options);
 
   const derived = deriveTechnicalSummary(stock, technical);
   const messages: any[] = buildStockMessages(stock, technical, news, userHolding);
@@ -96,8 +75,7 @@ export async function analyzeStockStream(
   options: AnalyzeStockOptions = {}
 ): Promise<{ derived: TechnicalSummary; meta: { ticker?: string; analyzedAt: string; model: string; hasHolding: boolean } }> {
   const client = getLLMClient();
-  const provider = process.env.LLM_PROVIDER || "openai";
-  const model = options.model || (provider === "gemini" ? "gemini-2.0-flash" : "gpt-4o-mini");
+  const model = getModel(options);
 
   const derived = deriveTechnicalSummary(stock, technical);
   const messages: any[] = buildStockMessages(stock, technical, news, userHolding);
@@ -117,7 +95,7 @@ export async function analyzeStockStream(
     const token = chunk.choices[0]?.delta?.content || "";
     if (token) {
       fullReport += token;
-      if (typeof onChunk === "function") onChunk(token);
+      onChunk?.(token);
     }
   }
 

@@ -51,7 +51,6 @@ export default async function authRoutes(fastify: FastifyInstance) {
     return reply.send({
       success: true,
       message: `OTP sent successfully to ${identifier}`,
-      otp: generatedOtp,
       expiresInSeconds: 300,
       idType: validation.type,
     });
@@ -80,7 +79,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
     const cleanOtp = otp.trim();
 
     const stored = otpStore.get(cleanId);
-    const isMasterOtp = cleanOtp === "123456";
+    const isMasterOtp = process.env.NODE_ENV === "development" && cleanOtp === "123456";
 
     let isValid = false;
 

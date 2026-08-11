@@ -520,6 +520,10 @@ background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   background: var(--bg-elevated);
   color: var(--text-secondary);
   border: 1px solid var(--border-subtle);
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: fit-content;
 }
 
 .widget-tag.bull { background: color-mix(in srgb, var(--secondary) 12%, transparent); color: var(--accent-bull); border-color: color-mix(in srgb, var(--secondary) 25%, transparent); }
@@ -808,4 +812,16 @@ background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary
 .ptf-stock-cell {
   display: flex;
   flex-direction: column;
+}
+
+/* ── RESPONSIVE MARKET STYLES ── */
+@media (max-width: 1024px) {
+  .market-indices-strip { flex-wrap: wrap; }
+  .market-grid-3col { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .dashboard-two-col, .mkt-bottom-grid { grid-template-columns: 1fr; }
+  .market-grid-3col { grid-template-columns: 1fr; }
+  .market-action-row { flex-direction: column; align-items: stretch; }
 }

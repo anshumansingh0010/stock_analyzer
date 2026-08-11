@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode, useRef } from 'react';
-import { API_BASE } from '../utils/api';
+import { API_BASE, apiFetch } from '../utils/api';
 import { AppContextType, AiContextState, BadgeData, ToastState, ChatMessage, UserProfile } from '../types';
 import { validateIdentifier } from '../utils/validation';
+import { loadCustomShortcuts, saveCustomShortcuts } from '../utils/shortcuts';
 
 const AppContext = createContext<AppContextType | null>(null);
 
@@ -16,6 +17,29 @@ const DEFAULT_USER: UserProfile = {
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  // ── Custom Keyboard Shortcuts State ─────────────────────────
+  const [customShortcuts, setCustomShortcuts] = useState<Record<string, string | null>>(loadCustomShortcuts);
+
+  const updateCustomShortcut = useCallback((id: string, key: string | null) => {
+    setCustomShortcuts((prev) => {
+      const updated = { ...prev, [id]: key };
+      saveCustomShortcuts(updated);
+      return updated;
+    });
+  }, []);
+
+  const resetCustomShortcuts = useCallback(() => {
+    const empty: Record<string, string | null> = {
+      chat: null,
+      market: null,
+      stocks: null,
+      news: null,
+      portfolio: null,
+      overlay: null,
+    };
+    saveCustomShortcuts(empty);
+    setCustomShortcuts(empty);
+  }, []);
   // ── User Auth State ─────────────────────────────────────────
   const [user, setUser] = useState<UserProfile | null>(() => {
     try {
@@ -117,7 +141,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/auth/send-otp`, {
+      const res = await apiFetch(`/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier }),
@@ -145,7 +169,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/auth/verify-otp`, {
+      const res = await apiFetch(`/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, otp, name }),
@@ -154,6 +178,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (res.ok && data.success && data.user) {
         localStorage.removeItem('stock_sense_logged_out');
         localStorage.setItem('stock_sense_user', JSON.stringify(data.user));
+        if (data.token) {
+          localStorage.setItem('stock_sense_token', data.token);
+        }
         setUser(data.user);
         setIsAuthModalOpen(false);
         showToast(`Welcome back, ${data.user.name}! Verified with OTP.`, 'success');
@@ -189,6 +216,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('stock_sense_user');
+    localStorage.removeItem('stock_sense_token');
     localStorage.setItem('stock_sense_logged_out', 'true');
     setUser(null);
     showToast('Logged out successfully', 'info');
@@ -202,7 +230,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // ── Health check ──────────────────────────────────────────
   const checkHealth = useCallback(async () => {
     try {
-      const res  = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(4000) });
+      const res  = await apiFetch(`/health`, { signal: AbortSignal.timeout(4000) });
       const data = await res.json();
       if (data.status === 'ok') {
         setBackendOnline(true);
@@ -222,15 +250,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     inittedRef.current = true;
     try {
       const [mRes, sRes, nRes, pRes] = await Promise.allSettled([
-        fetch(`${API_BASE}/marketdata/snapshot`).then((r) => r.json()),
-        fetch(`${API_BASE}/stock/nifty50`).then((r) => r.json()),
-        fetch(`${API_BASE}/news/results`).then((r) => r.json()),
-        fetch(`${API_BASE}/portfolio/demoUser`).then((r) => r.json()),
+        apiFetch(`/marketdata/snapshot`).then((r) => r.json()),
+        apiFetch(`/stock/nifty50`).then((r) => r.json()),
+        apiFetch(`/news/results`).then((r) => r.json()),
+        apiFetch(`/portfolio/demoUser`).then((r) => r.json()),
       ]);
 
       const updates: Partial<AiContextState> = {};
       if (mRes.status === "fulfilled" && mRes.value?.success) {
-        updates.marketData = mRes.value.snapshot || mRes.value;
+        const snap = mRes.value.snapshot || mRes.value;
+        updates.marketData = snap;
+        if (snap.index?.nifty50) {
+          const ch = snap.index['change%'];
+          setNiftyBadge({
+            value: Number(snap.index.nifty50).toLocaleString('en-IN'),
+            change: ch != null ? `${ch >= 0 ? '+' : ''}${typeof ch === 'number' ? ch.toFixed(2) : ch}%` : '—',
+            dir: ch != null ? (ch >= 0 ? 'up' : 'down') : '',
+          });
+        }
       }
       if (sRes.status === "fulfilled" && sRes.value?.success) {
         updates.stockData = sRes.value.stocks || sRes.value;
@@ -265,6 +302,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       user, setUser,
       login, loginWithGoogle, sendOtp, verifyOtp, logout,
       isAuthModalOpen, setIsAuthModalOpen,
+      customShortcuts, updateCustomShortcut, resetCustomShortcuts,
     }}>
       {children}
     </AppContext.Provider>

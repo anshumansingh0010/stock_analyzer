@@ -6,6 +6,7 @@ interface HeaderProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
   newsAlertCount: number;
+  onOpenShortcuts: () => void;
 }
 
 function MoonIcon() {
@@ -32,10 +33,26 @@ function SunIcon() {
   );
 }
 
-export default function Header({ activeTab, setActiveTab, newsAlertCount }: HeaderProps) {
+export default function Header({ activeTab, setActiveTab, newsAlertCount, onOpenShortcuts }: HeaderProps) {
   const { niftyBadge, backendOnline, backendProvider, user, logout, setIsAuthModalOpen, aiContext } = useApp();
   const [profileOpen, setProfileOpen] = useState<boolean>(false);
-  const [isDark, setIsDark]           = useState<boolean>(true);
+  const [isDark, setIsDark]           = useState<boolean>(() => {
+    const saved = localStorage.getItem('stock_sense_theme') || localStorage.getItem('theme');
+    return saved !== null ? saved === 'dark' : true;
+  });
+  const [priceAlerts, setPriceAlerts] = useState<boolean>(() => {
+    const saved = localStorage.getItem('stock_sense_price_alerts');
+    return saved !== null ? saved === 'true' : true;
+  });
+  const [defaultView, setDefaultView] = useState<TabType>(() => {
+    const saved = localStorage.getItem('stock_sense_default_view');
+    const validTabs: TabType[] = ['chat', 'market', 'stocks', 'news', 'portfolio'];
+    return (saved && validTabs.includes(saved as TabType)) ? (saved as TabType) : 'chat';
+  });
+  const [marketFilter, setMarketFilter] = useState<'NSE / BSE' | 'NSE ONLY' | 'BSE ONLY'>(() => {
+    const saved = localStorage.getItem('stock_sense_market_filter');
+    return (saved as any) || 'NSE / BSE';
+  });
   const drawerRef = useRef<HTMLElement | null>(null);
 
   const tabs: { id: TabType; label: string; badge?: number }[] = [
@@ -52,7 +69,7 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount }: Head
     { label: 'Alerts',    value: '3' },
   ];
 
-  // Apply theme to <html>
+  // Apply & persist theme to <html>
   useEffect(() => {
     document.documentElement.classList.add('theme-transitioning');
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
@@ -61,11 +78,28 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount }: Head
     } else {
       document.documentElement.classList.remove('dark');
     }
+    localStorage.setItem('stock_sense_theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
     const timer = setTimeout(() => {
       document.documentElement.classList.remove('theme-transitioning');
     }, 500);
     return () => clearTimeout(timer);
   }, [isDark]);
+
+  // Persist Price Alerts
+  useEffect(() => {
+    localStorage.setItem('stock_sense_price_alerts', String(priceAlerts));
+  }, [priceAlerts]);
+
+  // Persist Default View
+  useEffect(() => {
+    localStorage.setItem('stock_sense_default_view', defaultView);
+  }, [defaultView]);
+
+  // Persist Market Filter
+  useEffect(() => {
+    localStorage.setItem('stock_sense_market_filter', marketFilter);
+  }, [marketFilter]);
 
   // Close drawer on outside click
   useEffect(() => {
@@ -180,21 +214,44 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount }: Head
               <span className="pd-name">{user.name}</span>
               <span className="pd-handle">{user.handle}</span>
             </div>
-            <button className="pd-close" onClick={() => setProfileOpen(false)}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <button className="pd-close" onClick={() => setProfileOpen(false)} title="Close Dashboard">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             </button>
           </div>
 
-          {/* Stats */}
-          <div className="pd-stats">
-            {userStats.map(s => (
-              <div key={s.label} className="pd-stat">
-                <span className="pd-stat-value">{s.value}</span>
-                <span className="pd-stat-label">{s.label}</span>
-              </div>
-            ))}
+          {/* Stats Card */}
+          <div className="pd-stats-wrap">
+            <div className="pd-stats">
+              {userStats.map(s => (
+                <div key={s.label} className="pd-stat">
+                  <span className="pd-stat-value">{s.value}</span>
+                  <span className="pd-stat-label">{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Navigation Actions */}
+          <div className="pd-section-title">Quick Actions</div>
+          <div className="pd-actions-grid">
+            <button className="pd-action-btn" onClick={() => { setActiveTab('portfolio'); setProfileOpen(false); }}>
+              <span className="pd-action-icon">💼</span>
+              <span className="pd-action-label">Portfolio</span>
+            </button>
+            <button className="pd-action-btn" onClick={() => { setActiveTab('market'); setProfileOpen(false); }}>
+              <span className="pd-action-icon">📈</span>
+              <span className="pd-action-label">Markets</span>
+            </button>
+            <button className="pd-action-btn" onClick={() => { setActiveTab('news'); setProfileOpen(false); }}>
+              <span className="pd-action-icon">📰</span>
+              <span className="pd-action-label">News Feed</span>
+            </button>
+            <button className="pd-action-btn" onClick={() => { setActiveTab('chat'); setProfileOpen(false); }}>
+              <span className="pd-action-icon">🤖</span>
+              <span className="pd-action-label">AI Chat</span>
+            </button>
           </div>
 
           <div className="pd-divider" />
@@ -207,14 +264,14 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount }: Head
               onClick={() => setIsDark(true)}
             >
               <MoonIcon />
-              <span>Dark</span>
+              <span>Dark Theme</span>
             </button>
             <button
               className={`pd-theme-btn ${!isDark ? 'active' : ''}`}
               onClick={() => setIsDark(false)}
             >
               <SunIcon />
-              <span>Light</span>
+              <span>Light Theme</span>
             </button>
           </div>
 
@@ -232,20 +289,66 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount }: Head
           {/* Preferences */}
           <div className="pd-section-title">Preferences</div>
           <div className="pd-prefs">
-            {[
-              { icon: '🔔', label: 'Price Alerts',  value: 'On' },
-              { icon: '📊', label: 'Default View',  value: 'Chat' },
-              { icon: '🌐', label: 'Market',         value: 'NSE / BSE' },
-            ].map(p => (
-              <div key={p.label} className="pd-pref-row">
-                <span className="pd-pref-icon">{p.icon}</span>
-                <span className="pd-pref-label">{p.label}</span>
-                <span className="pd-pref-value">{p.value}</span>
-              </div>
-            ))}
-          </div>
+            <div className="pd-pref-row">
+              <span className="pd-pref-icon">🔔</span>
+              <span className="pd-pref-label">Price Alerts</span>
+              <label className="pd-toggle-switch" title="Toggle Price Alerts">
+                <input 
+                  type="checkbox" 
+                  checked={priceAlerts} 
+                  onChange={() => setPriceAlerts(p => !p)} 
+                />
+                <span className="pd-toggle-slider" />
+              </label>
+            </div>
 
-          <div className="pd-divider" />
+            <button
+              className="pd-pref-row pd-pref-btn"
+              onClick={() => {
+                const tabSequence: TabType[] = ['chat', 'market', 'portfolio', 'stocks', 'news'];
+                const nextIdx = (tabSequence.indexOf(defaultView) + 1) % tabSequence.length;
+                const nextTab = tabSequence[nextIdx];
+                setDefaultView(nextTab);
+                setActiveTab(nextTab);
+              }}
+              title="Click to change default view"
+            >
+              <span className="pd-pref-icon">📊</span>
+              <span className="pd-pref-label">Default View</span>
+              <span className="pd-pref-value capitalize">{defaultView}</span>
+            </button>
+
+            <button
+              className="pd-pref-row pd-pref-btn"
+              onClick={() => {
+                const options: ('NSE / BSE' | 'NSE ONLY' | 'BSE ONLY')[] = ['NSE / BSE', 'NSE ONLY', 'BSE ONLY'];
+                const idx = options.indexOf(marketFilter);
+                setMarketFilter(options[(idx + 1) % options.length]);
+              }}
+              title="Click to cycle market exchange feed"
+            >
+              <span className="pd-pref-icon">🌐</span>
+              <span className="pd-pref-label">Market</span>
+              <span className="pd-pref-value">{marketFilter}</span>
+            </button>
+
+            <button
+              className="pd-pref-row pd-pref-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setProfileOpen(false);
+                setTimeout(() => {
+                  onOpenShortcuts();
+                }, 10);
+              }}
+              title="Open Hotkey Cheat Sheet"
+            >
+              <span className="pd-pref-icon">⌨️</span>
+              <span className="pd-pref-label">Shortcuts</span>
+              <span className="pd-pref-value">View Sheet</span>
+            </button>
+          </div>
 
           {/* Footer */}
           <div className="pd-footer">
@@ -257,7 +360,12 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount }: Head
                 logout();
               }}
             >
-              Sign Out
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              <span>Sign Out</span>
             </button>
           </div>
         </aside>
