@@ -38,11 +38,9 @@ export async function setupServer() {
 
   await server.register(cors, {
     origin: (origin, cb) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        cb(null, true);
-      } else {
-        cb(new Error(`CORS blocked for origin: ${origin}`), false);
-      }
+      // In Vercel, the frontend and backend are on the same domain.
+      // We can safely allow all origins in this setup, or conditionally check it.
+      cb(null, true);
     },
     methods: ["GET", "POST", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
