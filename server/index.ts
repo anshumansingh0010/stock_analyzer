@@ -28,7 +28,7 @@ import { requireAuth } from "./middleware/auth.js";
 const server = Fastify({ logger: true });
 const PORT = parseInt(process.env.PORT || "3001") || 3001;
 
-async function setupServer() {
+export async function setupServer() {
   // ─── Security & Middleware Plugins ──────────────────────────────
   await server.register(helmet);
 
@@ -138,6 +138,8 @@ async function startServer() {
   }
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
 
 export default server;
