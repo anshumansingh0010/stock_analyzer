@@ -214,11 +214,13 @@ export async function fetchRealGlobalCues() {
         const meta = result?.meta;
         if (meta && meta.regularMarketPrice) {
           const price = parseFloat(meta.regularMarketPrice.toFixed(2));
-          let prev = meta.regularMarketPreviousClose || meta.chartPreviousClose || meta.previousClose;
+          let prev = meta.regularMarketPreviousClose || meta.previousClose;
           if (!prev || prev <= 0) {
-            const closes = (result.indicators?.quote?.[0]?.close || []).filter((c: any) => c != null);
+            const closes = (result.indicators?.quote?.[0]?.close || []).filter((c: any) => c != null && typeof c === "number");
             if (closes.length >= 2) {
               prev = closes[closes.length - 2];
+            } else {
+              prev = meta.chartPreviousClose;
             }
           }
           if (!prev || prev <= 0) prev = price;
@@ -233,14 +235,15 @@ export async function fetchRealGlobalCues() {
 
   const dji = quotes["^DJI"] || { price: 54036.93, changePct: 2.96 };
   const nasdaq = quotes["^NDX"] || { price: 29722.30, changePct: 1.19 };
-  const goldOz = quotes["GC=F"]?.price || 4399.7;
+  const goldOz = quotes["GC=F"]?.price || 4325.41;
   const goldChg = quotes["GC=F"]?.changePct || 3.72;
   const crudePrice = quotes["CL=F"]?.price || 78.18;
   const crudeChg = quotes["CL=F"]?.changePct || 1.15;
   const usdInr = quotes["INR=X"]?.price || 84.0;
 
   // Convert International Gold (USD/oz) to Domestic Indian 24K Gold per 10g
-  const goldInr10g = Math.round((goldOz / 31.1034768) * 10 * usdInr * 1.313);
+  // Multiplier ~1.115 accounts for Customs Duty (5%) + AIDC (1%) + GST (3%) + Local Refining Premium (~2.5%)
+  const goldInr10g = Math.round((goldOz / 31.1034768) * 10 * usdInr * 1.115);
 
   return {
     gold: {
