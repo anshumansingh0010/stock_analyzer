@@ -38,9 +38,11 @@ export async function setupServer() {
 
   await server.register(cors, {
     origin: (origin, cb) => {
-      // In Vercel, the frontend and backend are on the same domain.
-      // We can safely allow all origins in this setup, or conditionally check it.
-      cb(null, true);
+      if (!origin || allowedOrigins.includes(origin)) {
+        cb(null, true);
+      } else {
+        cb(new Error(`CORS blocked for origin: ${origin}`), false);
+      }
     },
     methods: ["GET", "POST", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -112,14 +114,14 @@ async function startServer() {
 ╔══════════════════════════════════════════════╗
 ║     Nifty50GPT Fastify Server — ONLINE       ║
 ║                                              ║
-║  🚀  http://localhost:${PORT}                   ║
-║  📊  Layer 1: Master Prompt Engine ACTIVE    ║
-║  📰  Layer 2: News Sentiment Analyzer ACTIVE ║
-║  📈  Layer 3: Stock Technical Analyst ACTIVE ║
-║  🌐  Layer 4: Market Commentator ACTIVE      ║
-║  🔔  Layer 5: Alert Engine ACTIVE            ║
-║  🗄️   Layer 6: DB ${db.connected ? "CONNECTED ✅" : "OFFLINE (in-memory)"} ${"".padEnd(db.connected ? 15 : 7)}║
-║  🤖  Provider: ${(process.env.LLM_PROVIDER || "openai").padEnd(28)}  ║
+║      http://localhost:${PORT}                   ║
+║      Layer 1: Master Prompt Engine ACTIVE    ║
+║      Layer 2: News Sentiment Analyzer ACTIVE ║
+║      Layer 3: Stock Technical Analyst ACTIVE ║
+║      Layer 4: Market Commentator ACTIVE      ║
+║      Layer 5: Alert Engine ACTIVE            ║
+║       Layer 6: DB ${db.connected ? "CONNECTED ✅" : "OFFLINE (in-memory)"} ${"".padEnd(db.connected ? 15 : 7)}║
+║      Provider: ${(process.env.LLM_PROVIDER || "openai").padEnd(28)}  ║
 ╚══════════════════════════════════════════════╝
     `);
 
