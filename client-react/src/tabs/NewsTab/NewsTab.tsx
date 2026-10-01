@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
 import { API_BASE } from '../../utils/api';
 import { sentimentIcon, timeAgo, generateContextualImpact } from '../../utils/format';
@@ -247,11 +248,44 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const PAGE_SIZE = 10;
 
+  // Dynamically calculate trending keywords from live news feed
+  const trendingKeywords = useMemo(() => {
+    const counts: Record<string, number> = {};
+    results.forEach(r => {
+      // Extract sectors safely
+      if (Array.isArray(r.sectorAffected)) {
+        r.sectorAffected.forEach((s: string) => {
+          if (typeof s === 'string' && s && s !== 'Unknown') counts[s] = (counts[s] || 0) + 1;
+        });
+      } else if (typeof r.sectorAffected === 'string' && r.sectorAffected !== 'Unknown') {
+        counts[r.sectorAffected] = (counts[r.sectorAffected] || 0) + 1;
+      }
+      
+      // Extract tickers safely
+      if (Array.isArray(r.companies)) {
+        r.companies.forEach((c: any) => {
+          if (c && typeof c.ticker === 'string' && c.ticker !== 'UNKNOWN') {
+             counts[c.ticker] = (counts[c.ticker] || 0) + 1.5; // weight tickers slightly higher
+          }
+        });
+      }
+    });
+    
+    const sorted = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(entry => entry[0]);
+      
+    // Fallback if no data
+    return sorted.length > 0 ? sorted : ['RBI Policy', 'Q2 Earnings', 'Semiconductors', 'FII Selling'];
+  }, [results]);
+
   // Custom article form
   const [headline, setHeadline] = useState<string>('');
   const [desc, setDesc]         = useState<string>('');
   const [source, setSource]     = useState<string>('');
   const [customResult, setCustomResult] = useState<any>(null);
+  const [showReport, setShowReport]     = useState<boolean>(false);
   const [analyzing, setAnalyzing]       = useState<boolean>(false);
 
   useEffect(() => { loadAll(); }, []);
@@ -362,8 +396,6 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
   const startIndex = (currentPage - 1) * PAGE_SIZE;
   const paginatedNews = filtered.slice(startIndex, startIndex + PAGE_SIZE);
 
-  const schedulerLabel = !scheduler ? 'Live Stream Active' : scheduler.isRunning ? 'Analyzing Live Feed...' : 'Live Stream Active';
-
   return (
     <section className="tab-section active" style={{ flexDirection: 'column', overflowY: 'auto' }}>
       <div className="page-container full-width-dashboard">
@@ -373,111 +405,129 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
             <h1>News Intelligence &amp; Impact Analysis</h1>
             <p>Real-time breaking financial news stream (Zerodha Pulse, Google News, ET &amp; MC) with AI sentiment &amp; company impact</p>
           </div>
-          <div className="news-header-actions">
-            <div className="scheduler-status">
-              <span className="ctx-dot on" />
-              <span>{schedulerLabel} ({results.length} articles)</span>
-            </div>
-            <button className="inject-btn" onClick={triggerAnalysis} disabled={triggering}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-              {triggering ? 'Refreshing...' : 'Refresh Live Feed'}
-            </button>
-          </div>
         </div>
 
-        {/* Portfolio Alerts Banner */}
-        {alerts.length > 0 && (
-          <div className="alerts-banner" style={{ display: 'block' }}>
-            <div className="alerts-banner-header">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-              <strong>Portfolio Alerts</strong>
-              <span>{alerts.length} stock{alerts.length > 1 ? 's' : ''} affected</span>
+        {/* ── TWO COLUMN LAYOUT ── */}
+        <div className="news-two-column-layout">
+          
+          {/* LEFT COLUMN: Main Feed */}
+          <div className="news-main-feed">
+            {/* Live Search & Filter Bar */}
+            <div style={{ position: 'relative', marginBottom: 12 }}>
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                style={{ position: 'absolute', left: 14, top: '40%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }}
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                type="text"
+                className="news-search-input"
+                style={{ paddingLeft: 40 }}
+                placeholder="Search live breaking news by stock ticker (e.g. SBIN, RELIANCE), headline keyword, or source..."
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              />
             </div>
-            {alerts.map((a, i) => (
-              <div key={i} className="alert-item">
-                <span className="alert-ticker">{a.company?.ticker}</span>
-                <div className="alert-text">
-                  <strong>{a.company?.name}</strong> — {a.company?.portfolioRelevance || a.company?.reason}
-                  <span className={`sentiment-pill sentiment-${a.company?.sentiment}`} style={{ marginLeft: 6 }}>
-                    {sentimentIcon(a.company?.sentiment)} {a.company?.sentiment}
+
+            {/* Category & Impact Filter Chips */}
+            <div className="news-filters" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {FILTERS.map(f => (
+                  <button key={f} className={`filter-chip ${filter === f ? 'active' : ''}`} onClick={() => handleFilterChange(f)}>
+                    {f === 'ALL' ? `All News (${results.length})`
+                      : f === 'BULLISH' ? '▲ Bullish'
+                      : f === 'BEARISH' ? '▼ Bearish'
+                      : f === 'NEUTRAL' ? '★ Neutral'
+                      : f === 'HIGH IMPACT' ? ' High Impact'
+                      : ' Portfolio Impact'}
+                  </button>
+                ))}
+              </div>
+              <button className="inject-btn" onClick={triggerAnalysis} disabled={triggering} style={{ marginLeft: 'auto', padding: '8px 14px', fontSize: '0.82rem' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                {triggering ? 'Refreshing...' : 'Refresh Live Feed'}
+              </button>
+            </div>
+
+            {/* Structured News Cards Grid (Paginated 10 items) */}
+            <div className="news-grid full-width-news">
+              {filtered.length === 0 ? (
+                <div className="news-empty" style={{ display: 'flex' }}>
+                  <p>No news matching current filter. Click <strong>Refresh Now</strong> to trigger Layer 2.</p>
+                </div>
+              ) : paginatedNews.map((r, i) => <RichNewsCard key={i} result={r} />)}
+            </div>
+
+            {/* News Pagination Bar */}
+            {filtered.length > 0 && (
+              <div className="news-pagination-bar">
+                <div className="pagination-info">
+                  Showing <strong>{startIndex + 1}–{Math.min(startIndex + PAGE_SIZE, filtered.length)}</strong> of <strong>{filtered.length}</strong> news articles
+                </div>
+                <div className="pagination-controls">
+                  <button 
+                    className="pagination-btn" 
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+                    Previous
+                  </button>
+                  <span className="pagination-page-num">
+                    Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
                   </span>
+                  <button 
+                    className="pagination-btn" 
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage >= totalPages}
+                  >
+                    Next
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+                  </button>
                 </div>
               </div>
-            ))}
+            )}
           </div>
-        )}
 
-        {/* Live Search & Filter Bar */}
-        <div style={{ marginBottom: 14 }}>
-          <input
-            type="text"
-            className="news-search-input"
-            placeholder="🔍 Search live breaking news by stock ticker (e.g. SBIN, RELIANCE), headline keyword, or source..."
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-          />
-        </div>
+          {/* RIGHT COLUMN: Sidebar (Alerts + Custom Analyzer) */}
+          <div className="news-sidebar">
+            {/* Portfolio Alerts Banner */}
+            {alerts.length > 0 && (
+              <div className="alerts-banner" style={{ display: 'block' }}>
+                <div className="alerts-banner-header">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                  <strong>Portfolio Alerts</strong>
+                  <span>{alerts.length} stock{alerts.length > 1 ? 's' : ''} affected</span>
+                </div>
+                {alerts.map((a, i) => (
+                  <div key={i} className="alert-item">
+                    <span className="alert-ticker">{a.company?.ticker}</span>
+                    <div className="alert-text">
+                      <strong>{a.company?.name}</strong> — {a.company?.portfolioRelevance || a.company?.reason}
+                      <span className={`sentiment-pill sentiment-${a.company?.sentiment}`} style={{ marginLeft: 6 }}>
+                        {sentimentIcon(a.company?.sentiment)} {a.company?.sentiment}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
-        {/* Category & Impact Filter Chips */}
-        <div className="news-filters">
-          {FILTERS.map(f => (
-            <button key={f} className={`filter-chip ${filter === f ? 'active' : ''}`} onClick={() => handleFilterChange(f)}>
-              {f === 'ALL' ? `All News (${results.length})`
-                : f === 'BULLISH' ? '▲ Bullish'
-                : f === 'BEARISH' ? '▼ Bearish'
-                : f === 'NEUTRAL' ? '★ Neutral'
-                : f === 'HIGH IMPACT' ? '🔴 High Impact'
-                : '💼 Portfolio Impact'}
-            </button>
-          ))}
-        </div>
-
-        {/* Structured News Cards Grid (Paginated 10 items) */}
-        <div className="news-grid full-width-news">
-          {filtered.length === 0 ? (
-            <div className="news-empty" style={{ display: 'flex' }}>
-              <p>No news matching current filter. Click <strong>Refresh Now</strong> to trigger Layer 2.</p>
-            </div>
-          ) : paginatedNews.map((r, i) => <RichNewsCard key={i} result={r} />)}
-        </div>
-
-        {/* News Pagination Bar */}
-        {filtered.length > 0 && (
-          <div className="news-pagination-bar">
-            <div className="pagination-info">
-              Showing <strong>{startIndex + 1}–{Math.min(startIndex + PAGE_SIZE, filtered.length)}</strong> of <strong>{filtered.length}</strong> news articles
-            </div>
-            <div className="pagination-controls">
-              <button 
-                className="pagination-btn" 
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
-                Previous
-              </button>
-              <span className="pagination-page-num">
-                Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
-              </span>
-              <button 
-                className="pagination-btn" 
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage >= totalPages}
-              >
-                Next
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Custom Article Analyzer Card */}
-        <div className="market-widget sf-widget" style={{ marginTop: 16 }}>
-          <div className="widget-header">
-            <h4>✍️ Analyze Custom Article</h4>
-            <span className="widget-tag">Layer 2 Engine</span>
-          </div>
-          <p className="data-card-desc">Paste any financial headline or story for instant AI sentiment, stock mapping, and price impact prediction</p>
+            {/* Custom Article Analyzer Card */}
+            <div className="market-widget news-sidebar-widget">
+              <div className="widget-header">
+                <h4>Analyze Custom Article</h4>
+              </div>
+              <p className="data-card-desc">Paste any financial headline or story for instant AI sentiment, stock mapping, and price impact prediction</p>
           <div className="custom-article-form" style={{ marginTop: 12 }}>
             <input className="json-input" style={{ padding: '10px 14px', fontFamily: 'var(--font-sans)', fontSize: '0.88rem' }} placeholder="Headline..." value={headline} onChange={e => setHeadline(e.target.value)} />
             <textarea className="json-input" rows={3} placeholder="Article description or summary..." value={desc} onChange={e => setDesc(e.target.value)} />
@@ -487,10 +537,74 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             {analyzing ? 'Analyzing Article...' : 'Analyze Article Impact'}
           </button>
-          {customResult && <div style={{ marginTop: 16 }}><RichNewsCard result={customResult} /></div>}
+          
+          {customResult && !analyzing && (
+            <button 
+              className="inject-btn" 
+              onClick={() => setShowReport(true)} 
+              style={{ marginTop: 8, background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', boxShadow: 'none' }}
+            >
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+               View Generated Report
+            </button>
+          )}
+        </div>
+
+        {/* Trending Keywords Widget */}
+        <div className="market-widget news-sidebar-widget">
+          <div className="widget-header">
+            <h4>Trending in News</h4>
+          </div>
+          <p className="data-card-desc">Most discussed topics in the financial markets over the last 24 hours.</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px' }}>
+            {trendingKeywords.map(tag => (
+              <span 
+                key={tag} 
+                onClick={() => {
+                  setSearchQuery(tag);
+                  setCurrentPage(1);
+                  // Optional: scroll to top of feed if needed, but usually it's already visible
+                }}
+                style={{
+                  fontSize: '0.75rem',
+                  padding: '4px 10px',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '99px',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer'
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
         </div>
       </div>
-    </section>
+    </div>
+    
+    {/* Full Page Report Modal */}
+    {showReport && customResult && createPortal(
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px', backdropFilter: 'blur(5px)' }}>
+        <div className="hide-scrollbar" style={{ background: 'var(--bg-surface)', borderRadius: '24px', width: '100%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', position: 'relative', border: '1px solid var(--border-subtle)', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
+          <button 
+            onClick={() => setShowReport(false)} 
+            style={{ position: 'absolute', top: 20, right: 24, background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', cursor: 'pointer', zIndex: 10 }}
+          >
+             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          <div style={{ marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid var(--border-subtle)' }}>
+            <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--text-primary)' }}>Custom Article Analysis Report</h2>
+            <p style={{ margin: '8px 0 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Generated by Layer 2 Engine</p>
+          </div>
+          <CustomArticleDetailedReport result={customResult} />
+        </div>
+      </div>,
+      document.body
+    )}
+  </section>
   );
 }
 
@@ -504,6 +618,151 @@ function getImpactSentiment(text: string, defaultSentiment: string): 'BULLISH' |
     return 'BEARISH';
   }
   return (defaultSentiment as any) || 'NEUTRAL';
+}
+
+// ── Detailed Full-Page Report Component for Custom Articles ─────────────────
+function CustomArticleDetailedReport({ result }: { result: any }) {
+  const headline     = result.headline || result._meta?.article?.headline || 'Financial News Article';
+  const summary      = result.summary || result.description || 'No detailed summary provided.';
+  const source       = result.source || result._meta?.article?.source || 'Custom Source';
+  const timestamp    = result.timestamp || result._meta?.analyzedAt;
+  const sentiment    = (result.overallMarketSentiment || 'NEUTRAL').toUpperCase();
+  const urgency      = (result.urgency || 'HIGH').toUpperCase();
+  
+  const sentimentColor = sentiment === 'BULLISH' ? 'var(--accent-bull, #10b981)' : sentiment === 'BEARISH' ? 'var(--accent-bear, #ef4444)' : 'var(--text-muted)';
+  
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* Header Info */}
+      <div>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '0 0 12px 0', lineHeight: 1.3 }}>{headline}</h1>
+        <div style={{ display: 'flex', gap: '16px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+          <span><strong>Source:</strong> {source}</span>
+          <span><strong>Time:</strong> {timeAgo(timestamp)}</span>
+          <span><strong>Sectors:</strong> {result.sectorAffected?.join(', ') || 'N/A'}</span>
+        </div>
+      </div>
+
+      {/* Macro Overview */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div style={{ background: 'var(--bg-elevated)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
+          <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Overall Market Sentiment</h4>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: sentimentColor }}>
+            {sentiment}
+          </div>
+        </div>
+        <div style={{ background: 'var(--bg-elevated)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
+          <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Action Urgency</h4>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: urgency === 'HIGH' ? 'var(--accent-danger)' : 'var(--text-primary)' }}>
+            {urgency} IMPACT
+          </div>
+        </div>
+      </div>
+
+      {/* Summary Section */}
+      <div style={{ background: 'var(--bg-elevated)', padding: '24px', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
+        <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Executive Summary</h3>
+        <p style={{ margin: 0, lineHeight: 1.6, color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{summary}</p>
+      </div>
+
+      {/* Predicted Impact */}
+      {result.expectedImpact && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ background: 'color-mix(in srgb, var(--accent-primary) 5%, transparent)', padding: '20px', borderRadius: '16px', border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: 'var(--accent-primary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Short-Term Horizon (Days/Weeks)</h4>
+            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>{result.expectedImpact.shortTerm || 'Not specified.'}</p>
+          </div>
+          <div style={{ background: 'color-mix(in srgb, var(--accent-secondary) 5%, transparent)', padding: '20px', borderRadius: '16px', border: '1px solid color-mix(in srgb, var(--accent-secondary) 20%, transparent)' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: 'var(--accent-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Long-Term Horizon (Months+)</h4>
+            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>{result.expectedImpact.longTerm || 'Not specified.'}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Deep Dive Insights (If available) */}
+      {result.detailedAnalysis && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <h3 style={{ margin: '12px 0 4px 0', fontSize: '1.2rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>Deep Dive Analysis</h3>
+          
+          <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
+            <h4 style={{ margin: '0 0 12px 0', fontSize: '1.05rem', color: 'var(--text-primary)' }}>Key Takeaways</h4>
+            <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '0.95rem' }}>
+              {result.detailedAnalysis.keyTakeaways?.map((pt: string, i: number) => (
+                <li key={i} style={{ marginBottom: '8px' }}>{pt}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '1.05rem', color: 'var(--text-primary)' }}>Macro & Economic Factors</h4>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                {result.detailedAnalysis.macroFactors}
+              </p>
+            </div>
+            <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '1.05rem', color: 'var(--text-primary)' }}>Risk Factors</h4>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                {result.detailedAnalysis.riskFactors}
+              </p>
+            </div>
+          </div>
+          
+          <div style={{ background: 'color-mix(in srgb, var(--accent-bull) 5%, transparent)', padding: '20px', borderRadius: '16px', border: '1px solid color-mix(in srgb, var(--accent-bull) 20%, transparent)' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: 'var(--accent-bull)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Recommended Strategic Actions</h4>
+            <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.5 }}>
+              {result.detailedAnalysis.recommendedActions}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Extracted Company Data */}
+      {result.companies && result.companies.length > 0 && (
+        <div style={{ marginTop: '8px' }}>
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '1.2rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>Impacted Companies & Assets</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {result.companies.map((c: any, idx: number) => {
+              const cSent = c.sentiment || 'NEUTRAL';
+              const cColor = cSent === 'BULLISH' ? 'var(--accent-bull)' : cSent === 'BEARISH' ? 'var(--accent-bear)' : 'var(--text-muted)';
+              const scorePercent = c.sentimentScore ? Math.round(c.sentimentScore * 100) : 50;
+              
+              return (
+                <div key={idx} style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <div>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {c.name} <span style={{ fontSize: '0.8rem', background: 'var(--bg-elevated)', padding: '2px 8px', borderRadius: '99px', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}>{c.ticker}</span>
+                        {c.inUserPortfolio && <span style={{ fontSize: '0.75rem', background: 'color-mix(in srgb, var(--accent-primary) 15%, transparent)', color: 'var(--accent-primary)', padding: '2px 8px', borderRadius: '99px' }}>In Portfolio</span>}
+                      </h4>
+                      <div style={{ color: cColor, fontSize: '0.85rem', fontWeight: 600 }}>{cSent} IMPACT ({c.impact?.replace('_', ' ')})</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Confidence Score</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '60px', height: '6px', background: 'var(--bg-elevated)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${scorePercent}%`, height: '100%', background: cColor }} />
+                        </div>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{scorePercent}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    <strong>AI Analysis:</strong> {c.reason}
+                  </p>
+                  {c.inUserPortfolio && c.portfolioRelevance && (
+                    <div style={{ marginTop: '12px', padding: '12px', background: 'color-mix(in srgb, var(--accent-primary) 5%, transparent)', borderRadius: '8px', borderLeft: '3px solid var(--accent-primary)', fontSize: '0.85rem' }}>
+                      <strong style={{ color: 'var(--accent-primary)' }}>Portfolio Actionable Insight:</strong> {c.portfolioRelevance}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function renderImpactIcon(s: string) {
@@ -558,7 +817,6 @@ function RichNewsCard({ result }: { result: any }) {
   const ltSentiment = getImpactSentiment(longTermImpact, sentiment);
 
   const sentimentSymbol = sentiment === 'BULLISH' ? '▲' : sentiment === 'BEARISH' ? '▼' : '★';
-  const urgencyDot = urgency === 'HIGH' ? '🔴' : urgency === 'MEDIUM' ? '🟡' : '🟢';
   const urgencyText = urgency === 'HIGH' ? 'High Impact' : urgency === 'MEDIUM' ? 'Medium Impact' : 'Low Impact';
 
   const toggleBookmark = (e: React.MouseEvent) => {
@@ -577,7 +835,7 @@ function RichNewsCard({ result }: { result: any }) {
             <span className="rnc-badge-icon">{sentimentSymbol}</span> {sentiment}
           </span>
           <span className={`rnc-pill-tag urgency-${urgency.toLowerCase()}`}>
-            <span className="rnc-dot-icon">{urgencyDot}</span> {urgencyText}
+             {urgencyText}
           </span>
           {hasPortfolio && (
             <span className="rnc-pill-tag portfolio">
@@ -599,7 +857,7 @@ function RichNewsCard({ result }: { result: any }) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6m-6 4h4"/>
             </svg>
-            {source}
+            {source.replace(/".*?" - /g, '').replace(/NIFTY 50.*? - /gi, '')}
           </span>
           <span className="rnc-meta-sep">|</span>
           <button 
@@ -618,8 +876,10 @@ function RichNewsCard({ result }: { result: any }) {
       {/* Headline */}
       <h3 className="rnc-headline">{headline}</h3>
 
-      {/* Summary */}
-      <p className="rnc-summary">{summary}</p>
+      {/* Summary - Only show if it provides new information */}
+      {summary && summary.trim() !== headline.trim() && !summary.includes(headline) && !headline.includes(summary) && (
+        <p className="rnc-summary">{summary}</p>
+      )}
 
       <div className="rnc-divider" />
 

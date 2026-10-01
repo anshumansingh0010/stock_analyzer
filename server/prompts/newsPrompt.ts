@@ -44,6 +44,12 @@ export interface ParsedNewsOutput {
     shortTerm: string;
     longTerm: string;
   };
+  detailedAnalysis?: {
+    keyTakeaways: string[];
+    macroFactors: string;
+    recommendedActions: string;
+    riskFactors: string;
+  };
 }
 
 export const NEWS_SYSTEM_PROMPT = `
@@ -69,6 +75,7 @@ portfolio:   (array)  List of stock tickers the user owns
 4. Determine impact horizon: SHORT_TERM (days/weeks) | LONG_TERM (months+) | BOTH
 5. Cross-check each company against the user's portfolio
    → If found in portfolio → write a personalised relevance note for the user
+6. Provide a detailedAnalysis block with keyTakeaways, macroFactors, recommendedActions, and riskFactors
 
 ═══ STRICT OUTPUT FORMAT ═══
 Return ONLY a single valid JSON object matching this exact schema.
@@ -95,6 +102,12 @@ Do NOT add markdown code fences.
   "expectedImpact": {
     "shortTerm": "Specific 1-line forecast on expected short-term price movement, percentage range, or intraday trading volatility",
     "longTerm": "Specific 1-line forecast on multi-quarter structural outlook, fundamental growth, or business trajectory"
+  },
+  "detailedAnalysis": {
+    "keyTakeaways": ["Bullet 1", "Bullet 2", "Bullet 3"],
+    "macroFactors": "How this ties into interest rates, inflation, RBI policy, or global trends.",
+    "recommendedActions": "Strategic or tactical moves traders/investors might consider.",
+    "riskFactors": "Potential downsides or what could invalidate this thesis."
   }
 }
 
@@ -212,6 +225,15 @@ export function parseAndValidateNewsOutput(rawOutput: string): ParsedNewsOutput 
       }
     : undefined;
 
+  const detailedAnalysis = parsed.detailedAnalysis
+    ? {
+        keyTakeaways: Array.isArray(parsed.detailedAnalysis.keyTakeaways) ? parsed.detailedAnalysis.keyTakeaways : [],
+        macroFactors: parsed.detailedAnalysis.macroFactors || "",
+        recommendedActions: parsed.detailedAnalysis.recommendedActions || "",
+        riskFactors: parsed.detailedAnalysis.riskFactors || "",
+      }
+    : undefined;
+
   return {
     companies,
     overallMarketSentiment: parsed.overallMarketSentiment,
@@ -219,5 +241,6 @@ export function parseAndValidateNewsOutput(rawOutput: string): ParsedNewsOutput 
     urgency: parsed.urgency,
     summary: parsed.summary || "",
     expectedImpact,
+    detailedAnalysis,
   };
 }

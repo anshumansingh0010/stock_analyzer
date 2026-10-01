@@ -90,6 +90,16 @@ export async function analyzeArticle(
       urgency: "HIGH",
       sectorAffected: ["Primary Market", "Financial Services"],
       summary: article.headline || "Custom analyzed financial news update.",
+      detailedAnalysis: {
+        keyTakeaways: [
+          "Primary market liquidity expected to increase.",
+          "Potential sector-wide re-rating based on recent IPO traction.",
+          "Short-term volatility might follow as capital gets locked in IPO subscriptions."
+        ],
+        macroFactors: "Closely tied to broader market liquidity and retail investor sentiment. Favorable interest rate environments typically boost primary market activity.",
+        recommendedActions: "Monitor subscription data for upcoming IPOs to gauge true institutional demand before committing capital.",
+        riskFactors: "If the broader indices correct, IPOs might list at a discount, trapping short-term capital."
+      },
       _meta: {
         article: {
           headline: article.headline,

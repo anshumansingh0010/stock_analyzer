@@ -235,8 +235,8 @@ export async function fetchRealGlobalCues() {
 
   const dji = quotes["^DJI"] || { price: 54036.93, changePct: 2.96 };
   const nasdaq = quotes["^NDX"] || { price: 29722.30, changePct: 1.19 };
-  const goldOz = quotes["GC=F"]?.price || 4325.41;
-  const goldChg = quotes["GC=F"]?.changePct || 3.72;
+  const goldOz = quotes["GC=F"]?.price || 4198.30;
+  const goldChg = quotes["GC=F"]?.changePct || 0.15;
   const crudePrice = quotes["CL=F"]?.price || 78.18;
   const crudeChg = quotes["CL=F"]?.changePct || 1.15;
   const usdInr = quotes["INR=X"]?.price || 84.0;

@@ -309,7 +309,7 @@ function GlobalCuesStrip({ cues }: { cues: Record<string, any> }) {
     nasdaq: { label: 'NASDAQ 100', val: '26,690.62 (+5.19%)' },
     sgxNifty: { label: 'GIFT NIFTY', val: '24,586 (+0.55%)' },
     crude: { label: 'CRUDE OIL', val: '$78.18 (+3.18%)' },
-    gold: { label: 'GOLD (₹/10G)', val: '₹1,52,350 (+2.29%)' },
+    gold: { label: 'GOLD (₹/10G)', val: '₹1,49,240 (+0.15%)' },
   };
 
   const validEntries = Object.entries(cues).filter(([_, v]) => typeof v === 'string');
@@ -425,8 +425,8 @@ export default function MarketTab() {
             {/* ── Top Key Indicators Grid ── */}
             {(() => {
               const goldObj = snap.globalCues?.gold;
-              const goldVal = typeof goldObj === 'object' && goldObj?.priceStr ? goldObj.priceStr : (typeof goldObj === 'string' ? goldObj.split(' ')[0] : '₹1,52,350');
-              const goldChg = typeof goldObj === 'object' && goldObj?.changeStr ? goldObj.changeStr : (typeof goldObj === 'string' ? (goldObj.split(' ')[1] || '').replace(/[()]/g, '') : '+2.29%');
+              const goldVal = typeof goldObj === 'object' && goldObj?.priceStr ? goldObj.priceStr : (typeof goldObj === 'string' ? goldObj.split(' ')[0] : '₹1,49,240');
+              const goldChg = typeof goldObj === 'object' && goldObj?.changeStr ? goldObj.changeStr : (typeof goldObj === 'string' ? (goldObj.split(' ')[1] || '').replace(/[()]/g, '') : '+0.15%');
 
               const crudeObj = snap.globalCues?.crude;
               const crudeVal = typeof crudeObj === 'object' && crudeObj?.priceStr ? crudeObj.priceStr : (typeof crudeObj === 'string' ? crudeObj.split(' ')[0] : '$78.18');
