@@ -4,6 +4,9 @@
   "description": "AI-powered financial intelligence assistant for Nifty 50 stocks",
   "main": "dist/server/index.js",
   "type": "module",
+  "workspaces": [
+    "client-react"
+  ],
   "scripts": {
     "start": "node dist/server/index.js",
     "dev": "tsx watch server/index.ts",
