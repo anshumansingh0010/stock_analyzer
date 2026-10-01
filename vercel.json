@@ -1,6 +1,6 @@
 {
-  "buildCommand": "if [ -d \"client-react\" ]; then cd client-react; fi && npm install && npm run build",
-  "outputDirectory": "client-react/dist",
+  "buildCommand": "cd client-react && npm install && npm run build && cd .. && cp -r client-react/dist ./dist",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
