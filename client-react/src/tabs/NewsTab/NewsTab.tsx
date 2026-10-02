@@ -462,7 +462,7 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
             <div className="news-grid full-width-news">
               {filtered.length === 0 ? (
                 <div className="news-empty" style={{ display: 'flex' }}>
-                  <p>No news matching current filter. Click <strong>Refresh Now</strong> to trigger Layer 2.</p>
+                  <p>No news matching current filter. Click <strong>Refresh Live Feed</strong>.</p>
                 </div>
               ) : paginatedNews.map((r, i) => <RichNewsCard key={i} result={r} />)}
             </div>

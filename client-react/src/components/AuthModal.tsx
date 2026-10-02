@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, FormEvent, KeyboardEvent, ClipboardEvent }
 import { useApp } from '../context/AppContext';
 import { validateIdentifier, isValidOtp } from '../utils/validation';
 import { useGoogleLogin } from '@react-oauth/google';
+import { apiFetch } from '../utils/api';
 
 export default function AuthModal() {
   const { isAuthModalOpen, setIsAuthModalOpen, sendOtp, verifyOtp, loginWithGoogle } = useApp();
@@ -110,7 +111,7 @@ export default function AuthModal() {
     setSubmitting(true);
     try {
       // Check user existence first
-      const checkRes = await fetch('/api/auth/check-user', {
+      const checkRes = await apiFetch('/auth/check-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: identifier.trim() })
@@ -177,7 +178,7 @@ export default function AuthModal() {
         const result = await confirmationResult.confirm(code);
         const token = await result.user.getIdToken();
         // Send Firebase token to our backend to create session
-        const res = await fetch('/api/auth/firebase', {
+        const res = await apiFetch('/auth/firebase', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token, name: fullName.trim() || undefined, mode })
@@ -356,7 +357,7 @@ export default function AuthModal() {
               </form>
 
               <div className="auth-divider">
-                <span>OR SIGN IN WITH</span>
+                <span>{mode === 'signin' ? 'OR SIGN IN WITH' : 'OR SIGN UP WITH'}</span>
               </div>
 
               <button
@@ -375,7 +376,7 @@ export default function AuthModal() {
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
                   </svg>
                 )}
-                <span>{googleLoading ? 'Connecting...' : `Continue with Google`}</span>
+                <span>{googleLoading ? 'Connecting...' : mode === 'signin' ? 'Sign in with Google' : 'Sign up with Google'}</span>
               </button>
 
               <div className="auth-mode-toggle">
