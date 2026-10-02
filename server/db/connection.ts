@@ -35,6 +35,7 @@ export async function connectDB(): Promise<void> {
   }
 
   mongoose.set("strictQuery", false);
+  mongoose.set("bufferCommands", false);
 
   // Bind Mongoose events only once
   if (!listenersBound) {

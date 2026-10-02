@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { validateAndSanitizeIdentifier, isValidOtp } from "../utils/validation.js";
+import { getDBStatus } from "../db/connection.js";
 import { sendOtpEmail } from "../utils/mailer.js";
 
 interface SendOtpBody {
@@ -27,6 +28,23 @@ async function handleMongoUser(
   avatarUrlFallback?: string,
   userId?: string
 ) {
+  const dbStatus = getDBStatus();
+  
+  // ── In-Memory Fallback if DB is offline ──
+  if (!dbStatus.connected) {
+    console.warn("⚠️ [AUTH] DB is offline. Falling back to in-memory mock user.");
+    const id = `usr_${provider}_${Date.now()}`;
+    const email = isEmail ? identifier : `${identifier.replace(/[^0-9]/g, '')}@otp.nifty50gpt.ai`;
+    const phone = !isEmail ? identifier : undefined;
+    const handle = `@${name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+    const since = new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    const avatarUrl = avatarUrlFallback || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
+    
+    if (mode === 'link') throw new Error("Database offline: Cannot link accounts in memory mode.");
+    
+    return { id, name, email, phone, handle, since, avatarUrl, provider };
+  }
+
   const existingUser = await User.findOne({ $or: [{ email: identifier }, { phone: identifier }] });
 
   if (mode === 'link') {
@@ -104,6 +122,11 @@ export default async function authRoutes(fastify: FastifyInstance) {
     if (!identifier) {
       return reply.status(400).send({ success: false, exists: false });
     }
+    const dbStatus = getDBStatus();
+    if (!dbStatus.connected) {
+      return reply.send({ success: true, exists: false });
+    }
+
     const cleanId = identifier.trim().toLowerCase();
     const formattedPhone = cleanId.startsWith('+') ? cleanId : `+91${cleanId.replace(/[^0-9]/g, '')}`;
     const user = await User.findOne({ $or: [{ email: cleanId }, { phone: formattedPhone }, { phone: cleanId }] });
@@ -204,7 +227,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
     if (!isValid) {
       return reply.status(400).send({
         success: false,
-        message: "Invalid OTP verification code. Try '123456' or request a new code.",
+        message: "Invalid OTP verification code. Please request a new code.",
       });
     }
 
