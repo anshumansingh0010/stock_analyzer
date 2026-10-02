@@ -19,6 +19,38 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    image: node:18-alpine
+    container_name: stocksense-backend
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "3001:3001"
+    command: sh -c "npm install && npm run dev"
+    environment:
+      - PORT=3001
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://stockadmin:stockpassword123@mongodb:27017/stock_sense_ai?authSource=admin
+      - LLM_PROVIDER=${LLM_PROVIDER:-gemini}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  frontend:
+    image: node:18-alpine
+    container_name: stocksense-frontend
+    working_dir: /app/client-react
+    volumes:
+      - .:/app
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - backend
+
 volumes:
   mongodb_data:
     driver: local

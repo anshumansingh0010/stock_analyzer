@@ -50,6 +50,7 @@ export default function PortfolioTab() {
   const { updateContext, showToast } = useApp();
   const [holdings, setHoldings]       = useState<HoldingEnriched[]>([]);
   const [loading, setLoading]         = useState<boolean>(true);
+  const [newsPage, setNewsPage]       = useState<number>(1);
 
   // Custom analyzed news state
   const [customNews, setCustomNews]   = useState<any[]>(() => {
@@ -141,6 +142,12 @@ export default function PortfolioTab() {
   const totalValue    = holdings.reduce((s, h) => s + (h.value || h.qty * h.avgPrice), 0);
   const totalPnL      = totalValue - totalInvested;
   const totalPct      = totalInvested ? ((totalPnL / totalInvested) * 100).toFixed(2) : '0.00';
+
+  // ── Pagination logic for news ──
+  const newsPerPage = 4;
+  const totalPages = Math.ceil(customNews.length / newsPerPage);
+  const safePage = Math.min(newsPage, totalPages > 0 ? totalPages : 1);
+  const currentNews = customNews.slice((safePage - 1) * newsPerPage, safePage * newsPerPage);
 
   return (
     <section className="tab-section active" style={{ flexDirection: 'column', overflowY: 'auto' }}>
@@ -263,9 +270,38 @@ export default function PortfolioTab() {
               No custom articles analyzed yet. Analyze any article using <strong>Analyze Custom Article</strong> in the News tab.
             </div>
           ) : (
-            <div className="ptf-news-grid">
-              {customNews.map((r, i) => <CustomNewsCard key={i} result={r} />)}
-            </div>
+            <>
+              <div className="ptf-news-grid">
+                {currentNews.map((r, i) => <CustomNewsCard key={i} result={r} />)}
+              </div>
+              {totalPages > 1 && (
+                <div className="ptf-pagination-controls">
+                  <button 
+                    disabled={safePage === 1} 
+                    onClick={() => setNewsPage(p => Math.max(1, p - 1))}
+                    className="ptf-page-btn"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    Prev
+                  </button>
+                  <span className="ptf-page-info">
+                    Page {safePage} / {totalPages}
+                  </span>
+                  <button 
+                    disabled={safePage === totalPages} 
+                    onClick={() => setNewsPage(p => Math.min(totalPages, p + 1))}
+                    className="ptf-page-btn"
+                  >
+                    Next
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
 

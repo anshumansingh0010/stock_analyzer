@@ -23,6 +23,7 @@ import portfolioRoutes from "./routes/portfolio.js";
 import marketdataRoutes from "./routes/marketdata.js";
 import authRoutes from "./routes/auth.js";
 import priceAlertRoutes from "./routes/priceAlert.js";
+import userRoutes from "./routes/user.js";
 import { startScheduler, getStatus as getNewsStatus } from "./services/newsScheduler.js";
 import { startPriceScheduler, getPriceSchedulerStatus } from "./services/priceScheduler.js";
 import { requireAuth } from "./middleware/auth.js";
@@ -68,6 +69,7 @@ export async function setupServer() {
     await protectedServer.register(portfolioRoutes, { prefix: "/api/portfolio" });
     await protectedServer.register(alertRoutes, { prefix: "/api/alerts" });
     await protectedServer.register(priceAlertRoutes, { prefix: "/api/price-alerts" });
+    await protectedServer.register(userRoutes, { prefix: "/api/user" });
   });
 
   // Health check

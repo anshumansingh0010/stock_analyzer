@@ -275,7 +275,6 @@
   background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, transparent), color-mix(in srgb, var(--secondary) 5%, transparent));
   border-color: var(--accent-primary);
   box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 15%, transparent);
-  transform: translateY(-1px);
 }
 
 .why-btn svg, .briefing-btn svg {

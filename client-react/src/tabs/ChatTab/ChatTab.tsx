@@ -31,19 +31,19 @@ const QUICK_SHORTCUTS = [
 ];
 
 export default function ChatTab() {
-  const { aiContext, chatHistory, setChatHistory, showToast, backendOnline } = useApp();
+  const { aiContext, chatHistory, setChatHistory, showToast, backendOnline, preferences, savePreferences, clearChatHistory } = useApp();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput]       = useState<string>('');
   const [loading, setLoading]   = useState<boolean>(false);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
 
-  // Settings State
-  const [settings, setSettings] = useState({
-    responseMode: 'detailed', // 'detailed' | 'concise'
-    riskAlertLevel: 'balanced', // 'strict' | 'balanced' | 'minimal'
-    streamFeed: true,
-  });
+  // Sync initial messages from chatHistory on load
+  useEffect(() => {
+    if (chatHistory.length > 0 && messages.length === 0) {
+      setMessages(chatHistory);
+    }
+  }, [chatHistory, messages.length]);
 
   const chatMessagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -76,7 +76,7 @@ export default function ChatTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: q,
-          context: { ...aiContext, settings },
+          context: { ...aiContext, settings: preferences },
           history: chatHistory.slice(-10),
         }),
       });
@@ -120,7 +120,7 @@ export default function ChatTab() {
       <div className="chat-layout-v2">
         <ChatSidebar
           onQuickPrompt={sendMessage}
-          onClear={() => { setMessages([]); setChatHistory([]); showToast('Conversation cleared', 'success'); }}
+          onClear={() => { setMessages([]); clearChatHistory(); showToast('Conversation cleared', 'success'); }}
         />
 
         <div className="chat-container-v2">
@@ -225,9 +225,9 @@ export default function ChatTab() {
       {/* Settings Modal */}
       {isSettingsOpen && (
         <SettingsModal
-          settings={settings}
-          onSave={(newSettings) => {
-            setSettings(newSettings);
+          settings={preferences}
+          onSave={async (newSettings) => {
+            await savePreferences(newSettings);
             setIsSettingsOpen(false);
             showToast('AI Chat settings updated', 'success');
           }}
@@ -399,7 +399,7 @@ function SettingsModal({
   onClose
 }: {
   settings: { responseMode: string; riskAlertLevel: string; streamFeed: boolean };
-  onSave: (s: { responseMode: string; riskAlertLevel: string; streamFeed: boolean }) => void;
+  onSave: (s: { responseMode: string; riskAlertLevel: string; streamFeed: boolean }) => Promise<void>;
   onClose: () => void;
 }) {
   const [form, setForm] = useState(settings);

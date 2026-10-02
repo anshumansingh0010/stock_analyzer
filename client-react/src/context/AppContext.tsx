@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode, useRef } from 'react';
 import { API_BASE, apiFetch } from '../utils/api';
-import { AppContextType, AiContextState, BadgeData, ToastState, ChatMessage, UserProfile } from '../types';
+import { AppContextType, AiContextState, BadgeData, ToastState, ChatMessage, UserProfile, UserPreferences } from '../types';
 import { validateIdentifier } from '../utils/validation';
 import { loadCustomShortcuts, saveCustomShortcuts } from '../utils/shortcuts';
 
@@ -8,7 +8,7 @@ const AppContext = createContext<AppContextType | null>(null);
 
 const DEFAULT_USER: UserProfile = {
   id: 'usr_demo_1',
-  name: 'Jay Patel',
+  name: 'Jay Singh',
   email: 'jay.trader@nifty50gpt.ai',
   handle: '@jay_trader',
   since: 'Apr 2025',
@@ -64,6 +64,61 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Multi-turn chat history ────────────────────────────────
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+
+  // ── User Preferences ───────────────────────────────────────
+  const [preferences, setPreferences] = useState<UserPreferences>({
+    responseMode: 'detailed',
+    riskAlertLevel: 'balanced',
+    streamFeed: true,
+  });
+
+  // Fetch preferences and history on user change
+  useEffect(() => {
+    if (user?.id) {
+      apiFetch(`/user/${user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.user) {
+            if (data.user.preferences) setPreferences(data.user.preferences);
+            if (data.user.chatHistory) setChatHistory(data.user.chatHistory);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [user?.id]);
+
+  // Save updated chat history
+  useEffect(() => {
+    if (user?.id && chatHistory.length > 0) {
+      // Debounce saving history slightly to avoid excessive calls
+      const timeoutId = setTimeout(() => {
+        apiFetch(`/user/${user.id}/chat-history`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chatHistory })
+        }).catch(console.error);
+      }, 1000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [chatHistory, user?.id]);
+
+  const clearChatHistory = useCallback(async () => {
+    setChatHistory([]);
+    if (user?.id) {
+      await apiFetch(`/user/${user.id}/chat-history`, { method: 'DELETE' }).catch(console.error);
+    }
+  }, [user?.id]);
+
+  const savePreferences = useCallback(async (newPrefs: UserPreferences) => {
+    setPreferences(newPrefs);
+    if (user?.id) {
+      await apiFetch(`/user/${user.id}/preferences`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferences: newPrefs })
+      }).catch(console.error);
+    }
+  }, [user?.id]);
 
   // ── Nifty header badge ─────────────────────────────────────
   const [niftyBadge, setNiftyBadge] = useState<BadgeData>({ value: '—', change: '—', dir: '' });
@@ -305,6 +360,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       login, loginWithGoogle, sendOtp, verifyOtp, logout,
       isAuthModalOpen, setIsAuthModalOpen,
       customShortcuts, updateCustomShortcut, resetCustomShortcuts,
+      preferences, setPreferences, savePreferences, clearChatHistory,
     }}>
       {children}
     </AppContext.Provider>

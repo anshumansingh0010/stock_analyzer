@@ -9,6 +9,12 @@ export interface IUser extends Document {
   since: string;
   avatarUrl: string;
   provider: string;
+  preferences: {
+    responseMode: string;
+    riskAlertLevel: string;
+    streamFeed: boolean;
+  };
+  chatHistory: any[];
 }
 
 const UserSchema: Schema = new Schema(
@@ -21,6 +27,18 @@ const UserSchema: Schema = new Schema(
     since: { type: String, required: true },
     avatarUrl: { type: String, required: true },
     provider: { type: String, required: true },
+    preferences: {
+      type: Object,
+      default: {
+        responseMode: 'detailed',
+        riskAlertLevel: 'balanced',
+        streamFeed: true,
+      }
+    },
+    chatHistory: {
+      type: Array,
+      default: []
+    }
   },
   { timestamps: true }
 );

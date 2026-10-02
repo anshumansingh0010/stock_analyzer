@@ -340,7 +340,6 @@
 .pd-action-btn:hover {
   background: color-mix(in srgb, var(--primary) 10%, transparent);
   border-color: var(--accent-primary);
-  transform: translateY(-1px);
 }
 .pd-action-icon {
   font-size: 1rem;
@@ -615,6 +614,33 @@
   color: var(--accent-primary);
   font-weight: 600;
 }
+
+/* ── Profile Drawer Primary CTA ── */
+.pd-primary-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 40%, transparent);
+  border-radius: var(--radius-sm, 8px);
+  color: var(--accent-primary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: all var(--transition);
+  width: 100%;
+}
+
+.pd-primary-btn:hover {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #ffffff;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent-primary) 40%, transparent);
+}
+
 
 /* ── RESPONSIVE HEADER ── */
 @media (max-width: 1024px) {

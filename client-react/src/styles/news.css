@@ -921,7 +921,6 @@
 .auth-google-btn:hover:not(:disabled) {
   background: color-mix(in srgb, var(--foreground) 12%, transparent);
   border-color: color-mix(in srgb, var(--foreground) 30%, transparent);
-  transform: translateY(-1px);
 }
 
 .auth-divider {

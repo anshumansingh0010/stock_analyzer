@@ -47,7 +47,6 @@
   background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
   border-color: var(--accent-primary);
   color: var(--text-primary);
-  transform: translateY(-1px);
   box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
@@ -696,7 +695,6 @@ textarea#chat-input::placeholder {
   background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
   border-color: var(--accent-primary);
   color: var(--text-primary);
-  transform: translateY(-1px);
 }
 
 .ct-settings-btn {
@@ -712,7 +710,6 @@ textarea#chat-input::placeholder {
 .ct-settings-btn:hover {
   background: color-mix(in srgb, var(--accent-primary) 22%, transparent);
   border-color: var(--accent-primary);
-  transform: translateY(-1px);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
@@ -882,7 +879,6 @@ textarea#chat-input::placeholder {
 }
 
 .sm-save-btn:hover {
-  transform: translateY(-1px);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--accent-primary) 35%, transparent);
 }
 

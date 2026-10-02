@@ -138,6 +138,12 @@ export interface UserProfile {
   provider?: 'email' | 'google' | 'otp' | 'phone';
 }
 
+export interface UserPreferences {
+  responseMode: string;
+  riskAlertLevel: string;
+  streamFeed: boolean;
+}
+
 export interface AppContextType {
   aiContext: AiContextState;
   setAiContext: React.Dispatch<React.SetStateAction<AiContextState>>;
@@ -162,4 +168,8 @@ export interface AppContextType {
   customShortcuts: Record<string, string | null>;
   updateCustomShortcut: (id: string, key: string | null) => void;
   resetCustomShortcuts: () => void;
+  preferences: UserPreferences;
+  setPreferences: React.Dispatch<React.SetStateAction<UserPreferences>>;
+  savePreferences: (newPrefs: UserPreferences) => Promise<void>;
+  clearChatHistory: () => Promise<void>;
 }

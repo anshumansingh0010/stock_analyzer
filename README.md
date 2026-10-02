@@ -6,36 +6,48 @@ Stock Sense (Nifty50GPT) is a modern full-stack web application designed for ana
 
 ---
 
-## Key Features
+## 🚀 Key Features
 
-The application is structured into **6 Core Intelligence Layers**:
+The application is structured into **Core Intelligence & Application Layers**:
 
 1. **Layer 1: Master Prompt Engine (Financial AI Chat)**
    - Context-aware financial AI assistant powered by OpenAI/Gemini.
    - Answers questions regarding Nifty 50 equities, market concepts, portfolio strategies, and technical indicators.
+   - **Copilot Preferences:** Customize AI responses (Detailed vs. Concise) and set portfolio risk sensitivities (Strict, Balanced, Minimal).
+   - **Chat History Sync:** AI chat conversations are automatically persisted to the database and synced across sessions.
+
 2. **Layer 2: News Sentiment Analyzer**
    - Real-time aggregation of Indian market news via financial RSS feeds.
    - Automatic AI sentiment classification (Bullish / Bearish / Neutral) with sentiment scoring and impact analysis.
    - Background news scheduler running at configurable intervals.
+
 3. **Layer 3: Stock Technical Analyst**
    - Detailed stock metrics for all Nifty 50 components.
    - Interactive price charts (Candlesticks & Line plots) with overlay technical indicators (RSI, MACD, Moving Averages).
    - Live & historical price action tracking.
+
 4. **Layer 4: Market Movement Commentator**
    - Market indices tracking (Nifty 50, Bank Nifty, Sensex).
    - Institutional activity monitoring (FII & DII net flows).
    - Top gainers, losers, and overall market breadth analysis.
+
 5. **Layer 5: Intelligent Alert Engine**
    - Customizable price threshold and news sentiment alerts.
    - Notification triggers for user portfolio stocks.
-6. **Layer 6: Persistence & Data Engine**
-   - MongoDB database integration for user accounts, watchlists, custom portfolios, and chat logs.
+
+6. **Layer 6: Persistence & Advanced Account System**
+   - MongoDB database integration for user accounts, watchlists, custom portfolios, chat logs, and preferences.
+   - **Multi-Factor Authentication & Account Linking:** Seamless sign-in via Email/Phone OTP, Google OAuth, and Firebase Authentication, with support for linking multiple auth providers to a single account.
    - Support for in-memory fallback mode when database is offline.
    - Data caching for market feeds (Groww & Yahoo Finance services).
 
+7. **Layer 7: UI & Productivity Enhancements**
+   - **Interactive Portfolio Analytics:** Visual line charts mapping your portfolio's performance over time.
+   - **Custom Keyboard Shortcuts:** Accelerate navigation and data fetching with customizable user keybinds.
+
 ---
 
-## Architecture Overview
+## 🏗 Architecture Overview
 
 ```
                       ┌─────────────────────────────────┐
@@ -59,11 +71,12 @@ The application is structured into **6 Core Intelligence Layers**:
 
 ---
 
-## Tech Stack
+## 🛠 Tech Stack
 
 ### **Backend**
 - **Framework**: [Fastify](https://fastify.dev/) 4.x (TypeScript)
 - **Database**: [MongoDB](https://www.mongodb.com/) via [Mongoose](https://mongoosejs.com/)
+- **Authentication**: Custom OTP System, Google Auth Library, Firebase Admin
 - **AI Integrations**: OpenAI API & Google Gemini API
 - **Data & Feeds**: RSS Parser, Axios, Yahoo Finance API, Groww API
 - **Security & Utilities**: `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, `zod`
@@ -76,14 +89,14 @@ The application is structured into **6 Core Intelligence Layers**:
 
 ---
 
-## Getting Started
+## 🚦 Getting Started
 
 ### Prerequisites
 
 Ensure you have the following installed on your machine:
 - **Node.js** >= 18.0.0
 - **npm** >= 9.0.0
-- **Docker & Docker Compose** (Optional, for running MongoDB locally)
+- **Docker & Docker Compose** (Optional, for running the full stack easily)
 
 ---
 
@@ -128,24 +141,28 @@ GEMINI_API_KEY=your_gemini_api_key
 OPENAI_API_KEY=your_openai_api_key
 
 # MongoDB Database Connection
-MONGODB_URI=mongodb://stockadmin:stockpassword123@localhost:27017/stock_sense_ai?authSource=admin
+MONGODB_URI=mongodb://stockadmin:stockpassword123@mongodb:27017/stock_sense_ai?authSource=admin
 ```
 
 ---
 
-### Step 3: Start MongoDB Database (Optional)
+### Step 3: Run the Application (Docker Compose)
 
-You can run MongoDB locally using Docker Compose:
+The easiest way to run the entire stack (MongoDB, Fastify Backend, and React Frontend) is using Docker Compose:
 
 ```bash
 docker-compose up -d
 ```
 
-*Note: If `MONGODB_URI` is left blank or database connection fails, the server automatically degrades to in-memory mode.*
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3001
+- **MongoDB**: mongodb://localhost:27017
+
+*Note: If you want to run the application manually without Docker for the services, you can just start MongoDB via Docker or local installation and proceed to Step 4.*
 
 ---
 
-### Step 4: Run the Application
+### Step 4: Run Manually (Without full Docker orchestration)
 
 #### Option A: Start Server and Client Separately
 
@@ -163,7 +180,7 @@ npm run client
 
 ---
 
-## Available NPM Scripts
+## 📜 Available NPM Scripts
 
 ### Root Project Scripts
 | Script | Command | Description |
@@ -184,22 +201,23 @@ npm run client
 
 ---
 
-## Project Structure
+## 📂 Project Structure
 
 ```
 Stock_Sense/
 ├── client-react/             # React 19 Frontend App
 │   ├── src/
-│   │   ├── components/       # Reusable UI components (Navbar, Header, Cards, etc.)
-│   │   ├── context/          # React Context (AuthContext, ThemeContext, etc.)
+│   │   ├── components/       # Reusable UI components (Navbar, Header, Cards, Modal etc.)
+│   │   ├── context/          # React Context (AppContext, Theme, Global State)
 │   │   ├── styles/           # CSS styles & design tokens
 │   │   ├── tabs/             # Main Application Views
-│   │   │   ├── ChatTab/      # Layer 1: AI Financial Chat Interface
+│   │   │   ├── ChatTab/      # Layer 1: AI Financial Chat & Copilot Preferences
 │   │   │   ├── MarketTab/    # Layer 4: Market Indices & FII/DII Overview
 │   │   │   ├── NewsTab/      # Layer 2: RSS News & Sentiment Feed
-│   │   │   ├── PortfolioTab/ # Portfolio Manager & Watchlist
-│   │   │   └── StocksTab/    # Layer 3: Interactive Stock Analysis & Charts
+│   │   │   ├── PortfolioTab/ # Interactive Portfolio Charts & Manager
+│   │   │   └── StocksTab/    # Layer 3: Interactive Stock Analysis & Metrics
 │   │   ├── types/            # TypeScript interfaces & types
+│   │   ├── utils/            # API helpers, auth, validation & Firebase config
 │   │   └── App.tsx           # Main App layout & routing
 │   └── vite.config.ts        # Vite build configuration
 ├── server/                   # Fastify Backend Server
@@ -210,13 +228,14 @@ Stock_Sense/
 │   ├── prompts/              # Master prompt templates for LLM layers
 │   ├── routes/               # Fastify API Endpoint Routes
 │   │   ├── alert.ts          # Alert management routes
-│   │   ├── auth.ts           # Authentication (Login / Register) routes
+│   │   ├── auth.ts           # Auth routes (OTP, Google, Firebase, Link Accounts)
 │   │   ├── chat.ts           # AI Chat stream & query routes
 │   │   ├── market.ts         # Overall market indices & FII/DII routes
 │   │   ├── marketdata.ts     # Live market data fetch routes
 │   │   ├── news.ts           # News feed & sentiment analysis routes
 │   │   ├── portfolio.ts      # User holdings & portfolio management routes
-│   │   └── stock.ts          # Technical stock analysis routes
+│   │   ├── stock.ts          # Technical stock analysis routes
+│   │   └── user.ts           # User profiles, Copilot preferences & chat history
 │   ├── services/             # Core Business Logic & External APIs
 │   │   ├── alertService.ts   # Alert evaluation service
 │   │   ├── fiiDiiService.ts  # FII / DII net flow fetcher
@@ -230,7 +249,7 @@ Stock_Sense/
 │   │   ├── stockAnalyzer.ts  # Stock technical analysis engine
 │   │   └── yahooFinanceService.ts # Historical & intraday price service
 │   └── index.ts              # Fastify server entry point
-├── docker-compose.yml        # Local MongoDB Docker orchestration
+├── docker-compose.yml        # Docker orchestration (MongoDB + Server + Client)
 ├── package.json              # Main root dependencies & workspace scripts
 ├── tsconfig.json             # Root TypeScript compiler options
 └── README.md                 # Project Documentation
@@ -238,7 +257,7 @@ Stock_Sense/
 
 ---
 
-## Environment Variables Reference
+## 🔐 Environment Variables Reference
 
 | Variable | Required | Default | Description |
 | :--- | :---: | :--- | :--- |
@@ -252,27 +271,34 @@ Stock_Sense/
 | `OPENAI_API_KEY` | Optional | - | API key for OpenAI GPT models |
 | `GROWW_API_KEY` | Optional | - | Groww API client key for live stock feeds |
 | `MONGODB_URI` | No | - | MongoDB connection string (falls back to memory mode if empty) |
+| `FIREBASE_PROJECT_ID` | Optional | - | Firebase Admin SDK Project ID (for mock/real auth verification) |
 
 ---
 
-## API Endpoints Overview
+## 🔌 API Endpoints Overview
 
 | Base Endpoint | Method | Description | Authentication |
 | :--- | :--- | :--- | :---: |
 | `/api/health` | `GET` | Health check endpoint returning layer status | Public |
-| `/api/auth/register` | `POST` | Create a new user account | Public |
-| `/api/auth/login` | `POST` | Authenticate user & receive JWT token | Public |
+| `/api/auth/check-user` | `POST` | Check if a user account already exists | Public |
+| `/api/auth/send-otp` | `POST` | Send authentication OTP via email or phone | Public |
+| `/api/auth/verify-otp` | `POST` | Verify OTP code and authenticate/link user | Public |
+| `/api/auth/google` | `POST` | Authenticate/Link account via Google OAuth | Public |
+| `/api/auth/firebase` | `POST` | Authenticate/Link account via Firebase token | Public |
 | `/api/market/overview` | `GET` | Get Nifty 50, Bank Nifty, & overall market health | Public |
 | `/api/market/fii-dii` | `GET` | Get daily FII & DII institutional cash flows | Public |
 | `/api/stock/:symbol` | `GET` | Fetch stock metrics, historical charts & RSI/MACD | Public |
 | `/api/news` | `GET` | Fetch recent financial news feeds with sentiment scores | Public |
 | `/api/chat` | `POST` | Send financial query to Layer 1 Master Prompt AI | Required |
+| `/api/user/:userId` | `GET` | Fetch user profile, preferences, and chat history | Required |
+| `/api/user/:userId/preferences` | `PATCH` | Update user AI Copilot preferences | Required |
+| `/api/user/:userId/chat-history` | `PATCH` / `DELETE` | Update or clear user chat history | Required |
 | `/api/portfolio` | `GET` / `POST` | Manage holdings, transactions & custom watchlists | Required |
 | `/api/alerts` | `GET` / `POST` | Set and monitor custom price & market alerts | Required |
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! If you'd like to improve Stock Sense or add new capabilities:
 
@@ -284,6 +310,6 @@ Contributions are welcome! If you'd like to improve Stock Sense or add new capab
 
 ---
 
-## License
+## 📜 License
 
 This project is licensed under the **MIT License**.
