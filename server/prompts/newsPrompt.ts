@@ -1,11 +1,11 @@
 /**
  * ╔══════════════════════════════════════════════════════════════════════╗
- * ║         NIFTY50GPT — LAYER 2: NEWS SENTIMENT PROMPT                 ║
+ * ║         NIFTY50GPT — LAYER 2: NEWS SENTIMENT PROMPT                  ║
  * ║                                                                      ║
- * ║  Runs in background every 15 minutes to pre-tag news articles with  ║
- * ║  companies, sentiment, and portfolio relevance.                     ║
+ * ║  Runs in background every 15 minutes to pre-tag news articles with   ║
+ * ║  companies, sentiment, and portfolio relevance.                      ║
  * ║                                                                      ║
- * ║  Output: strict JSON — no prose, no extra text                      ║
+ * ║  Output: strict JSON — no prose, no extra text                       ║
  * ╚══════════════════════════════════════════════════════════════════════╝
  */
 

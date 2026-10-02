@@ -22,7 +22,9 @@ import alertRoutes from "./routes/alert.js";
 import portfolioRoutes from "./routes/portfolio.js";
 import marketdataRoutes from "./routes/marketdata.js";
 import authRoutes from "./routes/auth.js";
+import priceAlertRoutes from "./routes/priceAlert.js";
 import { startScheduler, getStatus as getNewsStatus } from "./services/newsScheduler.js";
+import { startPriceScheduler, getPriceSchedulerStatus } from "./services/priceScheduler.js";
 import { requireAuth } from "./middleware/auth.js";
 
 const server = Fastify({ logger: true });
@@ -65,6 +67,7 @@ export async function setupServer() {
     await protectedServer.register(chatRoutes, { prefix: "/api/chat" });
     await protectedServer.register(portfolioRoutes, { prefix: "/api/portfolio" });
     await protectedServer.register(alertRoutes, { prefix: "/api/alerts" });
+    await protectedServer.register(priceAlertRoutes, { prefix: "/api/price-alerts" });
   });
 
   // Health check
@@ -83,6 +86,7 @@ export async function setupServer() {
       provider: process.env.LLM_PROVIDER || "openai",
       timestamp: new Date().toISOString(),
       newsScheduler: getNewsStatus(),
+      priceScheduler: getPriceSchedulerStatus(),
       database: getDBStatus(),
     });
   });
@@ -130,6 +134,13 @@ async function startServer() {
         intervalMs: 15 * 60 * 1000,
         runImmediately: false,
         portfolio: [],
+      });
+    }
+
+    if (process.env.DISABLE_PRICE_SCHEDULER !== "true") {
+      startPriceScheduler({
+        intervalMs: 30 * 1000, // Check every 30 seconds
+        runImmediately: true,
       });
     }
   } catch (err: any) {

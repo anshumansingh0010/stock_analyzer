@@ -11,6 +11,7 @@
 import { analyzeBatch, AnalyzedArticleResult } from "./newsAnalyzer.js";
 import { NewsArticleInput } from "../prompts/newsPrompt.js";
 import { fetchCombinedRssNews } from "./rssService.js";
+import { News, ProcessedNews } from "../models/News.js";
 
 export interface SchedulerCache {
   results: AnalyzedArticleResult[];
@@ -110,6 +111,51 @@ export async function runAnalysisCycle(): Promise<void> {
 
     const successful = results.filter((r) => !r._error);
     const failed = results.filter((r) => r._error);
+
+    // Save analyzed results to MongoDB
+    for (const r of successful) {
+      if (!r._meta?.article) continue;
+      const article = r._meta.article;
+
+      try {
+        const newsDoc = await News.findOneAndUpdate(
+          { headline: article.headline, source: article.source },
+          {
+            $setOnInsert: {
+              headline: article.headline,
+              source: article.source,
+              description: article.summary || "",
+              url: article.url || "",
+              publishedAt: article.publishedAt ? new Date(article.publishedAt) : new Date(),
+              processed: true
+            }
+          },
+          { upsert: true, new: true }
+        );
+
+        await ProcessedNews.findOneAndUpdate(
+          { newsId: newsDoc._id },
+          {
+            $setOnInsert: {
+              newsId: newsDoc._id,
+              headline: article.headline,
+              source: article.source,
+              summary: r.summary,
+              overallMarketSentiment: r.overallMarketSentiment,
+              urgency: r.urgency,
+              sectorAffected: r.sectorAffected,
+              companies: r.companies,
+              model: r._meta?.model || "",
+              tokens: r._meta?.tokens || 0,
+              analyzedAt: new Date()
+            }
+          },
+          { upsert: true }
+        );
+      } catch (dbErr: any) {
+        console.error(`[NewsScheduler] DB Save Error: ${dbErr.message}`);
+      }
+    }
 
     cache.results = successful;
     cache.lastRunAt = new Date().toISOString();
