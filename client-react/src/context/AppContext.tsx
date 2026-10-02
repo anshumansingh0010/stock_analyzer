@@ -6,15 +6,6 @@ import { loadCustomShortcuts, saveCustomShortcuts } from '../utils/shortcuts';
 
 const AppContext = createContext<AppContextType | null>(null);
 
-const DEFAULT_USER: UserProfile = {
-  id: 'usr_demo_1',
-  name: 'Jay Singh',
-  email: 'jay.trader@nifty50gpt.ai',
-  handle: '@jay_trader',
-  since: 'Apr 2025',
-  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
-  provider: 'email',
-};
 
 export function AppProvider({ children }: { children: ReactNode }) {
   // ── Custom Keyboard Shortcuts State ─────────────────────────
@@ -43,12 +34,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // ── User Auth State ─────────────────────────────────────────
   const [user, setUser] = useState<UserProfile | null>(() => {
     try {
-      const isLoggedOut = localStorage.getItem('stock_sense_logged_out') === 'true';
-      if (isLoggedOut) return null;
       const saved = localStorage.getItem('stock_sense_user');
-      return saved ? JSON.parse(saved) : DEFAULT_USER;
+      return saved ? JSON.parse(saved) : null;
     } catch {
-      return DEFAULT_USER;
+      return null;
     }
   });
 
