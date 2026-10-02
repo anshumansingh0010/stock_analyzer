@@ -238,7 +238,7 @@ const DEFAULT_NEWS_RESULTS = [
 ];
 
 export default function NewsTab({ onAlertCount }: NewsTabProps) {
-  const { aiContext, showToast } = useApp();
+  const { aiContext, showToast, user, setIsAuthModalOpen } = useApp();
   const [results, setResults]       = useState<any[]>([]);
   const [alerts, setAlerts]         = useState<any[]>([]);
   const [filter, setFilter]         = useState<string>('ALL');
@@ -333,6 +333,10 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
   }
 
   async function analyzeArticle() {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     if (!headline) { showToast('Please enter a headline', 'warn'); return; }
     setAnalyzing(true); setCustomResult(null);
     try {

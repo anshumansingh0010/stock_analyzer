@@ -31,7 +31,7 @@ const QUICK_SHORTCUTS = [
 ];
 
 export default function ChatTab() {
-  const { aiContext, chatHistory, setChatHistory, showToast, backendOnline, preferences, savePreferences, clearChatHistory } = useApp();
+  const { aiContext, chatHistory, setChatHistory, showToast, backendOnline, preferences, savePreferences, clearChatHistory, user, setIsAuthModalOpen } = useApp();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput]       = useState<string>('');
   const [loading, setLoading]   = useState<boolean>(false);
@@ -58,6 +58,10 @@ export default function ChatTab() {
   useEffect(scrollBottom, [messages]);
 
   async function sendMessage(query?: string) {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
     const q = (query ?? input).trim();
     if (!q || loading) return;
     setInput('');
