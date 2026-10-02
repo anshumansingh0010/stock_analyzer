@@ -153,9 +153,9 @@ export interface AppContextType {
   user: UserProfile | null;
   setUser: React.Dispatch<React.SetStateAction<UserProfile | null>>;
   login: (email: string, name?: string, avatarUrl?: string, provider?: 'email' | 'google' | 'otp') => void;
-  loginWithGoogle: () => Promise<void>;
+  loginWithGoogle: (token: string, mode?: 'signin' | 'signup' | 'link', userId?: string) => Promise<void>;
   sendOtp: (identifier: string) => Promise<{ success: boolean; otp?: string; message?: string }>;
-  verifyOtp: (identifier: string, otp: string, name?: string) => Promise<{ success: boolean; message?: string }>;
+  verifyOtp: (identifier: string, otp: string, name?: string, mode?: 'signin' | 'signup' | 'link', userId?: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: React.Dispatch<React.SetStateAction<boolean>>;

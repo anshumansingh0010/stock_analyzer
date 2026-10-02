@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { TabType } from '../types';
+import LinkAccountModal from './LinkAccountModal';
 
 interface HeaderProps {
   activeTab: TabType;
@@ -36,6 +37,7 @@ function SunIcon() {
 export default function Header({ activeTab, setActiveTab, newsAlertCount, onOpenShortcuts }: HeaderProps) {
   const { niftyBadge, backendOnline, backendProvider, user, logout, setIsAuthModalOpen, aiContext } = useApp();
   const [profileOpen, setProfileOpen] = useState<boolean>(false);
+  const [linkModalOpen, setLinkModalOpen] = useState<boolean>(false);
   const [isDark, setIsDark]           = useState<boolean>(() => {
     const saved = localStorage.getItem('stock_sense_theme') || localStorage.getItem('theme');
     return saved !== null ? saved === 'dark' : true;
@@ -277,14 +279,7 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount, onOpen
 
           <div className="pd-divider" />
 
-          {/* Connection */}
-          <div className="pd-section-title">Connection</div>
-          <div className="pd-connection">
-            <span className={`pd-conn-dot ${backendOnline ? 'on' : 'off'}`} />
-            <span className="pd-conn-label">{backendOnline ? `Live · ${backendProvider}` : 'Backend Offline'}</span>
-          </div>
 
-          <div className="pd-divider" />
 
           {/* Preferences */}
           <div className="pd-section-title">Preferences</div>
@@ -350,6 +345,21 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount, onOpen
             </button>
           </div>
 
+          <div className="pd-divider" />
+
+          <div className="pd-section-title">Account</div>
+          <div className="pd-connection">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button 
+                className="pd-theme-btn" 
+                style={{ width: '100%', justifyContent: 'center' }}
+                onClick={() => setLinkModalOpen(true)}
+              >
+                <span>Link Phone / Email</span>
+              </button>
+            </div>
+          </div>
+
           {/* Footer */}
           <div className="pd-footer">
             <span className="pd-since">Member since {user.since}</span>
@@ -370,6 +380,9 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount, onOpen
           </div>
         </aside>
       )}
+
+      {/* Link Account Modal */}
+      <LinkAccountModal isOpen={linkModalOpen} onClose={() => setLinkModalOpen(false)} />
     </>
   );
 }

@@ -107,28 +107,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showToast(`Welcome back, ${newUser.name}!`, 'success');
   }, [showToast]);
 
-  const loginWithGoogle = useCallback(async () => {
-    return new Promise<void>((resolve) => {
-      // Simulate interactive Google Sign-In
-      setTimeout(() => {
-        const googleUser: UserProfile = {
-          id: `usr_google_${Date.now()}`,
-          name: 'Alex Rivers',
-          email: 'alex.rivers@gmail.com',
-          handle: '@alex_trader',
-          since: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-          avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150',
-          provider: 'google',
-        };
-
+  const loginWithGoogle = useCallback(async (token: string, mode?: 'signin' | 'signup' | 'link', userId?: string) => {
+    try {
+      const res = await apiFetch(`/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, mode, userId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.user) {
         localStorage.removeItem('stock_sense_logged_out');
-        localStorage.setItem('stock_sense_user', JSON.stringify(googleUser));
-        setUser(googleUser);
+        localStorage.setItem('stock_sense_user', JSON.stringify(data.user));
+        if (data.token) {
+          localStorage.setItem('stock_sense_token', data.token);
+        }
+        setUser(data.user);
         setIsAuthModalOpen(false);
-        showToast('Signed in with Google successfully!', 'success');
-        resolve();
-      }, 600);
-    });
+        showToast(`Signed in with Google successfully!`, 'success');
+      } else {
+        throw new Error(data.message || 'Google Login Failed');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Failed to connect with Google', 'error');
+      throw err;
+    }
   }, [showToast]);
 
   // Local fallback OTP store if offline
@@ -162,7 +164,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const verifyOtp = useCallback(async (identifier: string, otp: string, name?: string) => {
+  const verifyOtp = useCallback(async (identifier: string, otp: string, name?: string, mode?: 'signin' | 'signup' | 'link', userId?: string) => {
     const val = validateIdentifier(identifier);
     if (!val.isValid) {
       return { success: false, message: val.message || 'Invalid identifier format' };
@@ -172,7 +174,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const res = await apiFetch(`/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, otp, name }),
+        body: JSON.stringify({ identifier, otp, name, mode, userId }),
       });
       const data = await res.json();
       if (res.ok && data.success && data.user) {
@@ -190,7 +192,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch {
       const cleanId = identifier.trim().toLowerCase();
       const storedOtp = localOtpMapRef.current.get(cleanId);
-      if (otp === '123456' || (storedOtp && storedOtp === otp)) {
+      if (storedOtp && storedOtp === otp) {
         const isEmail = val.type === 'email';
         const formattedName = name && name.trim() ? name.trim() : (isEmail ? cleanId.split('@')[0] : `Trader ${cleanId.slice(-4)}`);
         const fallbackUser: UserProfile = {
@@ -210,7 +212,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         showToast(`Welcome back, ${fallbackUser.name}! Verified with OTP.`, 'success');
         return { success: true };
       }
-      return { success: false, message: "Invalid OTP code. Use '123456' or requested code." };
+      return { success: false, message: "Invalid OTP code." };
     }
   }, [showToast]);
 

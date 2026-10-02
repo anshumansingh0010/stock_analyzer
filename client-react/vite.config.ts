@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
+  envDir: '../',
+  envPrefix: ['VITE_', 'GOOGLE_CLIENT_ID'],
   plugins: [react()],
   resolve: {
     alias: {

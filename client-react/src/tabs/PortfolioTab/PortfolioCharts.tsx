@@ -62,7 +62,10 @@ export function PortfolioGrowthChart({ totalValue }: { totalValue: number }) {
   // Compute SVG coordinates
   const coords = points.map((p, i) => {
     const x = padding.left + (i / (points.length - 1)) * graphWidth;
-    const y = padding.top + graphHeight - ((p.val - minVal) / (maxVal - minVal)) * graphHeight;
+    const range = maxVal - minVal;
+    const y = range === 0 
+      ? padding.top + graphHeight / 2 
+      : padding.top + graphHeight - ((p.val - minVal) / range) * graphHeight;
     return { x, y, label: p.label, val: p.val };
   });
 
