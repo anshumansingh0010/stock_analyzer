@@ -302,7 +302,6 @@ export default function StocksTab() {
             <div className="market-widget tech-inputs-card">
               <div className="widget-header">
                 <h4 className="flex items-center gap-2">AI Technical &amp; Fundamental Report Engine</h4>
-                <span className="widget-tag bull">Layer 3 Generator</span>
               </div>
 
               {/* Holding toggle */}

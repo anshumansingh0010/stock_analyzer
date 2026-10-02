@@ -239,6 +239,15 @@
   border-radius: var(--radius-md);
 }
 
+.tech-inputs-card:hover{
+  transform: none !important;
+  box-shadow: none !important;
+}
+.stock-chart-card:hover{
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 .stock-input-group {
   display: flex;
   flex-direction: column;

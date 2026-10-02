@@ -18,7 +18,7 @@
   gap: 16px;
   transition: border-color var(--transition), transform var(--transition);
 }
-.ptf-summary-card:hover { border-color: var(--border); transform: translateY(-2px); }
+.ptf-summary-card:hover { border-color: var(--border); }
 .ptf-highlight-bull { border-color: color-mix(in srgb, var(--secondary) 30%, transparent) !important; }
 .ptf-highlight-bear { border-color: color-mix(in srgb, var(--destructive) 30%, transparent) !important; }
 
@@ -177,7 +177,7 @@
   transition: border-color var(--transition), transform var(--transition);
   animation: fadeSlideIn 0.3s ease;
 }
-.ptf-news-card:hover { border-color: var(--border); transform: translateY(-2px); }
+.ptf-news-card:hover { border-color: var(--border); }
 .ptf-news-card.has-portfolio-hit { border-color: color-mix(in srgb, var(--secondary) 30%, transparent); }
 
 .ptf-news-header {
@@ -449,7 +449,7 @@
   transition: transform var(--transition);
 }
 
-.month-card:hover { transform: translateY(-2px); }
+.month-card:hover { }
 
 .month-card.up { background: color-mix(in srgb, var(--accent-bull) 12%, transparent); }
 .month-card.down { background: color-mix(in srgb, var(--accent-bear) 12%, transparent); }
