@@ -381,14 +381,14 @@ function TypingIndicator() {
   return (
     <div className="message-v2 assistant-msg typing-msg">
       <div className="msg-avatar-v2 assistant-av flex items-center justify-center">
-        <Sparkles className="w-4 h-4 text-indigo-400 animate-spin" style={{ animationDuration: '3s' }} />
+        <Sparkles className="w-4 h-4 text-indigo-400 chat-sparkles-spin" />
       </div>
       <div className="msg-content-v2">
         <div className="msg-body-v2 assistant-body flex items-center gap-3 py-3 px-4">
           <div className="flex items-center gap-1.5">
-            <span className="typing-dot-v2 animate-bounce" style={{ animationDelay: '0s' }} />
-            <span className="typing-dot-v2 animate-bounce" style={{ animationDelay: '0.2s' }} />
-            <span className="typing-dot-v2 animate-bounce" style={{ animationDelay: '0.4s' }} />
+            <span className="typing-dot-v2 animate-bounce" />
+            <span className="typing-dot-v2 animate-bounce" />
+            <span className="typing-dot-v2 animate-bounce" />
           </div>
           <span className="text-xs text-indigo-300 font-medium">Analyzing real-time market data & financial streams...</span>
         </div>

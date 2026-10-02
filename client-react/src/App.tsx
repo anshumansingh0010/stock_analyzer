@@ -158,19 +158,19 @@ function MainApp() {
         onOpenShortcuts={() => setShortcutsModalOpen(true)}
       />
       <main className={`main slide-${slideDir}`}>
-        <div style={{ display: activeTab === 'chat' ? 'contents' : 'none' }}>
+        <div className={`tab-wrapper ${activeTab === 'chat' ? 'active' : ''}`}>
           <ChatTab />
         </div>
-        <div style={{ display: activeTab === 'market' ? 'contents' : 'none' }}>
+        <div className={`tab-wrapper ${activeTab === 'market' ? 'active' : ''}`}>
           <MarketTab />
         </div>
-        <div style={{ display: activeTab === 'stocks' ? 'contents' : 'none' }}>
+        <div className={`tab-wrapper ${activeTab === 'stocks' ? 'active' : ''}`}>
           <StocksTab />
         </div>
-        <div style={{ display: activeTab === 'news' ? 'contents' : 'none' }}>
+        <div className={`tab-wrapper ${activeTab === 'news' ? 'active' : ''}`}>
           <NewsTab onAlertCount={setNewsAlertCount} />
         </div>
-        <div style={{ display: activeTab === 'portfolio' ? 'contents' : 'none' }}>
+        <div className={`tab-wrapper ${activeTab === 'portfolio' ? 'active' : ''}`}>
           <PortfolioTab />
         </div>
       </main>

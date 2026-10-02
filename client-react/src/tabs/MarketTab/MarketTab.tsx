@@ -405,7 +405,7 @@ export default function MarketTab() {
     : '0.00%';
 
   return (
-    <section className="tab-section active" style={{ flexDirection: 'column', overflowY: 'auto' }}>
+    <section id="tab-market" className="tab-section active">
       <div className="page-container full-width-dashboard">
 
         {/* ── Page Header ── */}
@@ -417,7 +417,7 @@ export default function MarketTab() {
         </div>
 
         {snapLoading ? (
-          <div className="ptf-loading" style={{ justifyContent: 'center', padding: '80px 0' }}>
+          <div className="ptf-loading ptf-loading-centered">
             <span className="ptf-spinner" />Loading live market indicators...
           </div>
         ) : (

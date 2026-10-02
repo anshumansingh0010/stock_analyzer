@@ -512,7 +512,7 @@
 
 .user-body {
   background: linear-gradient(135deg, var(--accent-primary), color-mix(in srgb, var(--accent-primary) 80%, black));
-  color: #ffffff;
+  color: var(--primary-foreground);
   border-top-right-radius: 4px;
 }
 
@@ -548,13 +548,19 @@
   color: var(--text-primary);
 }
 
-/* Typing indicator */
 .typing-dot-v2 {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--accent-primary);
   display: inline-block;
+}
+.typing-dot-v2:nth-child(1) { animation-delay: 0s; }
+.typing-dot-v2:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot-v2:nth-child(3) { animation-delay: 0.4s; }
+
+.chat-sparkles-spin {
+  animation: spin 3s linear infinite;
 }
 
 .warnings-bar-v2 {
@@ -717,7 +723,7 @@ textarea#chat-input::placeholder {
 .settings-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: color-mix(in srgb, var(--background) 65%, transparent);
   backdrop-filter: blur(8px);
   z-index: 999;
   display: flex;
@@ -734,7 +740,7 @@ textarea#chat-input::placeholder {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md, 16px);
   padding: 24px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 50px color-mix(in srgb, var(--shadow-color) 40%, transparent);
   animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   color: var(--text-primary);
 }
@@ -831,7 +837,7 @@ textarea#chat-input::placeholder {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--primary-foreground);
   display: block;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -873,7 +879,7 @@ textarea#chat-input::placeholder {
   padding: 8px 18px;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--primary-foreground);
   cursor: pointer;
   transition: all 0.2s ease;
 }

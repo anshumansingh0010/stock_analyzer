@@ -325,7 +325,7 @@ export default function LinkAccountModal({ isOpen, onClose }: { isOpen: boolean;
             )}
 
             {hasEmail && hasPhone && (
-              <div className="auth-error-banner" style={{ background: 'rgba(0, 212, 168, 0.1)', color: '#00d4a8', border: '1px solid #00d4a8' }}>
+              <div className="auth-banner-linked">
                 Both Email and Phone are already linked!
               </div>
             )}

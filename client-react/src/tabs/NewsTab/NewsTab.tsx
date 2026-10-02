@@ -401,7 +401,7 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
   const paginatedNews = filtered.slice(startIndex, startIndex + PAGE_SIZE);
 
   return (
-    <section className="tab-section active" style={{ flexDirection: 'column', overflowY: 'auto' }}>
+    <section id="tab-news" className="tab-section active">
       <div className="page-container full-width-dashboard">
         {/* Page Header */}
         <div className="page-header news-page-header">
@@ -417,7 +417,7 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
           {/* LEFT COLUMN: Main Feed */}
           <div className="news-main-feed">
             {/* Live Search & Filter Bar */}
-            <div style={{ position: 'relative', marginBottom: 12 }}>
+            <div className="news-search-wrap">
               <svg 
                 width="16" 
                 height="16" 
@@ -427,15 +427,14 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
                 strokeWidth="2" 
                 strokeLinecap="round" 
                 strokeLinejoin="round"
-                style={{ position: 'absolute', left: 14, top: '40%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }}
+                className="news-search-icon"
               >
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
               <input
                 type="text"
-                className="news-search-input"
-                style={{ paddingLeft: 40 }}
+                className="news-search-input news-search-input-padded"
                 placeholder="Search live breaking news by stock ticker (e.g. SBIN, RELIANCE), headline keyword, or source..."
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
@@ -443,8 +442,8 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
             </div>
 
             {/* Category & Impact Filter Chips */}
-            <div className="news-filters" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <div className="news-filters news-filters-row">
+              <div className="news-filter-chips">
                 {FILTERS.map(f => (
                   <button key={f} className={`filter-chip ${filter === f ? 'active' : ''}`} onClick={() => handleFilterChange(f)}>
                     {f === 'ALL' ? `All News (${results.length})`
@@ -456,7 +455,7 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
                   </button>
                 ))}
               </div>
-              <button className="inject-btn" onClick={triggerAnalysis} disabled={triggering} style={{ marginLeft: 'auto', padding: '8px 14px', fontSize: '0.82rem' }}>
+              <button className="inject-btn news-refresh-btn" onClick={triggerAnalysis} disabled={triggering}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                 {triggering ? 'Refreshing...' : 'Refresh Live Feed'}
               </button>
@@ -465,7 +464,7 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
             {/* Structured News Cards Grid (Paginated 10 items) */}
             <div className="news-grid full-width-news">
               {filtered.length === 0 ? (
-                <div className="news-empty" style={{ display: 'flex' }}>
+                <div className="news-empty news-empty-flex">
                   <p>No news matching current filter. Click <strong>Refresh Live Feed</strong>.</p>
                 </div>
               ) : paginatedNews.map((r, i) => <RichNewsCard key={i} result={r} />)}
@@ -506,7 +505,7 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
           <div className="news-sidebar">
             {/* Portfolio Alerts Banner */}
             {alerts.length > 0 && (
-              <div className="alerts-banner" style={{ display: 'block' }}>
+              <div className="alerts-banner alerts-banner-block">
                 <div className="alerts-banner-header">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                   <strong>Portfolio Alerts</strong>
@@ -517,7 +516,7 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
                     <span className="alert-ticker">{a.company?.ticker}</span>
                     <div className="alert-text">
                       <strong>{a.company?.name}</strong> — {a.company?.portfolioRelevance || a.company?.reason}
-                      <span className={`sentiment-pill sentiment-${a.company?.sentiment}`} style={{ marginLeft: 6 }}>
+                      <span className={`sentiment-pill sentiment-${a.company?.sentiment} alert-sentiment-pill`}>
                         {sentimentIcon(a.company?.sentiment)} {a.company?.sentiment}
                       </span>
                     </div>
@@ -533,9 +532,9 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
               </div>
               <p className="data-card-desc">Paste any financial headline or story for instant AI sentiment, stock mapping, and price impact prediction</p>
           <div className="custom-article-form">
-            <input className="json-input" style={{ padding: '10px 14px', fontFamily: 'var(--font-sans)', fontSize: '0.88rem' }} placeholder="Headline..." value={headline} onChange={e => setHeadline(e.target.value)} />
+            <input className="json-input custom-article-input" placeholder="Headline..." value={headline} onChange={e => setHeadline(e.target.value)} />
             <textarea className="json-input" rows={3} placeholder="Article description or summary..." value={desc} onChange={e => setDesc(e.target.value)} />
-            <input className="json-input" style={{ padding: '10px 14px', fontFamily: 'var(--font-sans)', fontSize: '0.88rem' }} placeholder="Source (e.g. Economic Times, Bloomberg)" value={source} onChange={e => setSource(e.target.value)} />
+            <input className="json-input custom-article-input" placeholder="Source (e.g. Economic Times, Bloomberg)" value={source} onChange={e => setSource(e.target.value)} />
           </div>
           <button className="inject-btn" onClick={analyzeArticle} disabled={analyzing}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -544,9 +543,8 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
           
           {customResult && !analyzing && (
             <button 
-              className="inject-btn" 
+              className="inject-btn view-report-btn" 
               onClick={() => setShowReport(true)} 
-              style={{ marginTop: 8, background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', boxShadow: 'none' }}
             >
                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                View Generated Report
@@ -560,24 +558,15 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
             <h4>Trending in News</h4>
           </div>
           <p className="data-card-desc">Most discussed topics in the financial markets over the last 24 hours.</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+          <div className="trending-tags-wrap">
             {trendingKeywords.map(tag => (
               <span 
                 key={tag} 
                 onClick={() => {
                   setSearchQuery(tag);
                   setCurrentPage(1);
-                  // Optional: scroll to top of feed if needed, but usually it's already visible
                 }}
-                style={{
-                  fontSize: '0.75rem',
-                  padding: '4px 10px',
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '99px',
-                  color: 'var(--text-secondary)',
-                  cursor: 'pointer'
-                }}
+                className="trending-tag-chip"
               >
                 {tag}
               </span>
@@ -591,17 +580,18 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
     
     {/* Full Page Report Modal */}
     {showReport && customResult && createPortal(
-      <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px', backdropFilter: 'blur(5px)' }}>
-        <div className="hide-scrollbar" style={{ background: 'var(--bg-surface)', borderRadius: '24px', width: '100%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', position: 'relative', border: '1px solid var(--border-subtle)', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
+      <div className="report-modal-backdrop">
+        <div className="hide-scrollbar report-modal-card">
           <button 
             onClick={() => setShowReport(false)} 
-            style={{ position: 'absolute', top: 20, right: 24, background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', cursor: 'pointer', zIndex: 10 }}
+            className="report-modal-close-btn"
+            title="Close Report"
           >
              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
-          <div style={{ marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid var(--border-subtle)' }}>
-            <h2 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--text-primary)' }}>Custom Article Analysis Report</h2>
-            <p style={{ margin: '8px 0 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Generated by Layer 2 Engine</p>
+          <div className="report-modal-header">
+            <h2 className="report-modal-title">Custom Article Analysis Report</h2>
+            <p className="report-modal-subtitle">Generated by Layer 2 Engine</p>
           </div>
           <CustomArticleDetailedReport result={customResult} />
         </div>
@@ -633,14 +623,12 @@ function CustomArticleDetailedReport({ result }: { result: any }) {
   const sentiment    = (result.overallMarketSentiment || 'NEUTRAL').toUpperCase();
   const urgency      = (result.urgency || 'HIGH').toUpperCase();
   
-  const sentimentColor = sentiment === 'BULLISH' ? 'var(--accent-bull, #10b981)' : sentiment === 'BEARISH' ? 'var(--accent-bear, #ef4444)' : 'var(--text-muted)';
-  
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="report-content-wrap">
       {/* Header Info */}
       <div>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '0 0 12px 0', lineHeight: 1.3 }}>{headline}</h1>
-        <div style={{ display: 'flex', gap: '16px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+        <h1 className="report-article-title">{headline}</h1>
+        <div className="report-meta-row">
           <span><strong>Source:</strong> {source}</span>
           <span><strong>Time:</strong> {timeAgo(timestamp)}</span>
           <span><strong>Sectors:</strong> {result.sectorAffected?.join(', ') || 'N/A'}</span>
@@ -648,73 +636,73 @@ function CustomArticleDetailedReport({ result }: { result: any }) {
       </div>
 
       {/* Macro Overview */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-        <div style={{ background: 'var(--bg-elevated)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
-          <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Overall Market Sentiment</h4>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: sentimentColor }}>
+      <div className="report-grid-2col">
+        <div className="report-stat-card">
+          <h4 className="report-stat-label">Overall Market Sentiment</h4>
+          <div className={`report-stat-value sentiment-${sentiment.toLowerCase()}`}>
             {sentiment}
           </div>
         </div>
-        <div style={{ background: 'var(--bg-elevated)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
-          <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Action Urgency</h4>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: urgency === 'HIGH' ? 'var(--accent-danger)' : 'var(--text-primary)' }}>
+        <div className="report-stat-card">
+          <h4 className="report-stat-label">Action Urgency</h4>
+          <div className={`report-stat-value urgency-${urgency === 'HIGH' ? 'high' : 'normal'}`}>
             {urgency} IMPACT
           </div>
         </div>
       </div>
 
       {/* Summary Section */}
-      <div style={{ background: 'var(--bg-elevated)', padding: '24px', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
-        <h3 style={{ margin: '0 0 12px 0', fontSize: '1.1rem' }}>Executive Summary</h3>
-        <p style={{ margin: 0, lineHeight: 1.6, color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{summary}</p>
+      <div className="report-section-card">
+        <h3 className="report-section-title">Executive Summary</h3>
+        <p className="report-section-desc">{summary}</p>
       </div>
 
       {/* Predicted Impact */}
       {result.expectedImpact && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div style={{ background: 'color-mix(in srgb, var(--accent-primary) 5%, transparent)', padding: '20px', borderRadius: '16px', border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)' }}>
-            <h4 style={{ margin: '0 0 8px 0', color: 'var(--accent-primary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Short-Term Horizon (Days/Weeks)</h4>
-            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>{result.expectedImpact.shortTerm || 'Not specified.'}</p>
+        <div className="report-grid-2col">
+          <div className="report-horizon-card-short">
+            <h4>Short-Term Horizon (Days/Weeks)</h4>
+            <p className="report-horizon-text">{result.expectedImpact.shortTerm || 'Not specified.'}</p>
           </div>
-          <div style={{ background: 'color-mix(in srgb, var(--accent-secondary) 5%, transparent)', padding: '20px', borderRadius: '16px', border: '1px solid color-mix(in srgb, var(--accent-secondary) 20%, transparent)' }}>
-            <h4 style={{ margin: '0 0 8px 0', color: 'var(--accent-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Long-Term Horizon (Months+)</h4>
-            <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>{result.expectedImpact.longTerm || 'Not specified.'}</p>
+          <div className="report-horizon-card-long">
+            <h4>Long-Term Horizon (Months+)</h4>
+            <p className="report-horizon-text">{result.expectedImpact.longTerm || 'Not specified.'}</p>
           </div>
         </div>
       )}
 
       {/* Deep Dive Insights (If available) */}
       {result.detailedAnalysis && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <h3 style={{ margin: '12px 0 4px 0', fontSize: '1.2rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>Deep Dive Analysis</h3>
+        <div className="report-content-wrap">
+          <h3 className="report-deepdive-title">Deep Dive Analysis</h3>
           
-          <div style={{ background: 'var(--bg-card)', padding: '24px', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
-            <h4 style={{ margin: '0 0 12px 0', fontSize: '1.05rem', color: 'var(--text-primary)' }}>Key Takeaways</h4>
-            <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '0.95rem' }}>
+          <div className="report-takeaways-card">
+            <h4 className="report-takeaways-title">Key Takeaways</h4>
+            <ul className="report-takeaways-list">
               {result.detailedAnalysis.keyTakeaways?.map((pt: string, i: number) => (
-                <li key={i} style={{ marginBottom: '8px' }}>{pt}</li>
+                <li key={i} className="report-takeaway-item">{pt}</li>
               ))}
             </ul>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
-              <h4 style={{ margin: '0 0 8px 0', fontSize: '1.05rem', color: 'var(--text-primary)' }}>Macro & Economic Factors</h4>
-              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <div className="report-grid-2col">
+            <div className="report-card-plain">
+              <h4 className="report-takeaways-title">Macro & Economic Factors</h4>
+              <p className="report-horizon-text">
                 {result.detailedAnalysis.macroFactors}
               </p>
             </div>
-            <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
-              <h4 style={{ margin: '0 0 8px 0', fontSize: '1.05rem', color: 'var(--text-primary)' }}>Risk Factors</h4>
-              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <div className="report-card-plain">
+              <h4 className="report-takeaways-title">Risk Factors</h4>
+              <p className="report-horizon-text">
                 {result.detailedAnalysis.riskFactors}
               </p>
             </div>
           </div>
           
-          <div style={{ background: 'color-mix(in srgb, var(--accent-bull) 5%, transparent)', padding: '20px', borderRadius: '16px', border: '1px solid color-mix(in srgb, var(--accent-bull) 20%, transparent)' }}>
-            <h4 style={{ margin: '0 0 8px 0', color: 'var(--accent-bull)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Recommended Strategic Actions</h4>
-            <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.5 }}>
+          <div className="report-actions-card">
+            <h4 className="report-actions-title">Recommended Strategic Actions</h4>
+            <p className="report-horizon-text">
               {result.detailedAnalysis.recommendedActions}
             </p>
           </div>
@@ -723,40 +711,39 @@ function CustomArticleDetailedReport({ result }: { result: any }) {
 
       {/* Extracted Company Data */}
       {result.companies && result.companies.length > 0 && (
-        <div style={{ marginTop: '8px' }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: '1.2rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>Impacted Companies & Assets</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div>
+          <h3 className="report-deepdive-title">Impacted Companies & Assets</h3>
+          <div className="report-content-wrap">
             {result.companies.map((c: any, idx: number) => {
               const cSent = c.sentiment || 'NEUTRAL';
-              const cColor = cSent === 'BULLISH' ? 'var(--accent-bull)' : cSent === 'BEARISH' ? 'var(--accent-bear)' : 'var(--text-muted)';
               const scorePercent = c.sentimentScore ? Math.round(c.sentimentScore * 100) : 50;
               
               return (
-                <div key={idx} style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <div key={idx} className="report-company-card">
+                  <div className="report-company-header">
                     <div>
-                      <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {c.name} <span style={{ fontSize: '0.8rem', background: 'var(--bg-elevated)', padding: '2px 8px', borderRadius: '99px', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}>{c.ticker}</span>
-                        {c.inUserPortfolio && <span style={{ fontSize: '0.75rem', background: 'color-mix(in srgb, var(--accent-primary) 15%, transparent)', color: 'var(--accent-primary)', padding: '2px 8px', borderRadius: '99px' }}>In Portfolio</span>}
+                      <h4 className="report-company-name">
+                        {c.name} <span className="report-company-ticker">{c.ticker}</span>
+                        {c.inUserPortfolio && <span className="report-company-in-portfolio">In Portfolio</span>}
                       </h4>
-                      <div style={{ color: cColor, fontSize: '0.85rem', fontWeight: 600 }}>{cSent} IMPACT ({c.impact?.replace('_', ' ')})</div>
+                      <div className={`report-impact-label sentiment-${cSent.toLowerCase()}`}>{cSent} IMPACT ({c.impact?.replace('_', ' ')})</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Confidence Score</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: '60px', height: '6px', background: 'var(--bg-elevated)', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ width: `${scorePercent}%`, height: '100%', background: cColor }} />
+                    <div className="report-confidence-col">
+                      <div className="report-confidence-label">Confidence Score</div>
+                      <div className="report-confidence-bar-wrap">
+                        <div className="report-confidence-bar-bg">
+                          <div className={`report-bar-fill-${cSent.toLowerCase()}`} style={{ width: `${scorePercent}%` }} />
                         </div>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{scorePercent}%</span>
+                        <span className="report-confidence-score">{scorePercent}%</span>
                       </div>
                     </div>
                   </div>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  <p className="report-company-desc">
                     <strong>AI Analysis:</strong> {c.reason}
                   </p>
                   {c.inUserPortfolio && c.portfolioRelevance && (
-                    <div style={{ marginTop: '12px', padding: '12px', background: 'color-mix(in srgb, var(--accent-primary) 5%, transparent)', borderRadius: '8px', borderLeft: '3px solid var(--accent-primary)', fontSize: '0.85rem' }}>
-                      <strong style={{ color: 'var(--accent-primary)' }}>Portfolio Actionable Insight:</strong> {c.portfolioRelevance}
+                    <div className="report-portfolio-relevance-box">
+                      <strong className="report-portfolio-relevance-title">Portfolio Actionable Insight:</strong> {c.portfolioRelevance}
                     </div>
                   )}
                 </div>

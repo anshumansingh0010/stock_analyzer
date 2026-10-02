@@ -349,7 +349,7 @@ export default function Header({ activeTab, setActiveTab, newsAlertCount, onOpen
 
           <div className="pd-section-title">Account</div>
           <div className="pd-connection">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div className="pd-actions-col">
               <button 
                 className="pd-primary-btn" 
                 onClick={() => setLinkModalOpen(true)}

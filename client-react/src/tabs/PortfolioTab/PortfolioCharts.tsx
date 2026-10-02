@@ -135,7 +135,7 @@ export function PortfolioGrowthChart({ totalValue }: { totalValue: number }) {
 
           {/* Data Points */}
           {coords.map((pt, i) => (
-            <g key={i} onMouseEnter={() => setHoverIndex(i)} style={{ cursor: 'pointer' }}>
+            <g key={i} onMouseEnter={() => setHoverIndex(i)} className="cursor-pointer">
               <circle
                 cx={pt.x}
                 cy={pt.y}
@@ -230,7 +230,7 @@ export function SectorAllocationChart({ holdings }: { holdings: any[] }) {
                   strokeWidth={strokeWidth}
                   strokeDasharray={strokeDasharray}
                   strokeDashoffset={strokeDashoffset}
-                  style={{ transition: 'all 0.5s ease' }}
+                  className="transition-all duration-500 ease-out"
                 />
               );
             })}

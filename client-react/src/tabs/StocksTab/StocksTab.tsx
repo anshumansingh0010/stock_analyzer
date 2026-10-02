@@ -235,7 +235,7 @@ export default function StocksTab() {
   const isUp = displayChangePct >= 0;
 
   return (
-    <section className="tab-section active" style={{ flexDirection: 'row' }}>
+    <section id="tab-stocks" className="tab-section active">
       <div className="stocks-layout">
 
         {/* Sidebar */}
@@ -261,8 +261,8 @@ export default function StocksTab() {
         </aside>
 
         {/* Analysis Panel */}
-        <div className="stock-analysis-panel" style={{ overflowY: 'auto' }}>
-          <div className="stock-active" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="stock-analysis-panel">
+          <div className="stock-active">
 
             {/* Header Bar */}
             <div className="stock-header-bar">
@@ -281,7 +281,7 @@ export default function StocksTab() {
 
             {/* Derived Signal Pills */}
             {derived && (
-              <div className="signal-pills" style={{ display: 'flex' }}>
+              <div className="signal-pills">
                 {pillMap.map(p => (
                   <div key={p.id} className={`signal-pill ${p.cls}`}>
                     <span className="pill-label">{p.label}</span>
@@ -311,7 +311,7 @@ export default function StocksTab() {
                   <span>Include My Portfolio Holding Metrics in Analysis</span>
                 </label>
                 {holdingEnabled && (
-                  <div className="holding-inputs" style={{ display: 'flex' }}>
+                  <div className="holding-inputs">
                     <div className="stock-input-group"><label>Qty</label><input ref={refs.qty} type="number" placeholder="e.g. 10" className="stock-input" /></div>
                     <div className="stock-input-group"><label>Avg Buy Price (₹)</label><input ref={refs.avgbuy} type="number" placeholder="e.g. 2700" className="stock-input" /></div>
                   </div>

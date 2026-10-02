@@ -377,19 +377,19 @@ export function StockFundamentals({ ticker, stockName, sector = 'Technology', pr
             <div className="shareholding-list">
               <div className="sh-item">
                 <div className="sh-info"><span className="sh-name">Promoters</span><span className="sh-val">{f.promoter}%</span></div>
-                <div className="alloc-bar-bg"><div className="alloc-bar-fill" style={{ width: `${f.promoter}%`, background: 'var(--primary)' }} /></div>
+                <div className="alloc-bar-bg"><div className="alloc-bar-fill promoter" style={{ width: `${f.promoter}%` }} /></div>
               </div>
               <div className="sh-item">
                 <div className="sh-info"><span className="sh-name">Foreign Institutions (FII)</span><span className="sh-val">{f.fii}%</span></div>
-                <div className="alloc-bar-bg"><div className="alloc-bar-fill" style={{ width: `${f.fii}%`, background: 'var(--secondary)' }} /></div>
+                <div className="alloc-bar-bg"><div className="alloc-bar-fill fii" style={{ width: `${f.fii}%` }} /></div>
               </div>
               <div className="sh-item">
                 <div className="sh-info"><span className="sh-name">Domestic Institutions (DII)</span><span className="sh-val">{f.dii}%</span></div>
-                <div className="alloc-bar-bg"><div className="alloc-bar-fill" style={{ width: `${f.dii}%`, background: 'var(--accent)' }} /></div>
+                <div className="alloc-bar-bg"><div className="alloc-bar-fill dii" style={{ width: `${f.dii}%` }} /></div>
               </div>
               <div className="sh-item">
                 <div className="sh-info"><span className="sh-name">Public &amp; Retail</span><span className="sh-val">{f.publicPct}%</span></div>
-                <div className="alloc-bar-bg"><div className="alloc-bar-fill" style={{ width: `${f.publicPct}%`, background: 'var(--muted-foreground)' }} /></div>
+                <div className="alloc-bar-bg"><div className="alloc-bar-fill public" style={{ width: `${f.publicPct}%` }} /></div>
               </div>
             </div>
           </div>

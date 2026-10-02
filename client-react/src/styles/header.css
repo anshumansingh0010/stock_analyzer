@@ -372,6 +372,12 @@
   gap: 10px;
   padding: 4px 16px 14px;
 }
+.pd-actions-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
 .pd-conn-dot {
   width: 8px;
   height: 8px;
@@ -516,7 +522,7 @@
 .pd-signout:hover {
   background: var(--accent-danger);
   border-color: var(--accent-danger);
-  color: #ffffff;
+  color: var(--primary-foreground);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--destructive) 30%, transparent);
 }
 
@@ -569,7 +575,7 @@
 }
 
 .theme-toggle-track.light .theme-toggle-thumb {
-  background: linear-gradient(135deg, var(--accent), #fbbf24);
+  background: linear-gradient(135deg, var(--accent), var(--chart-3));
   box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
@@ -637,7 +643,7 @@
 .pd-primary-btn:hover {
   background: var(--accent-primary);
   border-color: var(--accent-primary);
-  color: #ffffff;
+  color: var(--primary-foreground);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 

@@ -174,7 +174,7 @@ export default function PortfolioTab() {
   const currentNews = customNews.slice((safePage - 1) * newsPerPage, safePage * newsPerPage);
 
   return (
-    <section className="tab-section active" style={{ flexDirection: 'column', overflowY: 'auto' }}>
+    <section id="tab-portfolio" className="tab-section active">
       <div className="page-container full-width-dashboard">
 
         {/* ── Header ── */}
@@ -284,13 +284,13 @@ export default function PortfolioTab() {
         </div>
 
         {/* ── Analyzed Custom News & Impact Section ── */}
-        <div className="ptf-section" style={{ marginTop: 24 }}>
-          <div className="ptf-section-title" style={{ marginBottom: 12 }}>Analyzed Custom News &amp; Impact</div>
-          <p className="data-card-desc" style={{ marginBottom: 16 }}>News articles analyzed using <strong>Analyze Custom Article</strong> with AI sentiment tagging, portfolio mapping &amp; price impact</p>
+        <div className="ptf-section ptf-section-spaced">
+          <div className="ptf-section-title ptf-section-title-spaced">Analyzed Custom News &amp; Impact</div>
+          <p className="data-card-desc ptf-desc-spaced">News articles analyzed using <strong>Analyze Custom Article</strong> with AI sentiment tagging, portfolio mapping &amp; price impact</p>
 
           {/* Display Only Analyzed Custom News Cards */}
           {customNews.length === 0 ? (
-            <div className="ptf-empty" style={{ padding: '30px', textAlign: 'center' }}>
+            <div className="ptf-empty ptf-empty-padded">
               No custom articles analyzed yet. Analyze any article using <strong>Analyze Custom Article</strong> in the News tab.
             </div>
           ) : (
@@ -444,7 +444,6 @@ function CustomNewsCard({ result, onDelete }: { result: any, onDelete: (headline
             onClick={(e) => { e.stopPropagation(); onDelete(headline); }}
             title="Delete article"
             aria-label="Delete article"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>

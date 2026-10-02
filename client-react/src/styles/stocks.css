@@ -185,7 +185,7 @@
 }
 .stock-change-badge.positive { background: color-mix(in srgb, var(--secondary) 12%, transparent); color: var(--accent-bull); }
 .stock-change-badge.negative { background: color-mix(in srgb, var(--destructive) 12%, transparent);  color: var(--accent-danger); }
-.stock-change-badge.neutral  { background: rgba(148,163,184,0.1); color: var(--text-muted); }
+.stock-change-badge.neutral  { background: color-mix(in srgb, var(--muted-foreground) 10%, transparent); color: var(--text-muted); }
 
 /* Signal pills row */
 .signal-pills {
@@ -317,10 +317,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--accent-primary, #2563eb);
+  background: var(--accent-primary);
   border: none;
   border-radius: var(--radius-md);
-  color: white;
+  color: var(--primary-foreground);
   font-family: var(--font-sans);
   font-size: 0.9rem;
   font-weight: 600;
@@ -330,8 +330,8 @@
 }
 
 .analyze-stock-btn:hover {
-  background: color-mix(in srgb, var(--accent-primary) 85%, #000);
-  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 85%, var(--background));
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
 .analyze-stock-btn:disabled {
@@ -837,7 +837,7 @@
 .f-nav-btn:hover { color: var(--text-primary); background: var(--bg-surface); }
 .f-nav-btn.active {
 background: linear-gradient(135deg, var(--accent-primary), var(--primary));
-  color: white;
+  color: var(--primary-foreground);
   box-shadow: 0 2px 10px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 

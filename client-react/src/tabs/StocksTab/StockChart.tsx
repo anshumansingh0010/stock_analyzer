@@ -285,7 +285,7 @@ export function StockChart({ ticker, stockName, price = 2840 }: { ticker: string
             const candleHeight = Math.max(Math.abs(yOpen - yClose), 3);
 
             return (
-              <g key={i} onMouseEnter={() => setHoverIndex(i)} style={{ cursor: 'pointer' }}>
+              <g key={i} onMouseEnter={() => setHoverIndex(i)} className="cursor-pointer">
                 <line x1={x} y1={yHigh} x2={x} y2={yLow} stroke={candleColor} strokeWidth="1.6" />
                 <rect
                   x={x - candleW / 2}

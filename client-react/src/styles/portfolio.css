@@ -73,6 +73,10 @@
   color: var(--text-muted);
   padding: 40px 0;
 }
+.ptf-loading-centered {
+  justify-content: center;
+  padding: 80px 0;
+}
 .ptf-spinner {
   width: 18px;
   height: 18px;
@@ -195,7 +199,7 @@
 }
 .urgency-HIGH   { background: color-mix(in srgb, var(--destructive) 15%, transparent);    color: var(--accent-danger); }
 .urgency-MEDIUM { background: color-mix(in srgb, var(--accent) 15%, transparent);   color: var(--accent-warn);   }
-.urgency-LOW    { background: rgba(148,163,184,0.1);   color: var(--text-muted);    }
+.urgency-LOW    { background: color-mix(in srgb, var(--muted-foreground) 10%, transparent);   color: var(--text-muted);    }
 
 .ptf-news-headline {
   font-weight: 600;
@@ -427,8 +431,8 @@
   transition: width 0.4s ease;
 }
 
-.pdr-bar-fill.up { background: linear-gradient(90deg, var(--accent-bull), #34d399); }
-.pdr-bar-fill.down { background: linear-gradient(90deg, var(--accent-bear), #f87171); }
+.pdr-bar-fill.up { background: linear-gradient(90deg, var(--accent-bull), color-mix(in srgb, var(--accent-bull) 60%, var(--background))); }
+.pdr-bar-fill.down { background: linear-gradient(90deg, var(--accent-bear), color-mix(in srgb, var(--accent-bear) 60%, var(--background))); }
 
 /* Monthly Returns Grid */
 .monthly-grid {
@@ -545,7 +549,7 @@
 
 .ptf-page-btn:hover:not(:disabled) {
   background: var(--accent-primary);
-  color: #fff;
+  color: var(--primary-foreground);
   border-color: var(--accent-primary);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
@@ -565,4 +569,37 @@
   padding: 6px 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
+}
+
+.ptf-section-spaced {
+  margin-top: 24px;
+}
+
+.ptf-section-title-spaced {
+  margin-bottom: 12px;
+}
+
+.ptf-desc-spaced {
+  margin-bottom: 16px;
+}
+
+.ptf-empty-padded {
+  padding: 30px;
+  text-align: center;
+}
+
+.rnc-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.rnc-delete-btn:hover {
+  color: var(--accent-danger);
 }
