@@ -421,16 +421,15 @@
   flex-direction: column;
   position: sticky;
   top: 14px;
-  gap: 24px;
 }
 
 .news-sidebar-widget {
   background: var(--bg-card, #ffffff);
   border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
   border-radius: 16px;
-  padding: 24px;
+  padding: 24px ;
   transition: none !important;
-  margin-top: 7px;
+  margin-top: 40px;
 }
 
 .news-sidebar-widget:hover {

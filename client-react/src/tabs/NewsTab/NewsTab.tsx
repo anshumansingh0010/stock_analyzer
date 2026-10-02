@@ -532,12 +532,12 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
                 <h4>Analyze Custom Article</h4>
               </div>
               <p className="data-card-desc">Paste any financial headline or story for instant AI sentiment, stock mapping, and price impact prediction</p>
-          <div className="custom-article-form" style={{ marginTop: 12 }}>
+          <div className="custom-article-form">
             <input className="json-input" style={{ padding: '10px 14px', fontFamily: 'var(--font-sans)', fontSize: '0.88rem' }} placeholder="Headline..." value={headline} onChange={e => setHeadline(e.target.value)} />
             <textarea className="json-input" rows={3} placeholder="Article description or summary..." value={desc} onChange={e => setDesc(e.target.value)} />
             <input className="json-input" style={{ padding: '10px 14px', fontFamily: 'var(--font-sans)', fontSize: '0.88rem' }} placeholder="Source (e.g. Economic Times, Bloomberg)" value={source} onChange={e => setSource(e.target.value)} />
           </div>
-          <button className="inject-btn" onClick={analyzeArticle} disabled={analyzing} style={{ marginTop: 12 }}>
+          <button className="inject-btn" onClick={analyzeArticle} disabled={analyzing}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             {analyzing ? 'Analyzing Article...' : 'Analyze Article Impact'}
           </button>
@@ -560,7 +560,7 @@ export default function NewsTab({ onAlertCount }: NewsTabProps) {
             <h4>Trending in News</h4>
           </div>
           <p className="data-card-desc">Most discussed topics in the financial markets over the last 24 hours.</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             {trendingKeywords.map(tag => (
               <span 
                 key={tag} 
