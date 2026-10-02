@@ -22,6 +22,7 @@ import {
   triggerNow,
   updatePortfolio,
 } from "../services/newsScheduler.js";
+import { News, ProcessedNews } from "../models/News.js";
 
 export default async function newsRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.post("/analyze", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -189,6 +190,26 @@ export default async function newsRoutes(fastify: FastifyInstance): Promise<void
       });
     } catch (err: any) {
       return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  fastify.post("/delete", async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const { headline } = request.body as { headline?: string };
+      if (!headline) {
+        return reply.status(400).send({ error: "Bad Request", message: "'headline' is required." });
+      }
+
+      const newsDocs = await News.find({ headline });
+      for (const doc of newsDocs) {
+        await ProcessedNews.deleteMany({ newsId: doc._id });
+      }
+      await News.deleteMany({ headline });
+
+      return reply.send({ success: true, message: "Article deleted from database." });
+    } catch (err: any) {
+      request.log.error(err, "[News/delete]");
+      return reply.status(500).send({ error: "Failed to delete article", message: err.message });
     }
   });
 }

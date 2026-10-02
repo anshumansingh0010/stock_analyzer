@@ -143,6 +143,30 @@ export default function PortfolioTab() {
   const totalPnL      = totalValue - totalInvested;
   const totalPct      = totalInvested ? ((totalPnL / totalInvested) * 100).toFixed(2) : '0.00';
 
+  const handleDeleteCustomNews = async (headlineToDelete: string) => {
+    try {
+      const saved = localStorage.getItem('stock_sense_custom_news');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const updated = parsed.filter((x: any) => x && x.headline !== headlineToDelete);
+          localStorage.setItem('stock_sense_custom_news', JSON.stringify(updated));
+          setCustomNews(updated);
+          window.dispatchEvent(new Event('storage'));
+          showToast('Article deleted', 'success');
+        }
+      }
+      // Also delete from database
+      await fetch(`${API_BASE}/news/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ headline: headlineToDelete })
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // ── Pagination logic for news ──
   const newsPerPage = 4;
   const totalPages = Math.ceil(customNews.length / newsPerPage);
@@ -272,7 +296,7 @@ export default function PortfolioTab() {
           ) : (
             <>
               <div className="ptf-news-grid">
-                {currentNews.map((r, i) => <CustomNewsCard key={i} result={r} />)}
+                {currentNews.map((r, i) => <CustomNewsCard key={i} result={r} onDelete={handleDeleteCustomNews} />)}
               </div>
               {totalPages > 1 && (
                 <div className="ptf-pagination-controls">
@@ -354,8 +378,7 @@ function renderImpactIcon(s: string) {
   );
 }
 
-function CustomNewsCard({ result }: { result: any }) {
-  const [bookmarked, setBookmarked] = useState(false);
+function CustomNewsCard({ result, onDelete }: { result: any, onDelete: (headline: string) => void }) {
   const { showToast } = useApp();
 
   const hasPortfolio = result.companies?.some((c: any) => c.inUserPortfolio);
@@ -380,14 +403,7 @@ function CustomNewsCard({ result }: { result: any }) {
   );
 
   const sentimentSymbol = sentiment === 'BULLISH' ? '▲' : sentiment === 'BEARISH' ? '▼' : '★';
-  const urgencyDot = urgency === 'HIGH' ? '🔴' : urgency === 'MEDIUM' ? '🟡' : '🟢';
   const urgencyText = urgency === 'HIGH' ? 'High Impact' : urgency === 'MEDIUM' ? 'Medium Impact' : 'Low Impact';
-
-  const toggleBookmark = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setBookmarked(!bookmarked);
-    showToast(bookmarked ? 'Article removed from bookmarks' : 'Article saved to bookmarks', 'info');
-  };
 
   return (
     <div className={`rich-news-card ${sentiment.toLowerCase()}${hasPortfolio ? ' portfolio-hit-card' : ''}`}>
@@ -398,11 +414,11 @@ function CustomNewsCard({ result }: { result: any }) {
             <span className="rnc-badge-icon">{sentimentSymbol}</span> {sentiment}
           </span>
           <span className={`rnc-pill-tag urgency-${urgency.toLowerCase()}`}>
-            <span className="rnc-dot-icon">{urgencyDot}</span> {urgencyText}
+            {urgencyText}
           </span>
           {hasPortfolio && (
             <span className="rnc-pill-tag portfolio">
-              💼 Portfolio Impact
+              Portfolio Impact
             </span>
           )}
         </div>
@@ -424,13 +440,17 @@ function CustomNewsCard({ result }: { result: any }) {
           </span>
           <span className="rnc-meta-sep">|</span>
           <button 
-            className={`rnc-bookmark-btn ${bookmarked ? 'active' : ''}`} 
-            onClick={toggleBookmark}
-            title={bookmarked ? 'Remove bookmark' : 'Bookmark article'}
-            aria-label="Bookmark article"
+            className="rnc-delete-btn" 
+            onClick={(e) => { e.stopPropagation(); onDelete(headline); }}
+            title="Delete article"
+            aria-label="Delete article"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill={bookmarked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
             </svg>
           </button>
         </div>
