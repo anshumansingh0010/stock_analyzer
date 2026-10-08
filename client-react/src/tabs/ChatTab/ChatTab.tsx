@@ -507,7 +507,7 @@ function SettingsModal({
 
         <div className="sm-footer">
           <button className="sm-cancel-btn" onClick={onClose}>Cancel</button>
-          <button className="sm-save-btn flex items-center gap-1.5 " onClick={() => onSave(form)}>
+          <button className="sm-save-btn" onClick={() => onSave(form)}>
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Save Preferences</span>
           </button>
