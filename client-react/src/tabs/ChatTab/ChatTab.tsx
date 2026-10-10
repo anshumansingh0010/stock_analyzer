@@ -5,8 +5,7 @@ import { apiFetch } from '../../utils/api';
 import ChatSidebar from './ChatSidebar';
 import { ChatMessage } from '../../types';
 import { 
-  Sparkles, 
-  Send, 
+  Sparkles,
   Copy, 
   Check, 
   User, 
@@ -14,29 +13,37 @@ import {
   Zap, 
   RefreshCw, 
   ArrowRight,
-  Layers,
   LineChart,
   ShieldAlert,
   X,
-  Sliders,
   CheckCircle2,
-  Activity
+  Activity,
+  ArrowUp,
+  Paperclip,
+  Settings
 } from 'lucide-react';
 
-const QUICK_SHORTCUTS = [
-  { label: 'FII/DII Net Flow', prompt: "What are today's FII and DII net cash flows?" },
-  { label: 'RSI & Technicals', prompt: 'Which Nifty 50 stocks are in overbought or oversold RSI zones?' },
-  { label: 'Breaking Market News', prompt: 'Summarize top Indian market news affecting stocks today.' },
-  { label: 'Portfolio Risk Audit', prompt: 'Analyze my current portfolio holdings for risk & sector concentration.' },
-];
 
-export default function ChatTab() {
+interface ChatTabProps {
+  onOpenHelp?: () => void;
+}
+
+export default function ChatTab({ onOpenHelp }: ChatTabProps = {}) {
   const { aiContext, chatHistory, setChatHistory, showToast, backendOnline, preferences, savePreferences, clearChatHistory, user, setIsAuthModalOpen } = useApp();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput]       = useState<string>('');
   const [loading, setLoading]   = useState<boolean>(false);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+
+  const handleOpenHelp = () => {
+    if (onOpenHelp) {
+      onOpenHelp();
+    } else {
+      window.location.hash = 'help';
+      window.dispatchEvent(new CustomEvent('navigate-tab', { detail: 'help' }));
+    }
+  };
 
   // Sync initial messages from chatHistory on load
   useEffect(() => {
@@ -125,36 +132,11 @@ export default function ChatTab() {
         <ChatSidebar
           onQuickPrompt={sendMessage}
           onClear={() => { setMessages([]); clearChatHistory(); showToast('Conversation cleared', 'success'); }}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenHelp={handleOpenHelp}
         />
 
         <div className="chat-container-v2">
-          {/* Top Chat Bar */}
-          <div className="chat-topbar-v2 flex items-center justify-between">
-            <div className="ct-brand flex items-center gap-3">
-              <div className="ct-icon-glow">
-                <Sparkles className="w-4 h-4 text-indigo-400" />
-              </div>
-              <div className="ct-info">
-                <span className="ct-name font-bold text-sm">StockSense AI Copilot</span>
-                <span className="ct-status flex items-center gap-1.5 text-xs text-emerald-400">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Live Indian Market Engine
-                </span>
-              </div>
-            </div>
-
-            <div className="ct-actions flex items-center gap-2">
-              <button 
-                className="ct-settings-btn flex items-center gap-1.5"
-                onClick={() => setIsSettingsOpen(true)}
-                title="AI Copilot Preferences"
-              >
-                <Sliders className="w-3.5 h-3.5 text-indigo-400" />
-                <span className="text-xs font-semibold">Settings</span>
-              </button>
-            </div>
-          </div>
-
           {/* Chat Messages / Hero Zero State */}
           <div className="chat-messages-v2" ref={chatMessagesRef}>
             {messages.length === 0 ? (
@@ -182,45 +164,50 @@ export default function ChatTab() {
 
           {/* Input Area */}
           <div className="chat-input-container-v2">
-            {/* Quick Action Shortcuts above input */}
-            <div className="input-shortcut-chips">
-              {QUICK_SHORTCUTS.map(sc => (
-                <button key={sc.label} className="sc-chip-btn" onClick={() => sendMessage(sc.prompt)} disabled={loading}>
-                  {sc.label}
+            <div className="chat-adaptive-capsule">
+              <textarea
+                id="chat-input"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Message StockSense..."
+                rows={1}
+                disabled={loading}
+                onInput={e => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = '32px';
+                  target.style.height = `${Math.max(32, Math.min(target.scrollHeight, 134))}px`;
+                }}
+              />
+
+              <div className="capsule-actions">
+                <button
+                  type="button"
+                  className="capsule-attach-btn"
+                  onClick={() => showToast('Attachment upload coming soon', 'info')}
+                  title="Attach files"
+                >
+                  <Paperclip className="w-4 h-4" />
                 </button>
-              ))}
-            </div>
 
-            <div className="input-row-v2">
-              <div className="input-wrapper-v2">
-                <textarea
-                  id="chat-input"
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask StockSense AI about Nifty, technicals (RSI/MACD), stock news, or your portfolio..."
-                  rows={1}
-                  disabled={loading}
-                  onInput={e => {
-                    const target = e.target as HTMLTextAreaElement;
-                    target.style.height = 'auto';
-                    target.style.height = Math.min(target.scrollHeight, 160) + 'px';
-                  }}
-                />
+                <button 
+                  type="button"
+                  className={`capsule-send-btn ${input.trim() ? 'has-input' : ''} ${loading ? 'loading' : ''}`}
+                  onClick={() => sendMessage(input)} 
+                  disabled={loading || !input.trim()}
+                  title="Send query"
+                >
+                  {loading ? (
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
+                  ) : (
+                    <ArrowUp className="w-4 h-4" />
+                  )}
+                </button>
               </div>
-
-              <button 
-                className="send-btn-v2" 
-                onClick={() => sendMessage(input)} 
-                disabled={loading || !input.trim()}
-                title="Send query"
-              >
-                {loading ? <RefreshCw className="w-4 h-4 animate-spin text-white" /> : <Send className="w-4 h-4 text-white" />}
-              </button>
             </div>
 
-            <div className="input-footer-v2 flex items-center justify-end text-[0.62rem] text-slate-400 mt-4 px-1">
-              <span className="text-slate-500 ">Financial intelligence · Not SEBI registered investment advice</span>
+            <div className="chat-disclaimer-deepseek">
+              Financial intelligence · Not SEBI registered investment advice
             </div>
           </div>
         </div>
@@ -272,10 +259,9 @@ function WelcomeHero({ onSelectPrompt }: { onSelectPrompt: (p: string) => void }
 
   return (
     <div className="welcome-hero-v2">
-      <div className="hero-badge flex items-center gap-2">
-        <Sparkles className="w-4 h-4 text-indigo-400 animate-pulse" />
-        <span>Next-Gen Financial AI</span>
-      </div>
+      <div className="page-header-main">
+          <h1>StockSense AI</h1>
+        </div>
 
       <h2 className="hero-title">What would you like to analyze today?</h2>
       <p className="hero-subtitle">
@@ -414,7 +400,7 @@ function SettingsModal({
         <div className="sm-header flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="sm-icon-badge">
-              <Sliders className="w-4 h-4 sg-icon-primary" />
+              <Settings className="w-4 h-4 sg-icon-primary" />
             </div>
             <div>
               <span className="font-bold text-sm block">Copilot Preferences</span>

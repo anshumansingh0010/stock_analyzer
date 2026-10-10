@@ -13,7 +13,9 @@
   width: 100%;
   height: 100%;
 }
-
+.stock-page-header {
+  margin-bottom: 22px;
+}
 /* ── Left Sidebar: Stock List ── */
 .stocks-sidebar {
   width: 260px;
@@ -240,11 +242,16 @@
   border-radius: var(--radius-md);
 }
 
+.stock-chart-card:hover,
 .tech-inputs-card:hover{
   transform: none !important;
   box-shadow: none !important;
 }
-.stock-chart-card:hover{
+
+#tab-stocks .market-widget:hover,
+#tab-stocks .metric-card:hover,
+#tab-stocks .fii-dii-card:hover,
+#tab-stocks .activity-card:hover {
   transform: none !important;
   box-shadow: none !important;
 }

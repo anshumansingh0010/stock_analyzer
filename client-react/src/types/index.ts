@@ -1,4 +1,4 @@
-export type TabType = 'chat' | 'market' | 'stocks' | 'news' | 'portfolio';
+export type TabType = 'chat' | 'market' | 'stocks' | 'news' | 'portfolio' | 'help';
 
 export interface BadgeData {
   value: string;

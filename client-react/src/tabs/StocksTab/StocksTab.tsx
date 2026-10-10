@@ -262,6 +262,12 @@ export default function StocksTab() {
 
         {/* Analysis Panel */}
         <div className="stock-analysis-panel">
+                  <div className="page-header stock-page-header">
+            <div>
+              <h1>Technical &amp; Fundamental Analysis</h1>
+              <p>Real-time candlestick charts, AI valuation signals &amp; financial metrics</p>
+            </div>
+          </div>
           <div className="stock-active">
 
             {/* Header Bar */}

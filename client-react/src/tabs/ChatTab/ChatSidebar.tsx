@@ -1,51 +1,22 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import {  Trash2,  CheckCircle2, Circle } from 'lucide-react';
+import { CheckCircle2, Circle, Settings, CircleHelp, MessageSquarePlus, Clock, PanelLeftClose, PanelLeftOpen, MoreHorizontal } from 'lucide-react';
 
 interface ChatSidebarProps {
   onQuickPrompt: (prompt: string) => void;
-  onClear: () => void;
+  onClear?: () => void;
+  onOpenSettings?: () => void;
+  onOpenHelp?: () => void;
 }
 
-const CATEGORIZED_PROMPTS = [
-  {
-    category: ' Market Pulse',
-    items: [
-      'Why is Nifty moving today?',
-      'Explain RBI policy impact',
-      'Sector performance summary',
-    ]
-  },
-  {
-    category: ' Stock Deep Dives',
-    items: [
-      'Should I buy TCS?',
-      'Why is Reliance falling?',
-      'Compare HDFC vs ICICI Bank',
-    ]
-  },
-  {
-    category: ' F&O & Derivatives',
-    items: [
-      'Nifty Put-Call Ratio & Max Pain',
-      'Top volume & delivery stocks',
-    ]
-  },
-  {
-    category: ' Portfolio Audit',
-    items: [
-      "What's my portfolio risk?",
-      'Suggest rebalancing for my holdings',
-    ]
-  }
-];
-
 export default function ChatSidebar({ 
-  onQuickPrompt, 
-  onClear 
+  onQuickPrompt,
+  onClear,
+  onOpenSettings,
+  onOpenHelp
 }: ChatSidebarProps) {
-  const { aiContext } = useApp();
-  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const { aiContext, showToast } = useApp();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const ctxItems = [
     { id: 'market', label: 'Live Market Data', active: !!aiContext.marketData },
@@ -55,86 +26,148 @@ export default function ChatSidebar({
   ];
 
   return (
-    <aside className="chat-sidebar-v2">
-      <div className="sidebar-header-v2">
-        <div className="sh-title flex items-center gap-2">
-          <div className="sh-icon-wrap">
-          </div>
-          <span className="font-bold text-sm">Intelligence Hub</span>
+    <aside className={`chat-sidebar-v2 ${isCollapsed ? 'collapsed' : ''}`}>
+      {/* Brand Section */}
+      <div 
+        className="sidebar-brand-section"
+        onClick={() => { if (isCollapsed) setIsCollapsed(false); }}
+      >
+        <div className="sidebar-logo-icon">
+          <svg viewBox="0 0 32 32" fill="none">
+            <path d="M4 24 L10 16 L16 20 L22 10 L28 14" stroke="url(#g1)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="28" cy="14" r="2.5" fill="#00d4a8"/>
+            <defs>
+              <linearGradient id="g1" x1="4" y1="24" x2="28" y2="10" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#6366f1"/>
+                <stop offset="100%" stopColor="#00d4a8"/>
+              </linearGradient>
+            </defs>
+          </svg>
         </div>
-      </div>
-
-      {/* Category Pills Filter */}
-      <div className="sidebar-category-pills">
-        <button 
-          className={`cat-pill ${activeCategory === 'all' ? 'active' : ''}`} 
-          onClick={() => setActiveCategory('all')}
-        >
-          All Prompts
-        </button>
-        {CATEGORIZED_PROMPTS.map(c => (
+        {!isCollapsed && (
+          <span className="sidebar-logo-text">
+            StockSense<span className="sidebar-logo-accent">AI</span>
+          </span>
+        )}
+        {!isCollapsed && (
           <button 
-            key={c.category} 
-            className={`cat-pill ${activeCategory === c.category ? 'active' : ''}`}
-            onClick={() => setActiveCategory(c.category)}
+            type="button"
+            className="sidebar-toggle-btn"
+            onClick={(e) => { e.stopPropagation(); setIsCollapsed(true); }}
+            title="Collapse Sidebar"
           >
-            {c.category.split(' ')[0]} {c.category.split(' ')[1]}
+            <PanelLeftClose className="w-[18px] h-[18px]" />
           </button>
-        ))}
+        )}
       </div>
 
-      {/* Categorized Quick Prompts */}
-      <div className="sidebar-prompts-scroll">
-        {CATEGORIZED_PROMPTS.filter(c => activeCategory === 'all' || activeCategory === c.category).map(cat => (
-          <div key={cat.category} className="prompt-group">
-            <div className="group-title flex items-center gap-1.5">
-              <span>{cat.category}</span>
+      <div className="sidebar-top-actions">
+        <button 
+          type="button"
+          className="sidebar-new-chat-btn sm-save-btn"
+          onClick={onClear}
+          title="New Chat"
+        >
+          <MessageSquarePlus className="w-5 h-5" />
+          <span className="snc-text">New Chat</span>
+        </button>
+
+        {isCollapsed && (
+          <button
+            type="button"
+            className="sidebar-collapsed-history-btn"
+            onClick={() => setIsCollapsed(false)}
+            title="Recent Chats"
+          >
+            <Clock className="w-[18px] h-[18px]" />
+          </button>
+        )}
+      </div>
+
+      {!isCollapsed && (
+        <div className="sidebar-history-section">
+          
+          {/* Today Group */}
+          <div className="history-group">
+            <div className="sh-title flex items-center justify-between text-[var(--text-muted)] mb-2 px-1">
+              <span className="font-medium text-xs">Today</span>
             </div>
-            <div className="group-items">
-              {cat.items.map(prompt => (
-                <button 
-                  key={prompt} 
-                  className="prompt-chip-btn"
-                  onClick={() => onQuickPrompt(prompt)}
-                >
-                  <span className="pc-text">{prompt}</span>
-                </button>
-              ))}
+            <div className="sidebar-history-list">
+              <button className="history-item-btn" onClick={() => showToast('History integration coming soon', 'info')}>
+                <span className="history-title">FAQ width fix</span>
+                <MoreHorizontal className="w-4 h-4 history-more-icon" />
+              </button>
             </div>
           </div>
-        ))}
-      </div>
+
+          {/* 7 Days Group */}
+          <div className="history-group mt-5">
+            <div className="sh-title flex items-center justify-between text-[var(--text-muted)] mb-2 px-1">
+              <span className="font-medium text-xs">7 Days</span>
+            </div>
+            <div className="sidebar-history-list">
+              <button className="history-item-btn" onClick={() => showToast('History integration coming soon', 'info')}>
+                <span className="history-title">Hello greeting</span>
+                <MoreHorizontal className="w-4 h-4 history-more-icon" />
+              </button>
+              <button className="history-item-btn" onClick={() => showToast('History integration coming soon', 'info')}>
+                <span className="history-title">Portfolio risk audit</span>
+                <MoreHorizontal className="w-4 h-4 history-more-icon" />
+              </button>
+            </div>
+          </div>
+          
+        </div>
+      )}
 
       <div className="sidebar-divider" />
 
       {/* Live Context Connection Card */}
-      <div className="context-card-v2">
-        <div className="cc-title flex items-center gap-1.5">
-          <span>Active Data Feeds</span>
+      {!isCollapsed && (
+        <div className="context-card-v2">
+          <div className="cc-title flex items-center gap-1.5">
+            <span>Active Data Feeds</span>
+          </div>
+          <div className="cc-items">
+            {ctxItems.map(c => (
+              <div key={c.id} className="cc-row flex items-center justify-between">
+                <span className="cc-label">{c.label}</span>
+                {c.active ? (
+                  <span className="flex items-center gap-1 text-emerald-400 text-[0.7rem] font-medium">
+                    <CheckCircle2 className="w-3 h-3" /> Ready
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-slate-400 text-[0.7rem]">
+                    <Circle className="w-2.5 h-2.5 opacity-40" /> Standby
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="cc-items">
-          {ctxItems.map(c => (
-            <div key={c.id} className="cc-row flex items-center justify-between">
-              <span className="cc-label">{c.label}</span>
-              {c.active ? (
-                <span className="flex items-center gap-1 text-emerald-400 text-[0.7rem] font-medium">
-                  <CheckCircle2 className="w-3 h-3" /> Ready
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-slate-400 text-[0.7rem]">
-                  <Circle className="w-2.5 h-2.5 opacity-40" /> Standby
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
 
-      {/* Clear Chat Button */}
-      <button className="clear-chat-btn-v2" onClick={onClear}>
-        <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-        <span>Clear Conversation</span>
-      </button>
+      {/* Footer Actions: Settings and Help & Feedback */}
+      <div className="sidebar-footer-actions">
+        <button 
+          type="button" 
+          className="sidebar-footer-btn" 
+          onClick={onOpenSettings}
+          title="Settings"
+        >
+          <Settings className="w-[18px] h-[18px]" strokeWidth={1.8} />
+          <span className="footer-btn-text">Settings</span>
+        </button>
+        <button 
+          type="button" 
+          className="sidebar-footer-btn" 
+          onClick={onOpenHelp}
+          title="Help & Feedback"
+        >
+          <CircleHelp className="w-[18px] h-[18px]" strokeWidth={1.8} />
+          <span className="footer-btn-text">Help & Feedback</span>
+        </button>
+      </div>
     </aside>
   );
 }

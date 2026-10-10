@@ -24,6 +24,7 @@ import marketdataRoutes from "./routes/marketdata.js";
 import authRoutes from "./routes/auth.js";
 import priceAlertRoutes from "./routes/priceAlert.js";
 import userRoutes from "./routes/user.js";
+import feedbackRoutes from "./routes/feedback.js";
 import { startScheduler, getStatus as getNewsStatus } from "./services/newsScheduler.js";
 import { startPriceScheduler, getPriceSchedulerStatus } from "./services/priceScheduler.js";
 import { requireAuth } from "./middleware/auth.js";
@@ -61,6 +62,7 @@ export async function setupServer() {
   await server.register(stockRoutes, { prefix: "/api/stock" });
   await server.register(marketRoutes, { prefix: "/api/market" });
   await server.register(marketdataRoutes, { prefix: "/api/marketdata" });
+  await server.register(feedbackRoutes, { prefix: "/api/feedback" });
 
   // ── Protected Routes ─────────────────────────────────────────
   await server.register(async (protectedServer) => {

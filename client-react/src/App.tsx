@@ -9,6 +9,7 @@ import MarketTab    from './tabs/MarketTab/MarketTab';
 import StocksTab    from './tabs/StocksTab/StocksTab';
 import NewsTab      from './tabs/NewsTab/NewsTab';
 import PortfolioTab from './tabs/PortfolioTab/PortfolioTab';
+import HelpFeedbackPage from './tabs/HelpTab/HelpFeedbackPage';
 import { TabType } from './types';
 import { matchesKeyCombination } from './utils/shortcuts';
 
@@ -18,13 +19,16 @@ const TAB_ORDER: Record<TabType, number> = {
   stocks: 2,
   news: 3,
   portfolio: 4,
+  help: 5,
 };
 
 function MainApp() {
   const { customShortcuts } = useApp();
   const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash === 'help') return 'help';
     const saved = localStorage.getItem('stock_sense_default_view');
-    const validTabs: TabType[] = ['chat', 'market', 'stocks', 'news', 'portfolio'];
+    const validTabs: TabType[] = ['chat', 'market', 'stocks', 'news', 'portfolio', 'help'];
     if (saved && validTabs.includes(saved as TabType)) {
       return saved as TabType;
     }
@@ -45,8 +49,35 @@ function MainApp() {
       setSlideDir(nextIdx >= prevIdx ? 'right' : 'left');
       setActiveTab(newTab);
       if (newTab === 'news') setNewsAlertCount(0);
+      if (newTab === 'help') {
+        window.location.hash = 'help';
+      } else if (window.location.hash === '#help') {
+        window.history.pushState(null, '', window.location.pathname + window.location.search);
+      }
     }
   };
+
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'help' && activeTab !== 'help') {
+        handleTabChange('help');
+      } else if (!hash && activeTab === 'help') {
+        handleTabChange('chat');
+      }
+    };
+    const handleCustomNav = (e: any) => {
+      if (e.detail) {
+        handleTabChange(e.detail as TabType);
+      }
+    };
+    window.addEventListener('hashchange', handleHash);
+    window.addEventListener('navigate-tab', handleCustomNav as EventListener);
+    return () => {
+      window.removeEventListener('hashchange', handleHash);
+      window.removeEventListener('navigate-tab', handleCustomNav as EventListener);
+    };
+  }, [activeTab]);
 
   // Global Keyboard Shortcuts (Custom shortcuts + Direct 1..5, Alt+1..5, Ctrl+Shift+1..5, Cmd+K, ?)
   useEffect(() => {
@@ -159,7 +190,7 @@ function MainApp() {
       />
       <main className={`main slide-${slideDir}`}>
         <div className={`tab-wrapper ${activeTab === 'chat' ? 'active' : ''}`}>
-          <ChatTab />
+          <ChatTab onOpenHelp={() => handleTabChange('help')} />
         </div>
         <div className={`tab-wrapper ${activeTab === 'market' ? 'active' : ''}`}>
           <MarketTab />
@@ -172,6 +203,12 @@ function MainApp() {
         </div>
         <div className={`tab-wrapper ${activeTab === 'portfolio' ? 'active' : ''}`}>
           <PortfolioTab />
+        </div>
+        <div className={`tab-wrapper ${activeTab === 'help' ? 'active' : ''}`}>
+          <HelpFeedbackPage 
+            onBack={() => handleTabChange('chat')} 
+            onOpenShortcuts={() => setShortcutsModalOpen(true)}
+          />
         </div>
       </main>
       <AuthModal />
