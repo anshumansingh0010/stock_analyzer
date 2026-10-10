@@ -31,7 +31,7 @@ async function handleMongoUser(
   const dbStatus = getDBStatus();
   
   // ── In-Memory Fallback if DB is offline ──
-  if (!dbStatus.connected) {
+  if (!process.env.MONGODB_URI) {
     console.warn("⚠️ [AUTH] DB is offline. Falling back to in-memory mock user.");
     const id = `usr_${provider}_${Date.now()}`;
     const email = isEmail ? identifier : `${identifier.replace(/[^0-9]/g, '')}@otp.nifty50gpt.ai`;
@@ -122,8 +122,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
     if (!identifier) {
       return reply.status(400).send({ success: false, exists: false });
     }
-    const dbStatus = getDBStatus();
-    if (!dbStatus.connected) {
+    if (!process.env.MONGODB_URI) {
       return reply.send({ success: true, exists: false });
     }
 

@@ -6,7 +6,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
   fastify.get("/:userId", async (request: FastifyRequest<{ Params: { userId: string } }>, reply: FastifyReply) => {
     try {
       const { userId } = request.params;
-      if (!getDBStatus().connected) {
+      if (!process.env.MONGODB_URI) {
         return reply.send({ success: true, user: { id: userId, preferences: {}, chatSessions: [] } });
       }
       const user = await User.findOne({ id: userId });
@@ -21,7 +21,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
     try {
       const { userId } = request.params;
       const { preferences } = request.body;
-      if (!getDBStatus().connected) {
+      if (!process.env.MONGODB_URI) {
         return reply.send({ success: true, preferences });
       }
       const user = await User.findOneAndUpdate({ id: userId }, { preferences }, { new: true });
@@ -36,7 +36,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
     try {
       const { userId } = request.params;
       const { chatSessions } = request.body;
-      if (!getDBStatus().connected) {
+      if (!process.env.MONGODB_URI) {
         return reply.send({ success: true });
       }
       const user = await User.findOneAndUpdate({ id: userId }, { chatSessions }, { new: true });
@@ -50,7 +50,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
   fastify.delete("/:userId/chat-sessions", async (request: FastifyRequest<{ Params: { userId: string } }>, reply: FastifyReply) => {
     try {
       const { userId } = request.params;
-      if (!getDBStatus().connected) {
+      if (!process.env.MONGODB_URI) {
         return reply.send({ success: true });
       }
       const user = await User.findOneAndUpdate({ id: userId }, { chatSessions: [] }, { new: true });

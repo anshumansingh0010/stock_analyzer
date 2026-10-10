@@ -62,9 +62,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     streamFeed: true,
   });
 
+  const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
+
   // Fetch preferences and history on user change
   useEffect(() => {
     if (user?.id) {
+      setIsHistoryLoaded(false);
       apiFetch(`/user/${user.id}`)
         .then((res) => res.json())
         .then((data) => {
@@ -73,13 +76,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
             if (data.user.chatSessions) setChatSessions(data.user.chatSessions);
           }
         })
-        .catch(console.error);
+        .catch(console.error)
+        .finally(() => {
+          setIsHistoryLoaded(true);
+        });
     }
   }, [user?.id]);
 
   // Save updated chat sessions
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && isHistoryLoaded) {
       // Debounce saving sessions slightly to avoid excessive calls
       const timeoutId = setTimeout(() => {
         apiFetch(`/user/${user.id}/chat-sessions`, {
@@ -90,7 +96,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }, 1000);
       return () => clearTimeout(timeoutId);
     }
-  }, [chatSessions, user?.id]);
+  }, [chatSessions, user?.id, isHistoryLoaded]);
 
   const clearChatHistory = useCallback(async () => {
     setChatSessions([]);
