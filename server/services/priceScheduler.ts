@@ -15,7 +15,7 @@ export interface PriceSchedulerOptions {
 }
 
 export function startPriceScheduler(options: PriceSchedulerOptions = {}) {
-  const { intervalMs = 60 * 1000, runImmediately = true } = options;
+  const { intervalMs = 60 * 60 * 1000, runImmediately = true } = options;
 
   if (intervalId) {
     clearInterval(intervalId);

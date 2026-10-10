@@ -68,34 +68,16 @@ export async function generateAlert(
   userContext: AlertUserContext = {},
   options: GenerateAlertOptions = {}
 ): Promise<GenerateAlertResult> {
-  const client = getLLMClient();
-  const model = getModel(options);
-
   const derived = deriveAlertMeta(eventType, stock, trigger);
-  const messages: any[] = buildAlertMessages(eventType, stock, trigger, news, userContext);
 
-  const completion = await client.chat.completions.create({
-    model,
-    messages,
-    temperature: 0.4,
-    max_tokens: 300,
-    response_format: { type: "json_object" },
-    ...options.extra,
-  });
-
-  let alert: any;
-  try {
-    const raw = completion.choices[0]?.message?.content ?? "{}";
-    alert = JSON.parse(raw);
-  } catch {
-    alert = {
-      title: `${stock.ticker} — ${eventType}`,
-      body: trigger,
-      sentiment: derived.sentiment,
-      urgency: derived.urgency,
-      cta: derived.cta,
-    };
-  }
+  // BYPASS LLM TO SAVE API LIMITS: Use strict rule-based alert mapping
+  let alert: any = {
+    title: `${stock.ticker} — ${eventType}`,
+    body: trigger || `System generated alert for ${stock.ticker}`,
+    sentiment: derived.sentiment,
+    urgency: derived.urgency,
+    cta: derived.cta,
+  };
 
   const enrichedPayload: Omit<StoredAlert, "id" | "createdAt" | "read"> = {
     title: alert.title || `${stock.ticker || "UNKNOWN"} Alert`,
@@ -109,8 +91,8 @@ export async function generateAlert(
     change: stock["change%"] ?? 0,
     holdsStock: userContext.holdsStock ?? false,
     meta: {
-      model: completion.model,
-      tokens: completion.usage?.total_tokens,
+      model: "rule-based-engine",
+      tokens: 0,
       generatedAt: new Date().toISOString(),
     },
   };

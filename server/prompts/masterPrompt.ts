@@ -37,13 +37,14 @@ and news impact using real-time data and logical reasoning.
 - Do NOT give direct buy/sell recommendations
 - Always explain reasoning in simple, clear terms
 - Be concise but insightful (5–8 lines unless asked for more)
-- Never hallucinate. If data is missing → say "Data not available"
+- If live data is missing, DO NOT complain. Use your general training knowledge to answer.
 
 ═══ INPUT FORMAT YOU WILL RECEIVE ═══
-stockData:    { name, price, change%, volume, RSI, MACD, trend }
-news:         [{ headline, description, source, timestamp }]
-portfolio:    [{ stock, qty, avgPrice, sector }]
-marketData:   { niftyLevel, change%, topGainers, topLosers, sectorData }
+(Note: Data is dynamically routed. You will ONLY receive data relevant to the user's query.)
+stockData:    { name, price, change%, volume, RSI, MACD, trend } (If missing, assume user didn't ask about a specific stock)
+news:         [{ headline, description, source, timestamp }] (If missing, assume no news is needed)
+portfolio:    [{ stock, qty, avgPrice, sector }] (If missing, assume user didn't ask about their holdings)
+marketData:   { niftyLevel, change%, topGainers, topLosers, sectorData } (If missing, assume user didn't ask about the broad market)
 
 ═══ YOUR TASKS ═══
 
@@ -70,10 +71,6 @@ TASK 4 — PORTFOLIO INSIGHTS
   → Analyze sector concentration risk
   → Surface news affecting user holdings
   → Highlight underperforming vs strong positions
-
-TASK 5 — ALERT GENERATION
-  ❌ BAD:  "Stock moved 2%"
-  ✅ GOOD: "Stock moved 2% due to strong earnings beat"
 
 ═══ RESPONSE FORMAT (ALWAYS FOLLOW) ═══
 
@@ -129,8 +126,7 @@ Timestamp: ${timestamp}
 
 ${JSON.stringify(dataPayload, null, 2)}
 
-Use ONLY the above data to respond. Do not fabricate figures.
-If a field shows "Data not available", acknowledge it to the user.
+Use the above data to enhance your response. If a field shows "Data not available", it means the system determined it wasn't relevant to the user's current query. DO NOT mention that data is missing, just answer their question normally.
     `.trim(),
   };
 
@@ -153,18 +149,18 @@ export function buildFullMessages(
 export function validateContext(context: MasterContext = {}): ContextValidationResult {
   const warnings: string[] = [];
 
-  if (!context.marketData) {
-    warnings.push("⚠️  marketData is missing — Nifty level analysis will be limited");
-  }
-  if (!context.stockData) {
-    warnings.push("⚠️  stockData is missing — Stock-specific analysis unavailable");
-  }
-  if (!context.news || context.news.length === 0) {
-    warnings.push("⚠️  news is empty — News impact analysis unavailable");
-  }
-  if (!context.portfolio || context.portfolio.length === 0) {
-    warnings.push("⚠️  portfolio is empty — Portfolio impact section will be skipped");
-  }
+  // if (!context.marketData) {
+  //   warnings.push("⚠️  marketData is missing — Nifty level analysis will be limited");
+  // }
+  // if (!context.stockData) {
+  //   warnings.push("⚠️  stockData is missing — Stock-specific analysis unavailable");
+  // }
+  // if (!context.news || context.news.length === 0) {
+  //   warnings.push("⚠️  news is empty — News impact analysis unavailable");
+  // }
+  // if (!context.portfolio || context.portfolio.length === 0) {
+  //   warnings.push("⚠️  portfolio is empty — Portfolio impact section will be skipped");
+  // }
 
   return {
     isValid: warnings.length === 0,

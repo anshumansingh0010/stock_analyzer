@@ -11,6 +11,52 @@ import { chat, chatStream } from "../services/llmService.js";
 import { fetchFullMarketSnapshot } from "../services/marketDataService.js";
 import { getResults as getCachedNews, fetchLatestNews } from "../services/newsScheduler.js";
 
+function buildDynamicContext(query: string, context: any) {
+  const q = query.toLowerCase();
+  
+  // 1. Intent Detection
+  const needsNews = q.includes("news") || q.includes("happen") || q.includes("update") || q.includes("article");
+  const needsPortfolio = q.includes("portfolio") || q.includes("my stock") || q.includes("holding") || q.includes("position");
+  const needsMarket = q.includes("market") || q.includes("nifty") || q.includes("sensex") || q.includes("index") || q.includes("overall");
+  
+  // 2. Base payload only includes what is explicitly requested
+  const dynamicContext = {
+    settings: context.settings || {},
+    marketData: needsMarket ? context.marketData : null,
+    stockData: [] as any[],
+    news: needsNews ? (context.news || []) : [],
+    portfolio: needsPortfolio ? (context.portfolio || []) : []
+  };
+
+  // 3. Stock-specific intent routing
+  if (Array.isArray(context.stockData)) {
+    const qUpper = query.toUpperCase();
+    const relevantStocks = context.stockData.filter((s: any) => {
+      const ticker = (s.ticker || s.stock || s.name || "").toUpperCase();
+      const name = (s.name || "").toUpperCase();
+      return (ticker && qUpper.includes(ticker)) || (name.length > 3 && qUpper.includes(name));
+    });
+    
+    if (relevantStocks.length > 0) {
+      dynamicContext.stockData = relevantStocks;
+    } else if (needsMarket && !needsNews && !needsPortfolio) {
+      // General market question → include top 5 stocks for context
+      dynamicContext.stockData = context.stockData.slice(0, 5);
+    }
+  }
+
+  // 4. Strict length capping to guarantee no bloat
+  if (Array.isArray(dynamicContext.news) && dynamicContext.news.length > 0) {
+    dynamicContext.news = dynamicContext.news.slice(0, 3).map((n: any) => ({
+      headline: n.headline || n.title || "",
+      summary: (n.summary || n.description || "").slice(0, 150),
+      source: n.source || "News",
+    }));
+  }
+
+  return dynamicContext;
+}
+
 export default async function chatRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.post("/", async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -23,69 +69,8 @@ export default async function chatRoutes(fastify: FastifyInstance): Promise<void
         });
       }
 
-      // --- START ORIGINAL CONTEXT CODE (Commented out to reduce bloat/rate limits) ---
-      /*
-      // Auto-fill context if fields are missing so LLM has live stock, market & news data
-      const enrichedContext = { ...context };
-      if (!enrichedContext.marketData || !enrichedContext.stockData) {
-        try {
-          const snapshot = await fetchFullMarketSnapshot();
-          if (!enrichedContext.marketData) enrichedContext.marketData = snapshot;
-          if (!enrichedContext.stockData) enrichedContext.stockData = snapshot.allStocks;
-        } catch (err: any) {
-          request.log.warn({ err: err.message }, "[Chat API] Failed to auto-fill context.marketData — falling back to empty/stale");
-        }
-      }
-      if (!enrichedContext.news || enrichedContext.news.length === 0) {
-        try {
-          const cached = getCachedNews();
-          if (cached && cached.length > 0) {
-            enrichedContext.news = cached;
-          } else {
-            enrichedContext.news = await fetchLatestNews();
-          }
-        } catch (err: any) {
-          request.log.warn({ err: err.message }, "[Chat API] Failed to auto-fill context.news — falling back to empty/stale");
-        }
-      }
-
-      // Optimize prompt token size (~80% reduction) to stay within Gemini TPM limits
-      if (Array.isArray(enrichedContext.stockData)) {
-        const qUpper = query.toUpperCase();
-        const relevant = enrichedContext.stockData.filter((s: any) => {
-          const ticker = (s.ticker || s.stock || s.name || "").toUpperCase();
-          const name = (s.name || "").toUpperCase();
-          return ticker && (qUpper.includes(ticker) || (name.length > 3 && qUpper.includes(name)));
-        });
-
-        if (relevant.length > 0) {
-          enrichedContext.stockData = relevant;
-        } else {
-          enrichedContext.stockData = enrichedContext.stockData.slice(0, 8);
-        }
-      }
-
-      if (Array.isArray(enrichedContext.news)) {
-        enrichedContext.news = enrichedContext.news.slice(0, 2).map((n: any) => ({
-          headline: n.headline || n.title || "",
-          summary: (n.summary || n.description || "").slice(0, 150),
-          source: n.source || "News",
-        }));
-      }
-      */
-      // --- END ORIGINAL CONTEXT CODE ---
-
-      
-
-      // --- MINIMAL CONTEXT (to fix rate limits) ---
-      const enrichedContext = {
-        settings: context.settings || {},
-        // Deliberately clearing out heavy context objects sent from the frontend
-        marketData: null,
-        stockData: [],
-        news: [],
-        portfolio: [],
-      };
+      // --- DYNAMIC CONTEXT ROUTER ---
+      const enrichedContext = buildDynamicContext(query.trim(), context);
 
       const result = await chat(query.trim(), enrichedContext, history, options);
 
@@ -127,13 +112,7 @@ export default async function chatRoutes(fastify: FastifyInstance): Promise<void
       reply.raw.setHeader("Cache-Control", "no-cache");
       reply.raw.setHeader("Connection", "keep-alive");
 
-      const minimalContext = {
-        settings: context.settings || {},
-        marketData: null,
-        stockData: [],
-        news: [],
-        portfolio: [],
-      };
+      const minimalContext = buildDynamicContext(query.trim(), context);
 
       const { warnings } = await chatStream(
         query.trim(),
