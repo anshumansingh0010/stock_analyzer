@@ -404,30 +404,20 @@
 }
 
 .page-header-main {
-  font-size: 2.5rem;
+  font-size: 3.8rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   margin-bottom: 6px;
-  background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
-  -webkit-background-clip: text;
+  background: var(--text-primary);
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.hero-badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 5px 14px;
-  border-radius: 99px;
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  color: var(--accent-secondary);
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent);
-  margin-bottom: 16px;
-}
+
 
 .hero-title {
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 10px;
   letter-spacing: -0.02em;
