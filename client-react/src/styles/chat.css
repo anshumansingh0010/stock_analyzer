@@ -17,7 +17,7 @@
 
 /* ── Sidebar V2 ── */
 .chat-sidebar-v2 {
-  width: 290px;
+  width: 250px;
   flex-shrink: 0;
   background: var(--bg-surface);
   border-right: 1px solid var(--border-subtle);
@@ -208,6 +208,12 @@
   background: color-mix(in srgb, var(--text-primary) 6%, transparent);
   border-color: transparent;
   color: var(--text-primary);
+}
+
+.history-item-btn.active {
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .history-title {

@@ -23,6 +23,8 @@ export default async function chatRoutes(fastify: FastifyInstance): Promise<void
         });
       }
 
+      // --- START ORIGINAL CONTEXT CODE (Commented out to reduce bloat/rate limits) ---
+      /*
       // Auto-fill context if fields are missing so LLM has live stock, market & news data
       const enrichedContext = { ...context };
       if (!enrichedContext.marketData || !enrichedContext.stockData) {
@@ -70,6 +72,20 @@ export default async function chatRoutes(fastify: FastifyInstance): Promise<void
           source: n.source || "News",
         }));
       }
+      */
+      // --- END ORIGINAL CONTEXT CODE ---
+
+      
+
+      // --- MINIMAL CONTEXT (to fix rate limits) ---
+      const enrichedContext = {
+        settings: context.settings || {},
+        // Deliberately clearing out heavy context objects sent from the frontend
+        marketData: null,
+        stockData: [],
+        news: [],
+        portfolio: [],
+      };
 
       const result = await chat(query.trim(), enrichedContext, history, options);
 
@@ -111,9 +127,17 @@ export default async function chatRoutes(fastify: FastifyInstance): Promise<void
       reply.raw.setHeader("Cache-Control", "no-cache");
       reply.raw.setHeader("Connection", "keep-alive");
 
+      const minimalContext = {
+        settings: context.settings || {},
+        marketData: null,
+        stockData: [],
+        news: [],
+        portfolio: [],
+      };
+
       const { warnings } = await chatStream(
         query.trim(),
-        context,
+        minimalContext,
         history,
         (token: string) => {
           reply.raw.write(`data: ${JSON.stringify({ token })}\n\n`);

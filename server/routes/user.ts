@@ -7,7 +7,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
     try {
       const { userId } = request.params;
       if (!getDBStatus().connected) {
-        return reply.send({ success: true, user: { id: userId, preferences: {}, chatHistory: [] } });
+        return reply.send({ success: true, user: { id: userId, preferences: {}, chatSessions: [] } });
       }
       const user = await User.findOne({ id: userId });
       if (!user) return reply.status(404).send({ success: false, message: "User not found" });
@@ -32,14 +32,14 @@ export default async function userRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.patch("/:userId/chat-history", async (request: FastifyRequest<{ Params: { userId: string }, Body: { chatHistory: any[] } }>, reply: FastifyReply) => {
+  fastify.patch("/:userId/chat-sessions", async (request: FastifyRequest<{ Params: { userId: string }, Body: { chatSessions: any[] } }>, reply: FastifyReply) => {
     try {
       const { userId } = request.params;
-      const { chatHistory } = request.body;
+      const { chatSessions } = request.body;
       if (!getDBStatus().connected) {
         return reply.send({ success: true });
       }
-      const user = await User.findOneAndUpdate({ id: userId }, { chatHistory }, { new: true });
+      const user = await User.findOneAndUpdate({ id: userId }, { chatSessions }, { new: true });
       if (!user) return reply.status(404).send({ success: false, message: "User not found" });
       return reply.send({ success: true });
     } catch (err: any) {
@@ -47,13 +47,13 @@ export default async function userRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.delete("/:userId/chat-history", async (request: FastifyRequest<{ Params: { userId: string } }>, reply: FastifyReply) => {
+  fastify.delete("/:userId/chat-sessions", async (request: FastifyRequest<{ Params: { userId: string } }>, reply: FastifyReply) => {
     try {
       const { userId } = request.params;
       if (!getDBStatus().connected) {
         return reply.send({ success: true });
       }
-      const user = await User.findOneAndUpdate({ id: userId }, { chatHistory: [] }, { new: true });
+      const user = await User.findOneAndUpdate({ id: userId }, { chatSessions: [] }, { new: true });
       if (!user) return reply.status(404).send({ success: false, message: "User not found" });
       return reply.send({ success: true });
     } catch (err: any) {

@@ -16,6 +16,7 @@ export interface NewsArticleInput {
   description?: string;
   source?: string;
   timestamp?: string;
+  url?: string;
 }
 
 export interface NewsMessageRole {

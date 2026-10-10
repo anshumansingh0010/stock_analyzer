@@ -41,7 +41,7 @@ export async function fetchLatestNews(portfolio: any[] = []): Promise<NewsArticl
     const portfolioTickers = portfolio.map((p) => p.ticker || p.symbol).filter(Boolean);
     const articles = await fetchCombinedRssNews({
       portfolioTickers,
-      maxArticles: 25,
+      maxArticles: 4, // Reduced from 25 to avoid rate limits
     });
 
     if (articles.length > 0) {
@@ -124,9 +124,9 @@ export async function runAnalysisCycle(): Promise<void> {
             $setOnInsert: {
               headline: article.headline,
               source: article.source,
-              description: article.summary || "",
+              description: article.description || "",
               url: article.url || "",
-              publishedAt: article.publishedAt ? new Date(article.publishedAt) : new Date(),
+              publishedAt: article.timestamp ? new Date(article.timestamp) : new Date(),
               processed: true
             }
           },

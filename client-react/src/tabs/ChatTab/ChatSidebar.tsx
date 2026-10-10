@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { CheckCircle2, Circle, Settings, CircleHelp, MessageSquarePlus, Clock, PanelLeftClose, PanelLeftOpen, MoreHorizontal } from 'lucide-react';
+import { CheckCircle2, Circle, Settings, CircleHelp, MessageSquarePlus, Clock, PanelLeftClose, PanelLeftOpen, MoreHorizontal, Trash2 } from 'lucide-react';
 
 interface ChatSidebarProps {
   onQuickPrompt: (prompt: string) => void;
@@ -15,7 +15,7 @@ export default function ChatSidebar({
   onOpenSettings,
   onOpenHelp
 }: ChatSidebarProps) {
-  const { aiContext, showToast } = useApp();
+  const { aiContext, showToast, chatSessions, currentSessionId, setCurrentSessionId, setChatSessions } = useApp();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const ctxItems = [
@@ -24,6 +24,56 @@ export default function ChatSidebar({
     { id: 'news', label: 'News Feed Stream', active: (aiContext.news || []).length > 0 },
     { id: 'portfolio', label: 'Portfolio Context', active: (aiContext.portfolio || []).length > 0 },
   ];
+
+  const now = new Date();
+  const todaySessions: typeof chatSessions = [];
+  const weekSessions: typeof chatSessions = [];
+  const olderSessions: typeof chatSessions = [];
+
+  chatSessions.forEach(session => {
+    const d = new Date(session.updatedAt);
+    const diffTime = now.getTime() - d.getTime();
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    if (diffDays <= 1 && now.getDate() === d.getDate()) {
+       todaySessions.push(session);
+    } else if (diffDays <= 7) {
+       weekSessions.push(session);
+    } else {
+       olderSessions.push(session);
+    }
+  });
+
+  const handleDeleteSession = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setChatSessions(prev => prev.filter(s => s.id !== id));
+    if (currentSessionId === id) {
+       setCurrentSessionId(null);
+       if (onClear) onClear();
+    }
+  };
+
+  const renderGroup = (title: string, sessions: typeof chatSessions) => {
+    if (sessions.length === 0) return null;
+    return (
+      <div className="history-group">
+        <div className="sh-title flex items-center justify-between text-[var(--text-muted)] mb-2 px-1 mt-3">
+          <span className="font-medium text-xs">{title}</span>
+        </div>
+        <div className="sidebar-history-list">
+          {sessions.map(s => (
+            <button 
+              key={s.id}
+              className={`history-item-btn ${currentSessionId === s.id ? 'active' : ''}`} 
+              onClick={() => setCurrentSessionId(s.id)}
+            >
+              <span className="history-title">{s.title || 'New Chat'}</span>
+              <Trash2 className="w-4 h-4 history-more-icon hover:text-red-400" onClick={(e) => handleDeleteSession(e, s.id)} />
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <aside className={`chat-sidebar-v2 ${isCollapsed ? 'collapsed' : ''}`}>
@@ -86,37 +136,14 @@ export default function ChatSidebar({
 
       {!isCollapsed && (
         <div className="sidebar-history-section">
-          
-          {/* Today Group */}
-          <div className="history-group">
-            <div className="sh-title flex items-center justify-between text-[var(--text-muted)] mb-2 px-1">
-              <span className="font-medium text-xs">Today</span>
+          {renderGroup('Today', todaySessions)}
+          {renderGroup('Previous 7 Days', weekSessions)}
+          {renderGroup('Older', olderSessions)}
+          {chatSessions.length === 0 && (
+            <div className="text-xs text-[var(--text-muted)] text-center mt-6 px-4">
+              No recent chats found. Start a new conversation!
             </div>
-            <div className="sidebar-history-list">
-              <button className="history-item-btn" onClick={() => showToast('History integration coming soon', 'info')}>
-                <span className="history-title">FAQ width fix</span>
-                <MoreHorizontal className="w-4 h-4 history-more-icon" />
-              </button>
-            </div>
-          </div>
-
-          {/* 7 Days Group */}
-          <div className="history-group mt-5">
-            <div className="sh-title flex items-center justify-between text-[var(--text-muted)] mb-2 px-1">
-              <span className="font-medium text-xs">7 Days</span>
-            </div>
-            <div className="sidebar-history-list">
-              <button className="history-item-btn" onClick={() => showToast('History integration coming soon', 'info')}>
-                <span className="history-title">Hello greeting</span>
-                <MoreHorizontal className="w-4 h-4 history-more-icon" />
-              </button>
-              <button className="history-item-btn" onClick={() => showToast('History integration coming soon', 'info')}>
-                <span className="history-title">Portfolio risk audit</span>
-                <MoreHorizontal className="w-4 h-4 history-more-icon" />
-              </button>
-            </div>
-          </div>
-          
+          )}
         </div>
       )}
 

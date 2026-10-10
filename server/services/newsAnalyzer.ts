@@ -20,6 +20,8 @@ export interface AnalyzedArticleResult extends ParsedNewsOutput {
       headline?: string;
       source?: string;
       timestamp?: string;
+      description?: string;
+      url?: string;
     };
     analyzedAt: string;
     model?: string;
@@ -58,6 +60,8 @@ export async function analyzeArticle(
           headline: article.headline,
           source: article.source,
           timestamp: article.timestamp || new Date().toISOString(),
+          description: article.description,
+          url: article.url,
         },
         analyzedAt: new Date().toISOString(),
         model: completion.model,
@@ -105,6 +109,8 @@ export async function analyzeArticle(
           headline: article.headline,
           source: article.source,
           timestamp: article.timestamp || new Date().toISOString(),
+          description: article.description,
+          url: article.url,
         },
         analyzedAt: new Date().toISOString(),
         model: "news-analyzer-engine",
@@ -143,7 +149,13 @@ export async function analyzeBatch(
         results[idx] = {
           _error: err.message,
           _meta: {
-            article: { headline: article.headline },
+            article: { 
+              headline: article.headline,
+              description: article.description,
+              url: article.url,
+              source: article.source,
+              timestamp: article.timestamp || new Date().toISOString(),
+            },
             analyzedAt: new Date().toISOString(),
           },
           companies: [],

@@ -51,8 +51,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     portfolio:  [],
   });
 
-  // ── Multi-turn chat history ────────────────────────────────
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  // ── Multi-turn chat sessions ────────────────────────────────
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   // ── User Preferences ───────────────────────────────────────
   const [preferences, setPreferences] = useState<UserPreferences>({
@@ -69,32 +70,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .then((data) => {
           if (data.success && data.user) {
             if (data.user.preferences) setPreferences(data.user.preferences);
-            if (data.user.chatHistory) setChatHistory(data.user.chatHistory);
+            if (data.user.chatSessions) setChatSessions(data.user.chatSessions);
           }
         })
         .catch(console.error);
     }
   }, [user?.id]);
 
-  // Save updated chat history
+  // Save updated chat sessions
   useEffect(() => {
-    if (user?.id && chatHistory.length > 0) {
-      // Debounce saving history slightly to avoid excessive calls
+    if (user?.id) {
+      // Debounce saving sessions slightly to avoid excessive calls
       const timeoutId = setTimeout(() => {
-        apiFetch(`/user/${user.id}/chat-history`, {
+        apiFetch(`/user/${user.id}/chat-sessions`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chatHistory })
+          body: JSON.stringify({ chatSessions })
         }).catch(console.error);
       }, 1000);
       return () => clearTimeout(timeoutId);
     }
-  }, [chatHistory, user?.id]);
+  }, [chatSessions, user?.id]);
 
   const clearChatHistory = useCallback(async () => {
-    setChatHistory([]);
+    setChatSessions([]);
+    setCurrentSessionId(null);
     if (user?.id) {
-      await apiFetch(`/user/${user.id}/chat-history`, { method: 'DELETE' }).catch(console.error);
+      await apiFetch(`/user/${user.id}/chat-sessions`, { method: 'DELETE' }).catch(console.error);
     }
   }, [user?.id]);
 
@@ -341,7 +343,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{
       aiContext, updateContext, setAiContext,
-      chatHistory, setChatHistory,
+      chatSessions, setChatSessions, currentSessionId, setCurrentSessionId,
       niftyBadge, setNiftyBadge,
       backendOnline, backendProvider,
       showToast, toast,

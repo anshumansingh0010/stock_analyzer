@@ -120,6 +120,13 @@ export interface ChatMessage {
   timestamp?: string;
 }
 
+export interface ChatSession {
+  id: string;
+  title: string;
+  updatedAt: string;
+  messages: ChatMessage[];
+}
+
 export interface AiContextState {
   marketData: MarketOverview | null;
   stockData: StockData | null;
@@ -148,8 +155,10 @@ export interface AppContextType {
   aiContext: AiContextState;
   setAiContext: React.Dispatch<React.SetStateAction<AiContextState>>;
   updateContext: (field: keyof AiContextState, value: any) => void;
-  chatHistory: ChatMessage[];
-  setChatHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+  chatSessions: ChatSession[];
+  setChatSessions: React.Dispatch<React.SetStateAction<ChatSession[]>>;
+  currentSessionId: string | null;
+  setCurrentSessionId: React.Dispatch<React.SetStateAction<string | null>>;
   niftyBadge: BadgeData;
   setNiftyBadge: React.Dispatch<React.SetStateAction<BadgeData>>;
   backendOnline: boolean;

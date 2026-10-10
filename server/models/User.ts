@@ -14,7 +14,7 @@ export interface IUser extends Document {
     riskAlertLevel: string;
     streamFeed: boolean;
   };
-  chatHistory: any[];
+  chatSessions: any[];
 }
 
 const UserSchema: Schema = new Schema(
@@ -35,7 +35,7 @@ const UserSchema: Schema = new Schema(
         streamFeed: true,
       }
     },
-    chatHistory: {
+    chatSessions: {
       type: Array,
       default: []
     }

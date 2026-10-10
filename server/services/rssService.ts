@@ -158,6 +158,7 @@ export async function fetchCombinedRssNews(
             description: description || headline,
             source,
             timestamp,
+            url: item.link || "",
           };
         });
 

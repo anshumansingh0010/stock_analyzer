@@ -29,7 +29,7 @@ interface ChatTabProps {
 }
 
 export default function ChatTab({ onOpenHelp }: ChatTabProps = {}) {
-  const { aiContext, chatHistory, setChatHistory, showToast, backendOnline, preferences, savePreferences, clearChatHistory, user, setIsAuthModalOpen } = useApp();
+  const { aiContext, chatSessions, setChatSessions, currentSessionId, setCurrentSessionId, showToast, backendOnline, preferences, savePreferences, user, setIsAuthModalOpen } = useApp();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput]       = useState<string>('');
   const [loading, setLoading]   = useState<boolean>(false);
@@ -45,12 +45,17 @@ export default function ChatTab({ onOpenHelp }: ChatTabProps = {}) {
     }
   };
 
-  // Sync initial messages from chatHistory on load
+  // Sync messages when currentSessionId changes
   useEffect(() => {
-    if (chatHistory.length > 0 && messages.length === 0) {
-      setMessages(chatHistory);
+    if (currentSessionId) {
+      const session = chatSessions.find(s => s.id === currentSessionId);
+      if (session) {
+        setMessages(session.messages);
+      }
+    } else {
+      setMessages([]);
     }
-  }, [chatHistory, messages.length]);
+  }, [currentSessionId, chatSessions]);
 
   const chatMessagesRef = useRef<HTMLDivElement | null>(null);
 
@@ -78,6 +83,25 @@ export default function ChatTab({ onOpenHelp }: ChatTabProps = {}) {
     setLoading(true);
     setWarnings([]);
 
+    let activeSessionId = currentSessionId;
+    if (!activeSessionId) {
+      activeSessionId = Date.now().toString();
+      setCurrentSessionId(activeSessionId);
+      const newSession = {
+        id: activeSessionId,
+        title: q.slice(0, 30) + (q.length > 30 ? '...' : ''),
+        updatedAt: new Date().toISOString(),
+        messages: [userMsg]
+      };
+      setChatSessions(prev => [newSession, ...prev]);
+    } else {
+      setChatSessions(prev => prev.map(s => 
+        s.id === activeSessionId 
+          ? { ...s, messages: [...s.messages, userMsg], updatedAt: new Date().toISOString() } 
+          : s
+      ));
+    }
+
     const typingId = Date.now();
     setMessages(prev => [...prev, { role: 'typing', id: typingId, content: '' }]);
 
@@ -88,7 +112,7 @@ export default function ChatTab({ onOpenHelp }: ChatTabProps = {}) {
         body: JSON.stringify({
           query: q,
           context: { ...aiContext, settings: preferences },
-          history: chatHistory.slice(-10),
+          history: messages.slice(-10),
         }),
       });
       const data = await res.json();
@@ -107,7 +131,11 @@ export default function ChatTab({ onOpenHelp }: ChatTabProps = {}) {
 
       const assistantMsg: ChatMessage = { role: 'assistant', content: data.answer };
       setMessages(prev => [...prev, assistantMsg]);
-      setChatHistory(prev => [...prev, userMsg, assistantMsg]);
+      setChatSessions(prev => prev.map(s => 
+        s.id === activeSessionId 
+          ? { ...s, messages: [...s.messages, assistantMsg], updatedAt: new Date().toISOString() } 
+          : s
+      ));
     } catch (err: any) {
       setMessages(prev => prev.filter(m => m.id !== typingId));
       const msg = !backendOnline
@@ -131,7 +159,7 @@ export default function ChatTab({ onOpenHelp }: ChatTabProps = {}) {
       <div className="chat-layout-v2">
         <ChatSidebar
           onQuickPrompt={sendMessage}
-          onClear={() => { setMessages([]); clearChatHistory(); showToast('Conversation cleared', 'success'); }}
+          onClear={() => { setMessages([]); setCurrentSessionId(null); }}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenHelp={handleOpenHelp}
         />
