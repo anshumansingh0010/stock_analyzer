@@ -58,7 +58,6 @@ export default function ShortcutsModal({ isOpen, onClose, onSelectTab }: Shortcu
         {/* Header */}
         <div className="shortcuts-header">
           <div className="shortcuts-header-title">
-            <span className="shortcuts-header-emoji">⌨️</span>
             <div>
               <h3 className="shortcuts-title">
                 Custom Keyboard Shortcuts

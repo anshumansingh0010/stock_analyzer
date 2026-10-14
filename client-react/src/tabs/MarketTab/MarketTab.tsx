@@ -52,10 +52,12 @@ function FiiDiiCard({ data }: { data?: any }) {
   const fiiStkFutStr = data?.fiiStkFutStr || "-₹140.32 Cr";
   const mtdNetStr = data?.mtdNetStr || "+₹45,712 Cr";
 
-  const isFiiUp = !fiiCashStr.includes('-');
-  const isDiiUp = !diiCashStr.includes('-');
-  const isIdxUp = !fiiIdxFutStr.includes('-');
-  const isStkUp = !fiiStkFutStr.includes('-');
+  const isFiiUp = data?.fiiCash != null ? data.fiiCash >= 0 : !fiiCashStr.includes('-');
+  const isDiiUp = data?.diiCash != null ? data.diiCash >= 0 : !diiCashStr.includes('-');
+  const isTotalUp = data?.totalNet != null ? data.totalNet >= 0 : !totalNetStr.includes('-');
+  const isIdxUp = data?.fiiIdxFut != null ? data.fiiIdxFut >= 0 : !fiiIdxFutStr.includes('-');
+  const isStkUp = data?.fiiStkFut != null ? data.fiiStkFut >= 0 : !fiiStkFutStr.includes('-');
+  const isMtdUp = data?.mtdNet != null ? data.mtdNet >= 0 : !mtdNetStr.includes('-');
 
   return (
     <div className="market-widget fii-dii-card">
@@ -65,18 +67,18 @@ function FiiDiiCard({ data }: { data?: any }) {
       </div>
       <div className="fii-dii-grid">
         <div className="fii-stat fii">
-          <span className="fs-title">FII Net Inflow</span>
+          <span className="fs-title">{isFiiUp ? "FII Net Inflow" : "FII Net Outflow"}</span>
           <span className={`fs-val ${isFiiUp ? 'up' : 'down'}`}>{fiiCashStr}</span>
           <span className="fs-sub">Foreign Institutional (Cash)</span>
         </div>
         <div className="fii-stat dii">
-          <span className="fs-title">DII Net Inflow</span>
+          <span className="fs-title">{isDiiUp ? "DII Net Inflow" : "DII Net Outflow"}</span>
           <span className={`fs-val ${isDiiUp ? 'up' : 'down'}`}>{diiCashStr}</span>
           <span className="fs-sub">Domestic Mutual Funds (Cash)</span>
         </div>
         <div className="fii-stat total">
           <span className="fs-title">Net Institutional Flow</span>
-          <span className="fs-val highlight">{totalNetStr}</span>
+          <span className={`fs-val ${isTotalUp ? 'up' : 'down'}`}>{totalNetStr}</span>
           <span className="fs-sub">Combined Institutional Support</span>
         </div>
         <div className="fii-stat index-fut">
@@ -90,8 +92,8 @@ function FiiDiiCard({ data }: { data?: any }) {
           <span className="fs-sub">Single Stock Futures Net</span>
         </div>
         <div className="fii-stat mtd-flow">
-          <span className="fs-title">MTD Net Inflow</span>
-          <span className="fs-val highlight">{mtdNetStr}</span>
+          <span className="fs-title">{isMtdUp ? "MTD Net Inflow" : "MTD Net Outflow"}</span>
+          <span className={`fs-val ${isMtdUp ? 'up' : 'down'}`}>{mtdNetStr}</span>
           <span className="fs-sub">Month-to-Date Institutional Net</span>
         </div>
       </div>

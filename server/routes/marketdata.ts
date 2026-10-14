@@ -1,13 +1,13 @@
 /**
- * ╔══════════════════════════════════════════════════════════════════════╗
- * ║  NIFTY50GPT — LAYER 6: MARKET DATA ROUTES (Fastify Plugin)        ║
- * ║                                                                      ║
+ * ╔════════════════════════════════════════════════════════════════════╗
+ * ║  NIFTY50GPT — LAYER 6: MARKET DATA ROUTES (Fastify Plugin)         ║
+ * ║                                                                    ║
  * ║  GET  /api/marketdata/snapshot   → Full Nifty 50 snapshot          ║
  * ║  GET  /api/marketdata/indices    → Index levels only               ║
  * ║  GET  /api/marketdata/movers     → Top gainers & losers            ║
  * ║  GET  /api/marketdata/sectors    → Sector performance              ║
  * ║  GET  /api/marketdata/quote/:ticker → Single stock quote           ║
- * ╚══════════════════════════════════════════════════════════════════════╝
+ * ╚════════════════════════════════════════════════════════════════════╝
  */
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";

@@ -1,72 +1,79 @@
 # Nifty50GPT
 
-> **AI-Powered Financial Intelligence & Market Analysis Engine for Indian Nifty 50 Stocks**
+> **AI-Powered Financial Intelligence & Market Analysis Engine for Indian Nifty 50 Equities**
 
-Nifty50GPT is a modern full-stack web application designed for analyzing Nifty 50 stocks, tracking Indian market trends, conducting sentiment analysis on financial news feeds, and delivering AI-assisted financial insight with a multi-layer analytical engine.
-
----
-
-## 🚀 Key Features
-
-The application is structured into **Core Intelligence & Application Layers**:
-
-1. **Layer 1: Master Prompt Engine (Financial AI Chat)**
-   - Context-aware financial AI assistant powered by OpenAI/Gemini.
-   - Answers questions regarding Nifty 50 equities, market concepts, portfolio strategies, and technical indicators.
-   - **Copilot Preferences:** Customize AI responses (Detailed vs. Concise) and set portfolio risk sensitivities (Strict, Balanced, Minimal).
-   - **Chat History Sync:** AI chat conversations are automatically persisted to the database and synced across sessions.
-
-2. **Layer 2: News Sentiment Analyzer**
-   - Real-time aggregation of Indian market news via financial RSS feeds.
-   - Automatic AI sentiment classification (Bullish / Bearish / Neutral) with sentiment scoring and impact analysis.
-   - Background news scheduler running at configurable intervals.
-
-3. **Layer 3: Stock Technical Analyst**
-   - Detailed stock metrics for all Nifty 50 components.
-   - Interactive price charts (Candlesticks & Line plots) with overlay technical indicators (RSI, MACD, Moving Averages).
-   - Live & historical price action tracking.
-
-4. **Layer 4: Market Movement Commentator**
-   - Market indices tracking (Nifty 50, Bank Nifty, Sensex).
-   - Institutional activity monitoring (FII & DII net flows).
-   - Top gainers, losers, and overall market breadth analysis.
-
-5. **Layer 5: Intelligent Alert Engine**
-   - Customizable price threshold and news sentiment alerts.
-   - Notification triggers for user portfolio stocks.
-
-6. **Layer 6: Persistence & Advanced Account System**
-   - MongoDB database integration for user accounts, watchlists, custom portfolios, chat logs, and preferences.
-   - **Multi-Factor Authentication & Account Linking:** Seamless sign-in via Email/Phone OTP, Google OAuth, and Firebase Authentication, with support for linking multiple auth providers to a single account.
-   - Support for in-memory fallback mode when database is offline.
-   - Data caching for market feeds (Groww & Yahoo Finance services).
-
-7. **Layer 7: UI & Productivity Enhancements**
-   - **Interactive Portfolio Analytics:** Visual line charts mapping your portfolio's performance over time.
-   - **Custom Keyboard Shortcuts:** Accelerate navigation and data fetching with customizable user keybinds.
+Nifty50GPT is an enterprise-grade full-stack financial intelligence web application engineered specifically for the Indian equity market (NSE Nifty 50). It pairs real-time market data, institutional analyst consensus, and financial news feeds with modern LLM intelligence (Google Gemini & OpenAI) to provide actionable equity research, technical analysis, and portfolio intelligence.
 
 ---
 
-## 🏗 Architecture Overview
+## 🚀 Key Capabilities & Analytical Layers
+
+Nifty50GPT is structured around a multi-layered analytical engine:
+
+### 1. Layer 1 — Financial Copilot & Master Prompt Engine
+- **Context-Aware AI Assistant:** Financial AI copilot powered by Google Gemini and OpenAI GPT models.
+- **Dynamic Research & Inquiries:** Instant answers on Nifty 50 equities, macroeconomic indicators, derivatives, portfolio strategies, and technical setups.
+- **Customizable Copilot Preferences:** Adjust response depth (Detailed vs. Concise) and risk sensitivity (Strict, Balanced, Aggressive).
+- **Persistent Chat History:** Conversations are saved to MongoDB and synchronized seamlessly across client sessions.
+
+### 2. Layer 2 — Real-Time News & Sentiment Engine
+- **Financial RSS Ingestion:** Aggregates real-time news from leading Indian financial portals (Moneycontrol, Economic Times, Livemint, etc.).
+- **Automated Sentiment Classification:** Every article is scored and classified (Bullish, Bearish, or Neutral) with confidence metrics and market impact analysis.
+- **Background News Scheduler:** Continuously polls and refreshes market news in the background at configurable intervals.
+
+### 3. Layer 3 — Stock Technical & Fundamental Analyst
+- **Interactive Candlestick & Line Charts:** TradingView-style interactive multi-timeframe charts (1D, 1W, 1M, 1Y) with moving averages (SMA 20, SMA 50), volume profiles, and intraday polling.
+- **Live Institutional Analyst Consensus:** Real-time analyst ratings (Strong Buy, Buy, Hold, Underperform, Sell) aggregated from institutional analyst desks via Yahoo Finance.
+- **12-Month Target Price Guage:** Visual high, median, and low price targets with projected upside/downside percentages.
+- **AI-Generated Equity Research Reports:** Generates structured institutional-grade research memos with investment thesis, key catalysts, valuation metrics, and risk factors at the click of a button.
+
+### 4. Layer 4 — Macro Market Movement & Institutional Flows
+- **Index Monitoring:** Real-time tracking of Nifty 50, Bank Nifty, and BSE Sensex.
+- **FII / DII Net Flow Tracking:** Daily institutional cash market activity breakdown (Foreign Institutional Investors & Domestic Institutional Investors).
+- **Market Breadth & Movers:** Live top gainers, losers, 52-week high/low monitors, and sectoral heatmaps.
+
+### 5. Layer 5 — Intelligent Price & Sentiment Alert Engine
+- **Automated Threshold Triggers:** Set custom price crossing alerts (Above / Below) and high-impact sentiment thresholds.
+- **Background Price Scheduler:** Evaluates active user alerts against incoming price ticks and notifies users.
+
+### 6. Layer 6 — High-Performance Market Caching & Scheduling
+- **3-Hour Institutional Analyst Pre-warming:** Background scheduler pre-fetches and caches analyst targets for all 50 Nifty constituents every 3 hours, ensuring instantaneous (<1ms) page loads.
+- **Multi-Tier TTL Cache:** In-memory caching layer with TTL expiration for stock quotes, market snapshots, and intraday candles.
+- **Dual Persistence Architecture:** Full MongoDB integration with automated fallback to in-memory mock mode if database is offline.
+
+### 7. Layer 7 — Portfolio Management & User Experience
+- **Interactive Portfolio Visualizer:** Real-time P&L tracking, asset allocation breakdowns, and portfolio growth curves over time.
+- **Multi-Factor Auth & Account Linking:** Seamless sign-in via Email/Phone OTP (Firebase/Nodemailer), Google OAuth, and passwordless authentication with multi-account linking.
+- **Custom Keyboard Shortcuts:** Power-user keybindings for instant navigation across tabs, search modal, and market refresh.
+- **In-App Feedback & Bug Reporting:** Integrated feedback modal delivering diagnostic reports via Nodemailer.
+
+---
+
+## 🏗 System Architecture
 
 ```
-                      ┌─────────────────────────────────┐
-                      │    React 19 + Vite Frontend     │
-                      │  (Tailwind CSS v4 + TypeScript)  │
-                      └────────────────┬────────────────┘
-                                       │ HTTP / REST
-                                       ▼
-                      ┌─────────────────────────────────┐
-                      │   Fastify 4 Node.js Server      │
-                      │        (TypeScript)             │
-                      └────────────────┬────────────────┘
-                                       │
-         ┌─────────────────────────────┼─────────────────────────────┐
-         ▼                             ▼                             ▼
-┌──────────────────┐         ┌──────────────────┐          ┌──────────────────┐
-│ MongoDB Database │         │  Market Data     │          │  AI LLM Services │
-│ (Mongoose Models)│         │ (Yahoo / Groww)  │          │ (Gemini / OpenAI)│
-└──────────────────┘         └──────────────────┘          └──────────────────┘
+                      ┌──────────────────────────────────────┐
+                      │       React 19 + Vite Frontend       │
+                      │  (Tailwind CSS v4 + TypeScript, SPA) │
+                      └──────────────────┬───────────────────┘
+                                         │ HTTP / REST & SSE
+                                         ▼
+                      ┌──────────────────────────────────────┐
+                      │       Fastify 4 Node.js Server       │
+                      │       (TypeScript, ESM, Helmet)      │
+                      └──────────────────┬───────────────────┘
+                                         │
+         ┌───────────────────────────────┼───────────────────────────────┐
+         ▼                               ▼                               ▼
+┌──────────────────┐          ┌────────────────────┐          ┌──────────────────┐
+│ MongoDB Database │          │ Market Data Feeds  │          │  AI LLM Services │
+│ (Mongoose Models │          │ • Yahoo Finance    │          │ • Google Gemini  │
+│  & Memory Store) │          │ • Groww / RSS Feeds│          │ • OpenAI GPT     │
+└──────────────────┘          └────────────────────┘          └──────────────────┘
+         │                               │                               │
+         ▼                               ▼                               ▼
+  User Profiles &                 3-Hour Analyst &              Automated AI
+  Chat History                    Price Schedulers              Research Reports
 ```
 
 ---
@@ -74,18 +81,19 @@ The application is structured into **Core Intelligence & Application Layers**:
 ## 🛠 Tech Stack
 
 ### **Backend**
-- **Framework**: [Fastify](https://fastify.dev/) 4.x (TypeScript)
-- **Database**: [MongoDB](https://www.mongodb.com/) via [Mongoose](https://mongoosejs.com/)
-- **Authentication**: Custom OTP System, Google Auth Library, Firebase Admin
-- **AI Integrations**: OpenAI API & Google Gemini API
-- **Data & Feeds**: RSS Parser, Axios, Yahoo Finance API, Groww API
-- **Security & Utilities**: `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, `zod`
+- **Runtime & Framework**: [Node.js](https://nodejs.org/) (ESM) + [Fastify](https://fastify.dev/) 4.x (TypeScript)
+- **Database**: [MongoDB](https://www.mongodb.com/) via [Mongoose](https://mongoosejs.com/) (with automatic in-memory fallback)
+- **AI Integrations**: [Google Gemini API](https://ai.google.dev/) (`@google/genai` / SDK) & [OpenAI API](https://platform.openai.com/)
+- **Market Data**: Yahoo Finance API integration, Groww API client, Financial RSS Parser
+- **Background Workers**: 3-Hour Analyst Pre-warming Scheduler, Intraday Price Alert Scheduler, News Poller
+- **Security & Networking**: `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, `zod`
+- **Email & Notifications**: [Nodemailer](https://nodemailer.com/) (SMTP OTPs and User Feedback Delivery)
 
 ### **Frontend**
 - **Framework**: [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) + Custom Glassmorphic Dark/Light Theme System
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) + Custom Glassmorphic Dark Design System
 - **Icons**: [Lucide React](https://lucide.dev/)
-- **Language**: TypeScript
+- **Type Safety**: TypeScript 5.x throughout client and server
 
 ---
 
@@ -93,23 +101,21 @@ The application is structured into **Core Intelligence & Application Layers**:
 
 ### Prerequisites
 
-Ensure you have the following installed on your machine:
+Ensure you have the following installed:
 - **Node.js** >= 18.0.0
 - **npm** >= 9.0.0
-- **Docker & Docker Compose** (Optional, for running the full stack easily)
+- **Docker & Docker Compose** (Optional, for single-command stack launch)
 
 ---
 
-### Step 1: Clone & Install Dependencies
-
-Clone the repository and install dependencies for both the root (server) and client app:
+### Step 1: Clone Repository & Install Dependencies
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/Stock_Sense.git
-cd Stock_Sense
+git clone https://github.com/anshumansingh0010/stock_analyzer.git
+cd stock_analyzer
 
-# Install root & server dependencies
+# Install server/root dependencies
 npm install
 
 # Install client dependencies
@@ -122,81 +128,85 @@ cd ..
 
 ### Step 2: Configure Environment Variables
 
-Create a `.env` file in the root directory by copying `.env.example`:
+Create a `.env` file in the project root:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` to configure your API keys and configuration settings:
+Open `.env` and fill in your keys:
 
 ```env
-# Server Config
+# Server
 PORT=3001
 NODE_ENV=development
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
 
-# LLM Provider ("gemini" or "openai")
+# LLM Configuration ("gemini" or "openai")
 LLM_PROVIDER=gemini
-GEMINI_API_KEY=your_gemini_api_key
-OPENAI_API_KEY=your_openai_api_key
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_CHAT_KEY=your_gemini_chat_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 
-# MongoDB Database Connection
-MONGODB_URI=mongodb://stockadmin:stockpassword123@mongodb:27017/stock_sense_ai?authSource=admin
+# Database (Optional - in-memory fallback runs automatically if omitted)
+MONGODB_URI=mongodb://stockadmin:stockpassword123@localhost:27017/stock_sense_ai?authSource=admin
+
+# Nodemailer / Feedback / OTP (Optional)
+SMTP_EMAIL=your_email@gmail.com
+SMTP_PASSWORD=your_gmail_app_password
+FEEDBACK_RECEIVER_EMAIL=your_email@gmail.com
+
+# Google & Firebase Authentication (Optional)
+GOOGLE_CLIENT_ID=your_google_client_id_here
+FIREBASE_PROJECT_ID=your_firebase_project_id
 ```
 
 ---
 
-### Step 3: Run the Application (Docker Compose)
+### Step 3: Run the Application
 
-The easiest way to run the entire stack (MongoDB, Fastify Backend, and React Frontend) is using Docker Compose:
+#### Option A: Docker Compose (All-in-One)
+To run MongoDB, the Fastify backend, and the React frontend simultaneously:
 
 ```bash
 docker-compose up -d
 ```
+- **Web App**: [http://localhost:5173](http://localhost:5173)
+- **API Server**: [http://localhost:3001](http://localhost:3001)
 
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:3001
-- **MongoDB**: mongodb://localhost:27017
+#### Option B: Local Development (Terminal)
 
-*Note: If you want to run the application manually without Docker for the services, you can just start MongoDB via Docker or local installation and proceed to Step 4.*
-
----
-
-### Step 4: Run Manually (Without full Docker orchestration)
-
-#### Option A: Start Server and Client Separately
-
-In terminal window 1 (Start Fastify Backend Server):
+In Terminal 1 (Start Fastify Backend):
 ```bash
 npm run dev
-# Server will start on http://localhost:3001
+# Server boots on http://localhost:3001 with hot reloading
 ```
 
-In terminal window 2 (Start React Frontend Client):
+In Terminal 2 (Start React Frontend):
 ```bash
 npm run client
-# Client will start on http://localhost:5173
+# Client boots on http://localhost:5173 with Vite HMR
 ```
 
 ---
 
 ## 📜 Available NPM Scripts
 
-### Root Project Scripts
+### Root Scripts
 | Script | Command | Description |
 | :--- | :--- | :--- |
-| `npm run dev` | `tsx watch server/index.ts` | Runs backend Fastify server in watch mode |
-| `npm run start` | `node dist/server/index.js` | Runs compiled production backend server |
-| `npm run server:build` | `tsc` | Compiles TypeScript backend files to `dist/` |
-| `npm run client` | `cd client-react && npm run dev` | Launches React client development server |
-| `npm run client:build` | `cd client-react && npm run build` | Builds production bundle for React client |
+| `npm run dev` | `tsx watch server/index.ts` | Runs Fastify backend in watch mode |
+| `npm run start` | `node dist/server/index.js` | Runs compiled production backend |
+| `npm run server:build` | `tsc` | Compiles backend TypeScript to `dist/` |
+| `npm run client` | `cd client-react && npm run dev` | Starts Vite React client development server |
+| `npm run client:build` | `cd client-react && npm run build` | Builds optimized production client bundle |
 
-### Client-React Scripts (`cd client-react`)
+### Client Scripts (`client-react/`)
 | Script | Command | Description |
 | :--- | :--- | :--- |
-| `npm run dev` | `vite` | Starts Vite HMR dev server |
-| `npm run build` | `vite build` | Builds production frontend assets |
-| `npm run lint` | `eslint .` | Runs ESLint for code quality |
+| `npm run dev` | `vite` | Starts Vite local development server |
+| `npm run build` | `tsc -b && vite build` | Type-checks and builds production assets |
+| `npm run lint` | `eslint .` | Runs ESLint analysis |
 | `npm run preview` | `vite preview` | Previews production build locally |
 
 ---
@@ -204,55 +214,62 @@ npm run client
 ## 📂 Project Structure
 
 ```
-Stock_Sense/
-├── client-react/             # React 19 Frontend App
+stock_analyzer/
+├── client-react/                     # React 19 Single Page Application
 │   ├── src/
-│   │   ├── components/       # Reusable UI components (Navbar, Header, Cards, Modal etc.)
-│   │   ├── context/          # React Context (AppContext, Theme, Global State)
-│   │   ├── styles/           # CSS styles & design tokens
-│   │   ├── tabs/             # Main Application Views
-│   │   │   ├── ChatTab/      # Layer 1: AI Financial Chat & Copilot Preferences
-│   │   │   ├── MarketTab/    # Layer 4: Market Indices & FII/DII Overview
-│   │   │   ├── NewsTab/      # Layer 2: RSS News & Sentiment Feed
-│   │   │   ├── PortfolioTab/ # Interactive Portfolio Charts & Manager
-│   │   │   └── StocksTab/    # Layer 3: Interactive Stock Analysis & Metrics
-│   │   ├── types/            # TypeScript interfaces & types
-│   │   ├── utils/            # API helpers, auth, validation & Firebase config
-│   │   └── App.tsx           # Main App layout & routing
-│   └── vite.config.ts        # Vite build configuration
-├── server/                   # Fastify Backend Server
-│   ├── constants/            # Nifty 50 stock list & market metadata
-│   ├── db/                   # MongoDB connection & status tracker
-│   ├── middleware/           # Fastify authentication & route hooks
-│   ├── models/               # Mongoose Schemas (User, Chat, Alert, News, etc.)
-│   ├── prompts/              # Master prompt templates for LLM layers
-│   ├── routes/               # Fastify API Endpoint Routes
-│   │   ├── alert.ts          # Alert management routes
-│   │   ├── auth.ts           # Auth routes (OTP, Google, Firebase, Link Accounts)
-│   │   ├── chat.ts           # AI Chat stream & query routes
-│   │   ├── market.ts         # Overall market indices & FII/DII routes
-│   │   ├── marketdata.ts     # Live market data fetch routes
-│   │   ├── news.ts           # News feed & sentiment analysis routes
-│   │   ├── portfolio.ts      # User holdings & portfolio management routes
-│   │   ├── stock.ts          # Technical stock analysis routes
-│   │   └── user.ts           # User profiles, Copilot preferences & chat history
-│   ├── services/             # Core Business Logic & External APIs
-│   │   ├── alertService.ts   # Alert evaluation service
-│   │   ├── fiiDiiService.ts  # FII / DII net flow fetcher
-│   │   ├── growwService.ts   # Groww API integration service
-│   │   ├── llmQueue.ts       # LLM rate limiting request queue
-│   │   ├── llmService.ts     # OpenAI & Gemini LLM router
-│   │   ├── marketAnalyzer.ts # Market overview synthesizer
-│   │   ├── newsAnalyzer.ts   # AI News sentiment scoring engine
-│   │   ├── newsScheduler.ts  # Background RSS feed fetch scheduler
-│   │   ├── rssService.ts     # Financial RSS feeds aggregator
-│   │   ├── stockAnalyzer.ts  # Stock technical analysis engine
-│   │   └── yahooFinanceService.ts # Historical & intraday price service
-│   └── index.ts              # Fastify server entry point
-├── docker-compose.yml        # Docker orchestration (MongoDB + Server + Client)
-├── package.json              # Main root dependencies & workspace scripts
-├── tsconfig.json             # Root TypeScript compiler options
-└── README.md                 # Project Documentation
+│   │   ├── components/               # Navbar, Header, Modals, Search, Feedback
+│   │   ├── context/                  # AppContext, AuthContext, ThemeProvider
+│   │   ├── styles/                   # Glassmorphic CSS design system
+│   │   ├── tabs/                     # Core Views & Features
+│   │   │   ├── ChatTab/              # AI Financial Chat & Copilot Settings
+│   │   │   ├── HelpTab/              # Documentation, Keybinds & Feedback
+│   │   │   ├── MarketTab/            # Indices, Sector Heatmap, FII/DII Flows
+│   │   │   ├── NewsTab/              # RSS News with Sentiment Classification
+│   │   │   ├── PortfolioTab/         # Visual Portfolio & Watchlist Manager
+│   │   │   └── StocksTab/            # Candlestick Charts, Analyst Target Gauge & AI Report
+│   │   ├── types/                    # Shared TypeScript Interfaces
+│   │   ├── utils/                    # API clients, Firebase, Formatters
+│   │   └── App.tsx                   # Main Routing & Shell
+│   └── vite.config.ts                # Vite Configuration
+│
+├── server/                           # Fastify TypeScript Backend
+│   ├── constants/                    # Nifty 50 Constituents & Sector Mappings
+│   ├── db/                           # MongoDB Connection & In-Memory Fallback
+│   ├── middleware/                   # JWT Auth & Security Hooks
+│   ├── models/                       # Mongoose Schemas (User, Alert, News, Chat)
+│   ├── prompts/                      # Financial AI Prompts & System Instructions
+│   ├── routes/                       # Fastify API Routes
+│   │   ├── alert.ts                  # Sentiment & Portfolio Alerts
+│   │   ├── auth.ts                   # OTP, Google, Firebase & Account Linking
+│   │   ├── chat.ts                   # LLM Streaming & Chat History
+│   │   ├── feedback.ts               # User Feedback Submission via Email
+│   │   ├── market.ts                 # Market Breadth & FII/DII Endpoints
+│   │   ├── marketdata.ts             # Live Quotes, Candles, Movers, Analyst Targets
+│   │   ├── news.ts                   # News Feed & Sentiment
+│   │   ├── portfolio.ts              # Holdings & Watchlists
+│   │   ├── priceAlert.ts             # Price Threshold Triggers
+│   │   ├── stock.ts                  # Technical Indicators & Metrics
+│   │   └── user.ts                   # User Settings & Copilot Preferences
+│   ├── services/                     # Business Logic & Integrations
+│   │   ├── alertService.ts           # Alert Evaluation Engine
+│   │   ├── analystScheduler.ts       # 3-Hour Nifty 50 Analyst Pre-warming Scheduler
+│   │   ├── fiiDiiService.ts          # Institutional Cash Flow Fetcher
+│   │   ├── growwService.ts           # Groww Data Client
+│   │   ├── llmService.ts             # Gemini / OpenAI Provider Router
+│   │   ├── marketAnalyzer.ts         # Macro Synthesizer
+│   │   ├── marketDataService.ts      # Multi-source Market Data & Aggregation
+│   │   ├── newsAnalyzer.ts           # News Sentiment Classifier
+│   │   ├── newsScheduler.ts          # Background RSS Ingestion Poller
+│   │   ├── priceScheduler.ts         # Price Alert Monitor
+│   │   ├── rssService.ts             # Multi-source RSS Aggregator
+│   │   ├── stockAnalyzer.ts          # Technical Indicators Calculator
+│   │   └── yahooFinanceService.ts    # Yahoo Finance Live Analyst & Price Engine
+│   ├── utils/                        # TTL Cache, Nodemailer, Helpers
+│   └── index.ts                      # Server Bootstrap & Health Check
+│
+├── docker-compose.yml                # Docker Service Orchestration
+├── package.json                      # Workspace Manifest & Scripts
+└── tsconfig.json                     # Root TypeScript Configuration
 ```
 
 ---
@@ -260,56 +277,81 @@ Stock_Sense/
 ## 🔐 Environment Variables Reference
 
 | Variable | Required | Default | Description |
-| :--- | :---: | :--- | :--- |
+| :--- | :---: | :---: | :--- |
 | `PORT` | No | `3001` | Fastify backend server listening port |
 | `NODE_ENV` | No | `development` | Environment mode (`development` / `production`) |
-| `ALLOWED_ORIGINS` | No | `http://localhost:5173` | CORS allowed origins (comma-separated) |
-| `RATE_LIMIT_WINDOW_MS` | No | `60000` | Rate limiting window size in milliseconds |
-| `RATE_LIMIT_MAX` | No | `500` | Max API requests per IP within rate limit window |
-| `LLM_PROVIDER` | Yes | `gemini` | AI LLM backend service (`gemini` or `openai`) |
-| `GEMINI_API_KEY` | Optional | - | API key for Google Gemini AI service |
-| `OPENAI_API_KEY` | Optional | - | API key for OpenAI GPT models |
-| `GROWW_API_KEY` | Optional | - | Groww API client key for live stock feeds |
-| `MONGODB_URI` | No | - | MongoDB connection string (falls back to memory mode if empty) |
-| `FIREBASE_PROJECT_ID` | Optional | - | Firebase Admin SDK Project ID (for mock/real auth verification) |
+| `ALLOWED_ORIGINS` | No | `http://localhost:5173,http://localhost:3000` | Allowed CORS origins (comma-separated) |
+| `RATE_LIMIT_WINDOW_MS`| No | `60000` | Rate limiting sliding window in ms |
+| `RATE_LIMIT_MAX` | No | `500` | Maximum requests per IP per window |
+| `LLM_PROVIDER` | Yes | `gemini` | LLM backend to use (`gemini` or `openai`) |
+| `GEMINI_API_KEY` | Optional | - | Google Gemini API key for analysis & reports |
+| `GEMINI_CHAT_KEY` | Optional | - | Dedicated Gemini API key for Copilot chat |
+| `OPENAI_API_KEY` | Optional | - | OpenAI API key (for GPT-4o / GPT-3.5) |
+| `MONGODB_URI` | No | - | MongoDB connection URI (memory mode used if omitted) |
+| `SMTP_EMAIL` | Optional | - | Sender email address for OTPs and user feedback |
+| `SMTP_PASSWORD` | Optional | - | Gmail App Password or SMTP credentials |
+| `FEEDBACK_RECEIVER_EMAIL` | Optional | - | Destination email for user feedback submissions |
+| `GOOGLE_CLIENT_ID` | Optional | - | Google OAuth Client ID for web sign-in |
+| `FIREBASE_PROJECT_ID` | Optional | - | Firebase Project ID for Phone Auth verification |
+| `GROWW_API_KEY` | Optional | - | Optional Groww API key for equity quotes |
+| `MARKET_DATA_CACHE_TTL_MS` | No | `60000` | Default cache TTL in ms for market responses |
+| `DISABLE_NEWS_SCHEDULER` | No | `false` | Set `true` to disable background news polling |
 
 ---
 
-## 🔌 API Endpoints Overview
+## 🔌 API Endpoints Summary
 
-| Base Endpoint | Method | Description | Authentication |
-| :--- | :--- | :--- | :---: |
-| `/api/health` | `GET` | Health check endpoint returning layer status | Public |
-| `/api/auth/check-user` | `POST` | Check if a user account already exists | Public |
-| `/api/auth/send-otp` | `POST` | Send authentication OTP via email or phone | Public |
-| `/api/auth/verify-otp` | `POST` | Verify OTP code and authenticate/link user | Public |
-| `/api/auth/google` | `POST` | Authenticate/Link account via Google OAuth | Public |
-| `/api/auth/firebase` | `POST` | Authenticate/Link account via Firebase token | Public |
-| `/api/market/overview` | `GET` | Get Nifty 50, Bank Nifty, & overall market health | Public |
-| `/api/market/fii-dii` | `GET` | Get daily FII & DII institutional cash flows | Public |
-| `/api/stock/:symbol` | `GET` | Fetch stock metrics, historical charts & RSI/MACD | Public |
-| `/api/news` | `GET` | Fetch recent financial news feeds with sentiment scores | Public |
-| `/api/chat` | `POST` | Send financial query to Layer 1 Master Prompt AI | Required |
-| `/api/user/:userId` | `GET` | Fetch user profile, preferences, and chat history | Required |
-| `/api/user/:userId/preferences` | `PATCH` | Update user AI Copilot preferences | Required |
-| `/api/user/:userId/chat-history` | `PATCH` / `DELETE` | Update or clear user chat history | Required |
-| `/api/portfolio` | `GET` / `POST` | Manage holdings, transactions & custom watchlists | Required |
-| `/api/alerts` | `GET` / `POST` | Set and monitor custom price & market alerts | Required |
+### Public Market Data & Intelligence
+| Endpoint | Method | Description |
+| :--- | :---: | :--- |
+| `/api/health` | `GET` | Health status of server, schedulers (News, Price, Analyst) & database |
+| `/api/marketdata/snapshot` | `GET` | Full Nifty 50 market breadth snapshot |
+| `/api/marketdata/indices` | `GET` | Current levels for Nifty 50, Bank Nifty, Sensex |
+| `/api/marketdata/movers` | `GET` | Top 5 gainers and losers across Nifty 50 |
+| `/api/marketdata/sectors` | `GET` | Sectoral breakdown and performance heat |
+| `/api/marketdata/quote/:ticker` | `GET` | Live stock quote with Day/52W High & Low |
+| `/api/marketdata/candles/:ticker` | `GET` | Multi-timeframe OHLCV candles (`?interval=15m&days=25`) |
+| `/api/marketdata/analyst/:ticker` | `GET` | Real-time institutional analyst consensus & price targets |
+| `/api/market/overview` | `GET` | Macro overview and index health commentary |
+| `/api/market/fii-dii` | `GET` | Daily FII / DII net cash flows |
+| `/api/stock/:symbol` | `GET` | Technical indicators (RSI, MACD, Bollinger Bands) |
+| `/api/news` | `GET` | Curated RSS news stream with AI sentiment classification |
+
+### Authentication & Feedback
+| Endpoint | Method | Description |
+| :--- | :---: | :--- |
+| `/api/auth/check-user` | `POST` | Check whether an account exists by email/phone |
+| `/api/auth/send-otp` | `POST` | Dispatch OTP via SMTP email or SMS |
+| `/api/auth/verify-otp` | `POST` | Validate OTP code and issue JWT |
+| `/api/auth/google` | `POST` | Sign in or link account with Google OAuth |
+| `/api/auth/firebase` | `POST` | Sign in or link account with Firebase Auth |
+| `/api/feedback` | `POST` | Submit user feedback and bug diagnostics via email |
+
+### Protected User & Copilot Routes *(Requires Bearer Token)*
+| Endpoint | Method | Description |
+| :--- | :---: | :--- |
+| `/api/chat` | `POST` | Send financial query to Copilot; streams AI response |
+| `/api/user/:userId` | `GET` | Fetch user profile, preferences, and chat history |
+| `/api/user/:userId/preferences` | `PATCH` | Update Copilot response length & risk profile |
+| `/api/user/:userId/chat-history` | `PATCH` / `DELETE`| Persist or reset conversation history |
+| `/api/portfolio` | `GET` / `POST` | Manage holdings, transactions & custom watchlists |
+| `/api/alerts` | `GET` / `POST` | Create and monitor news sentiment alerts |
+| `/api/price-alerts` | `GET` / `POST` | Create and monitor real-time stock price alerts |
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you'd like to improve NIfty50GPT or add new capabilities:
+Contributions are warmly welcome! If you want to contribute to Nifty50GPT:
 
-1. Fork the project repository.
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
+1. **Fork** the repository.
+2. Create a dedicated branch (`git checkout -b feature/NewFeature`).
+3. Commit your modifications (`git commit -m 'Add NewFeature'`).
+4. Push your branch (`git push origin feature/NewFeature`).
+5. Submit a **Pull Request**.
 
 ---
 
 ## 📜 License
 
-This project is licensed under the **MIT License**.
+Distributed under the **MIT License**. See `LICENSE` for details.

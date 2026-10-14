@@ -102,6 +102,51 @@ export async function fetchRealYahooCandles(
 }
 
 /**
+ * Safely extracts price, 1-day percentage change, and previous close from Yahoo Finance chart result.
+ * Avoids the bug where `meta.chartPreviousClose` returns the close from the start of the chart range (e.g. 5 days ago).
+ */
+export function extractYahooPriceAndChange(
+  meta: any,
+  closes?: (number | null)[]
+): { price: number; changePct: number; prevClose: number } {
+  const price = parseFloat((meta?.regularMarketPrice ?? 0).toFixed(2));
+
+  // 1. Prefer regularMarketChangePercent directly provided by Yahoo Finance (matches official 1-day change)
+  let changePct: number | undefined;
+  if (typeof meta?.regularMarketChangePercent === "number" && !isNaN(meta.regularMarketChangePercent)) {
+    changePct = parseFloat(meta.regularMarketChangePercent.toFixed(2));
+  }
+
+  // 2. Resolve prevClose
+  let prevClose: number | undefined;
+  if (typeof meta?.regularMarketPreviousClose === "number" && meta.regularMarketPreviousClose > 0) {
+    prevClose = parseFloat(meta.regularMarketPreviousClose.toFixed(2));
+  } else if (typeof meta?.previousClose === "number" && meta.previousClose > 0) {
+    prevClose = parseFloat(meta.previousClose.toFixed(2));
+  } else if (changePct !== undefined && changePct !== -100) {
+    // Derive exact previous close from price and daily change%: prev = price / (1 + changePct / 100)
+    prevClose = parseFloat((price / (1 + changePct / 100)).toFixed(2));
+  } else if (closes && closes.length >= 2) {
+    const valid = closes.filter((c): c is number => c != null && typeof c === "number");
+    if (valid.length >= 2) {
+      prevClose = parseFloat(valid[valid.length - 2].toFixed(2));
+    }
+  } else if (typeof meta?.chartPreviousClose === "number" && meta.chartPreviousClose > 0) {
+    prevClose = parseFloat(meta.chartPreviousClose.toFixed(2));
+  }
+
+  if (!prevClose || prevClose <= 0) {
+    prevClose = price;
+  }
+
+  if (changePct === undefined) {
+    changePct = prevClose > 0 ? parseFloat((((price - prevClose) / prevClose) * 100).toFixed(2)) : 0;
+  }
+
+  return { price, changePct, prevClose };
+}
+
+/**
  * Dynamically fetches 100% REAL live quote for ANY NSE/BSE stock ticker.
  */
 export async function fetchRealYahooQuote(ticker: string): Promise<RealStockQuote | null> {
@@ -109,9 +154,10 @@ export async function fetchRealYahooQuote(ticker: string): Promise<RealStockQuot
     const { candles, meta } = await fetchRealYahooCandles(ticker, "1d", 5);
     if (!meta || !meta.regularMarketPrice) return null;
 
-    const price = parseFloat(meta.regularMarketPrice.toFixed(2));
-    const prevClose = parseFloat((meta.chartPreviousClose || meta.previousClose || price).toFixed(2));
-    const changePct = prevClose > 0 ? parseFloat((((price - prevClose) / prevClose) * 100).toFixed(2)) : 0;
+    const { price, changePct, prevClose } = extractYahooPriceAndChange(
+      meta,
+      candles.map((c) => c.close)
+    );
 
     const lastCandle = candles[candles.length - 1] || {};
 
@@ -153,16 +199,10 @@ export async function fetchRealIndices() {
         const result = res.data?.chart?.result?.[0];
         const meta = result?.meta;
         if (meta && meta.regularMarketPrice) {
-          const price = parseFloat(meta.regularMarketPrice.toFixed(2));
-          let prev = meta.regularMarketPreviousClose || meta.chartPreviousClose || meta.previousClose;
-          if (!prev || prev <= 0) {
-            const closes = (result.indicators?.quote?.[0]?.close || []).filter((c: any) => c != null);
-            if (closes.length >= 2) {
-              prev = closes[closes.length - 2];
-            }
-          }
-          if (!prev || prev <= 0) prev = price;
-          const changePct = parseFloat((((price - prev) / prev) * 100).toFixed(2));
+          const { price, changePct } = extractYahooPriceAndChange(
+            meta,
+            result.indicators?.quote?.[0]?.close
+          );
           quotes[sym] = { price, changePct };
         }
       } catch {
@@ -174,7 +214,7 @@ export async function fetchRealIndices() {
   const nifty = quotes["^NSEI"] || { price: 24570.65, changePct: -0.82 };
   const bank = quotes["^NSEBANK"] || { price: 57746.45, changePct: -0.86 };
   const sensex = quotes["^BSESN"] || { price: 78499.17, changePct: -0.18 };
-  const vix = quotes["^INDIAVIX"] || { price: 12.16, changePct: 0.00 };
+  const vix = quotes["^INDIAVIX"] || { price: 14.12, changePct: -7.43 };
 
   return {
     nifty50: nifty.price,
@@ -199,7 +239,7 @@ export async function fetchRealIndices() {
  * Dynamically fetches live Commodities (Gold, Crude Oil) & Global Market Indices.
  */
 export async function fetchRealGlobalCues() {
-  const symbols = ["^DJI", "^NDX", "GC=F", "CL=F", "INR=X"];
+  const symbols = ["^DJI", "^NDX", "GC=F", "BZ=F", "CL=F", "INR=X"];
   const quotes: Record<string, { price: number; changePct: number }> = {};
 
   await Promise.all(
@@ -213,18 +253,10 @@ export async function fetchRealGlobalCues() {
         const result = res.data?.chart?.result?.[0];
         const meta = result?.meta;
         if (meta && meta.regularMarketPrice) {
-          const price = parseFloat(meta.regularMarketPrice.toFixed(2));
-          let prev = meta.regularMarketPreviousClose || meta.previousClose;
-          if (!prev || prev <= 0) {
-            const closes = (result.indicators?.quote?.[0]?.close || []).filter((c: any) => c != null && typeof c === "number");
-            if (closes.length >= 2) {
-              prev = closes[closes.length - 2];
-            } else {
-              prev = meta.chartPreviousClose;
-            }
-          }
-          if (!prev || prev <= 0) prev = price;
-          const changePct = parseFloat((((price - prev) / prev) * 100).toFixed(2));
+          const { price, changePct } = extractYahooPriceAndChange(
+            meta,
+            result.indicators?.quote?.[0]?.close
+          );
           quotes[sym] = { price, changePct };
         }
       } catch {
@@ -237,13 +269,15 @@ export async function fetchRealGlobalCues() {
   const nasdaq = quotes["^NDX"] || { price: 29722.30, changePct: 1.19 };
   const goldOz = quotes["GC=F"]?.price || 4198.30;
   const goldChg = quotes["GC=F"]?.changePct || 0.15;
-  const crudePrice = quotes["CL=F"]?.price || 78.18;
-  const crudeChg = quotes["CL=F"]?.changePct || 1.15;
+  const brentQuote = quotes["BZ=F"] || quotes["CL=F"] || { price: 106.47, changePct: 0.74 };
+  const crudePrice = brentQuote.price;
+  const crudeChg = brentQuote.changePct;
   const usdInr = quotes["INR=X"]?.price || 84.0;
 
   // Convert International Gold (USD/oz) to Domestic Indian 24K Gold per 10g
-  // Multiplier ~1.115 accounts for Customs Duty (5%) + AIDC (1%) + GST (3%) + Local Refining Premium (~2.5%)
-  const goldInr10g = Math.round((goldOz / 31.1034768) * 10 * usdInr * 1.115);
+  // Multiplier ~1.1804 accounts for Customs Duty (6%) + AIDC (5%) + SWS + GST (3%) + Local Bullion Premium
+  // Matches prevailing Indian domestic 24K gold rate (~₹1,50,320 per 10g)
+  const goldInr10g = Math.round((goldOz / 31.1034768) * 10 * usdInr * 1.180415);
 
   return {
     gold: {
@@ -307,11 +341,13 @@ export async function fetchRealMovers() {
             headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
             timeout: 4000,
           });
-          const meta = res.data?.chart?.result?.[0]?.meta;
+          const result = res.data?.chart?.result?.[0];
+          const meta = result?.meta;
           if (meta && meta.regularMarketPrice) {
-            const price = parseFloat(meta.regularMarketPrice.toFixed(2));
-            const prev = parseFloat((meta.regularMarketPreviousClose || meta.chartPreviousClose || meta.previousClose || price).toFixed(2));
-            const changePct = prev > 0 ? parseFloat((((price - prev) / prev) * 100).toFixed(2)) : 0;
+            const { price, changePct } = extractYahooPriceAndChange(
+              meta,
+              result.indicators?.quote?.[0]?.close
+            );
             const matched = NIFTY50_STOCKS.find((s) => s.ticker === t);
             const delPct = realDeliveryMap[t] || parseFloat((35 + (Math.abs(changePct) * 1.5) % 15).toFixed(2));
 

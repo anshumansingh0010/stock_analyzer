@@ -552,6 +552,7 @@ background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
 .fs-title { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); }
 .fs-val { font-size: 1.1rem; font-weight: 700; font-family: var(--font-mono); }
 .fs-val.up { color: var(--accent-bull); }
+.fs-val.down { color: var(--accent-bear); }
 .fs-val.highlight { color: var(--accent-secondary); }
 .fs-sub { font-size: 0.68rem; color: var(--text-muted); }
 

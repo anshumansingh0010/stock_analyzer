@@ -10,7 +10,7 @@
 
 import axios from "axios";
 import { fetchGrowwCandles, fetchGrowwQuote, isGrowwConfigured, GrowwCandle } from "./growwService.js";
-import { fetchRealYahooCandles, fetchRealYahooQuote, fetchRealIndices, fetchRealMovers, fetchRealGlobalCues, fetchRealYahooAnalyst, RealAnalystData } from "./yahooFinanceService.js";
+import { fetchRealYahooCandles, fetchRealYahooQuote, fetchRealIndices, fetchRealMovers, fetchRealGlobalCues, fetchRealYahooAnalyst, RealAnalystData, extractYahooPriceAndChange } from "./yahooFinanceService.js";
 import { marketCache } from "../utils/cache.js";
 
 const NSE_BASE = "https://www.nseindia.com";
@@ -85,6 +85,7 @@ export async function fetchNifty50Indices(): Promise<NiftyIndicesData> {
 
       const nifty50 = find("NIFTY 50");
       const bankNifty = find("NIFTY BANK");
+      const indiaVixNSE = find("INDIA VIX");
 
       const niftyPrice = parseFloat(nifty50.last ?? yahooIndices?.nifty50 ?? 0);
       const dayHighVal = parseFloat(nifty50.high ?? 0) || parseFloat((niftyPrice * 1.004).toFixed(2));
@@ -94,8 +95,8 @@ export async function fetchNifty50Indices(): Promise<NiftyIndicesData> {
         nifty50: niftyPrice,
         bankNifty: parseFloat(bankNifty.last ?? yahooIndices?.bankNifty ?? 0),
         sensex: yahooIndices?.sensex ?? 78499.17,
-        indiaVix: yahooIndices?.indiaVix ?? 12.16,
-        vixChangePct: yahooIndices?.vixChangePct ?? 0,
+        indiaVix: parseFloat(indiaVixNSE.last ?? yahooIndices?.indiaVix ?? 12.16),
+        vixChangePct: parseFloat(indiaVixNSE.percentChange ?? yahooIndices?.vixChangePct ?? 0),
         "change%": parseFloat(nifty50.percentChange ?? yahooIndices?.["change%"] ?? 0),
         bankNiftyChangePct: parseFloat(bankNifty.percentChange ?? yahooIndices?.bankNiftyChangePct ?? 0),
         sensexChangePct: yahooIndices?.sensexChangePct ?? -0.18,
@@ -283,16 +284,10 @@ export async function fetchSectorPerformance(): Promise<SectorPerformanceItem[]>
           const result = res.data?.chart?.result?.[0];
           const meta = result?.meta;
           if (meta && meta.regularMarketPrice) {
-            const level = parseFloat(meta.regularMarketPrice.toFixed(2));
-            let prev = meta.regularMarketPreviousClose || meta.chartPreviousClose || meta.previousClose;
-            if (!prev || prev <= 0) {
-              const closes = (result.indicators?.quote?.[0]?.close || []).filter((c: any) => c != null);
-              if (closes.length >= 2) {
-                prev = closes[closes.length - 2];
-              }
-            }
-            if (!prev || prev <= 0) prev = level;
-            const perf = parseFloat((((level - prev) / prev) * 100).toFixed(2));
+            const { price: level, changePct: perf } = extractYahooPriceAndChange(
+              meta,
+              result.indicators?.quote?.[0]?.close
+            );
             results.push({ name, "performance%": perf, level });
           } else {
             results.push({ name, "performance%": 0, level: info.defaultLevel });
