@@ -6,14 +6,14 @@ export class TTLCache<T> {
     this.defaultTtlMs = defaultTtlMs;
   }
 
-  get(key: string): T | null {
+  get<R = T>(key: string): R | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
     if (Date.now() > entry.expiresAt) {
       this.cache.delete(key);
       return null;
     }
-    return entry.data;
+    return entry.data as unknown as R;
   }
 
   set(key: string, data: T, ttlMs?: number): void {
@@ -23,12 +23,12 @@ export class TTLCache<T> {
     });
   }
 
-  async getOrSet(key: string, fetchFn: () => Promise<T>, ttlMs?: number): Promise<T> {
-    const cached = this.get(key);
+  async getOrSet<R = T>(key: string, fetchFn: () => Promise<R>, ttlMs?: number): Promise<R> {
+    const cached = this.get<R>(key);
     if (cached !== null) return cached;
     
     const data = await fetchFn();
-    this.set(key, data, ttlMs);
+    this.set(key, data as unknown as T, ttlMs);
     return data;
   }
 
