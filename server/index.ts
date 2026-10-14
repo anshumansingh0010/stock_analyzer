@@ -27,6 +27,7 @@ import userRoutes from "./routes/user.js";
 import feedbackRoutes from "./routes/feedback.js";
 import { startScheduler, getStatus as getNewsStatus } from "./services/newsScheduler.js";
 import { startPriceScheduler, getPriceSchedulerStatus } from "./services/priceScheduler.js";
+import { startAnalystScheduler, getAnalystSchedulerStatus } from "./services/analystScheduler.js";
 import { requireAuth } from "./middleware/auth.js";
 
 const server = Fastify({ logger: true });
@@ -91,6 +92,7 @@ export async function setupServer() {
       timestamp: new Date().toISOString(),
       newsScheduler: getNewsStatus(),
       priceScheduler: getPriceSchedulerStatus(),
+      analystScheduler: getAnalystSchedulerStatus(),
       database: getDBStatus(),
     });
   });
@@ -144,6 +146,13 @@ async function startServer() {
     if (process.env.DISABLE_PRICE_SCHEDULER !== "true") {
       startPriceScheduler({
         intervalMs: 30 * 1000, // Check every 30 seconds
+        runImmediately: true,
+      });
+    }
+
+    if (process.env.DISABLE_ANALYST_SCHEDULER !== "true") {
+      startAnalystScheduler({
+        intervalMs: 3 * 60 * 60 * 1000, // Pre-warm all Nifty 50 stocks every 3 hours
         runImmediately: true,
       });
     }

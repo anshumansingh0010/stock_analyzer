@@ -33,14 +33,14 @@ const FAQS: FAQItem[] = [
   {
     id: 'ai-accuracy',
     category: 'AI Copilot',
-    question: 'How does StockSense AI analyze market trends and stocks?',
-    answer: 'StockSense AI combines real-time NSE market indices, company fundamentals, technical indicators (RSI, moving averages, Bollinger Bands), and curated financial news streams. It synthesizes this multi-layer context through advanced LLMs to provide structured institutional-grade intelligence.'
+    question: 'How does Nifty50GPT analyze market trends and stocks?',
+    answer: 'Nifty50GPT combines real-time NSE market indices, company fundamentals, technical indicators (RSI, moving averages, Bollinger Bands), and curated financial news streams. It synthesizes this multi-layer context through advanced LLMs to provide structured institutional-grade intelligence.'
   },
   {
     id: 'sebi-disclaimer',
     category: 'Regulatory',
     question: 'Are stock suggestions considered SEBI registered financial advice?',
-    answer: 'No. StockSense AI is strictly an analytical and educational intelligence assistant. It does not provide SEBI-registered investment advisory or portfolio management services. Always conduct your own research or consult an authorized financial advisor before deploying capital.'
+    answer: 'No. Nifty50GPT is strictly an analytical and educational intelligence assistant. It does not provide SEBI-registered investment advisory or portfolio management services. Always conduct your own research or consult an authorized financial advisor before deploying capital.'
   },
   {
     id: 'fo-derivatives',
@@ -51,7 +51,7 @@ const FAQS: FAQItem[] = [
   {
     id: 'settings-preferences',
     category: 'AI Copilot',
-    question: 'How do the Copilot Preferences (Detailed vs Executive) work?',
+    question: 'How do the Nifty50GPT Preferences (Detailed vs Executive) work?',
     answer: 'Click the Settings icon at the bottom of the Chat sidebar to configure your AI response style. "Detailed Analysis" delivers full technical breakdowns, support/resistance levels, and macro news context. "Executive Summary" produces concise 3-bullet decision summaries.'
   },
   {
@@ -177,7 +177,7 @@ export default function HelpFeedbackPage({ onBack, onOpenShortcuts }: HelpFeedba
             <h1 className="help-page-title">Help & Feedback</h1>
           </div>
           <p className="help-page-subtitle">
-            Find answers to frequently asked questions, learn how to get the most out of StockSense AI, or submit feedback to help us improve.
+            Find answers to frequently asked questions, learn how to get the most out of Nifty50GPT, or submit feedback to help us improve.
           </p>
         </div>
 
@@ -276,7 +276,7 @@ export default function HelpFeedbackPage({ onBack, onOpenShortcuts }: HelpFeedba
                 Submit Feedback or Report an Issue
               </h2>
               <p className="feedback-card-sub">
-                Help us make StockSense better. We actively review all suggestions, bug reports, and data inquiries.
+                Help us make Nifty50GPT better. We actively review all suggestions, bug reports, and data inquiries.
               </p>
             </div>
 
@@ -285,7 +285,7 @@ export default function HelpFeedbackPage({ onBack, onOpenShortcuts }: HelpFeedba
                 <CheckCircle2 className="w-10 h-10 text-emerald-400" />
                 <h4>Thank You For Your Feedback!</h4>
                 <p>
-                  Your feedback has been received and routed to our product engineering team. We appreciate your contribution to improving StockSense.
+                  Your feedback has been received and routed to our product engineering team. We appreciate your contribution to improving Nifty50GPT.
                 </p>
                 <button
                   type="button"
@@ -410,7 +410,7 @@ export default function HelpFeedbackPage({ onBack, onOpenShortcuts }: HelpFeedba
               className="flex items-center gap-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
             >
               <Mail className="w-3.5 h-3.5" />
-              <span>support@stocksense.ai</span>
+              <span>support@nifty50gpt.ai</span>
             </a>
           </div>
         </div>

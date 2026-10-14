@@ -18,6 +18,7 @@ import {
   fetchSectorPerformance,
   fetchFullMarketSnapshot,
   fetchStockCandles,
+  fetchAnalystConsensus,
 } from "../services/marketDataService.js";
 import { marketCache } from "../utils/cache.js";
 
@@ -78,6 +79,18 @@ export default async function marketdataRoutes(fastify: FastifyInstance): Promis
     try {
       const result = await fetchStockCandles(ticker.toUpperCase(), interval, days);
       return reply.send({ success: true, ...result });
+    } catch (err: any) {
+      return reply.status(500).send({ error: err.message });
+    }
+  });
+
+  fastify.get("/analyst/:ticker", async (request: FastifyRequest, reply: FastifyReply) => {
+    const { ticker } = request.params as any;
+    const query = request.query as any;
+    const price = query.price ? parseFloat(query.price) : undefined;
+    try {
+      const data = await fetchAnalystConsensus(ticker.toUpperCase(), price);
+      return reply.send({ success: true, data });
     } catch (err: any) {
       return reply.status(500).send({ error: err.message });
     }

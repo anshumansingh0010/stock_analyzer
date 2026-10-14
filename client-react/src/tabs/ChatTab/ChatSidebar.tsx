@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { CheckCircle2, Circle, Settings, CircleHelp, MessageSquarePlus, Clock, PanelLeftClose, PanelLeftOpen, MoreHorizontal, Trash2 } from 'lucide-react';
+import { CheckCircle2, Circle, Settings, CircleHelp, SquarePen, PanelLeftClose, Menu, Trash2 } from 'lucide-react';
 
 interface ChatSidebarProps {
   onQuickPrompt: (prompt: string) => void;
@@ -9,14 +9,14 @@ interface ChatSidebarProps {
   onOpenHelp?: () => void;
 }
 
-export default function ChatSidebar({ 
-  onQuickPrompt,
+export default function ChatSidebar({
   onClear,
   onOpenSettings,
   onOpenHelp
 }: ChatSidebarProps) {
   const { aiContext, showToast, chatSessions, currentSessionId, setCurrentSessionId, setChatSessions } = useApp();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCloseHovered, setIsCloseHovered] = useState(false);
 
   const ctxItems = [
     { id: 'market', label: 'Live Market Data', active: !!aiContext.marketData },
@@ -77,28 +77,33 @@ export default function ChatSidebar({
 
   return (
     <aside className={`chat-sidebar-v2 ${isCollapsed ? 'collapsed' : ''}`}>
-      {/* Brand Section */}
-      <div 
-        className="sidebar-brand-section"
-        onClick={() => { if (isCollapsed) setIsCollapsed(false); }}
-      >
-        <div className="sidebar-logo-icon">
-          <svg viewBox="0 0 32 32" fill="none">
-            <path d="M4 24 L10 16 L16 20 L22 10 L28 14" stroke="url(#g1)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="28" cy="14" r="2.5" fill="#00d4a8"/>
-            <defs>
-              <linearGradient id="g1" x1="4" y1="24" x2="28" y2="10" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#6366f1"/>
-                <stop offset="100%" stopColor="#00d4a8"/>
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-        {!isCollapsed && (
-          <span className="sidebar-logo-text">
-            StockSense<span className="sidebar-logo-accent">AI</span>
-          </span>
+      <div className="sidebar-top-actions">
+        {isCollapsed && (
+          <>
+            <button 
+              type="button"
+              className="sidebar-toggle-btn mx-auto"
+              onClick={(e) => { e.stopPropagation(); setIsCollapsed(false); }}
+              title="Expand Sidebar"
+              style={{ margin: '0 auto' }}
+            >
+              <Menu className="w-[22px] h-[22px]" />
+            </button>
+            <div className="sidebar-divider" style={{ margin: '0 auto', width: '30px', background: 'var(--border-subtle)' }} />
+          </>
         )}
+
+        <button 
+          type="button"
+          className="sidebar-new-chat-btn sm-save-btn"
+          onClick={onClear}
+          title="New Chat"
+          style={!isCollapsed ? { flex: 1 } : undefined}
+        >
+          <SquarePen className="w-5 h-5" />
+          <span className="snc-text">New Chat</span>
+        </button>
+
         {!isCollapsed && (
           <button 
             type="button"
@@ -106,33 +111,12 @@ export default function ChatSidebar({
             onClick={(e) => { e.stopPropagation(); setIsCollapsed(true); }}
             title="Collapse Sidebar"
           >
-            <PanelLeftClose className="w-[18px] h-[18px]" />
+            <PanelLeftClose className="w-[20px] h-[20px]" />
           </button>
         )}
       </div>
 
-      <div className="sidebar-top-actions">
-        <button 
-          type="button"
-          className="sidebar-new-chat-btn sm-save-btn"
-          onClick={onClear}
-          title="New Chat"
-        >
-          <MessageSquarePlus className="w-5 h-5" />
-          <span className="snc-text">New Chat</span>
-        </button>
-
-        {isCollapsed && (
-          <button
-            type="button"
-            className="sidebar-collapsed-history-btn"
-            onClick={() => setIsCollapsed(false)}
-            title="Recent Chats"
-          >
-            <Clock className="w-[18px] h-[18px]" />
-          </button>
-        )}
-      </div>
+      {!isCollapsed && <div className="sidebar-divider" />}
 
       {!isCollapsed && (
         <div className="sidebar-history-section">

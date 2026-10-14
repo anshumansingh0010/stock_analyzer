@@ -139,8 +139,8 @@ export default function ChatTab({ onOpenHelp }: ChatTabProps = {}) {
     } catch (err: any) {
       setMessages(prev => prev.filter(m => m.id !== typingId));
       const msg = !backendOnline
-        ? '⚠️ Cannot reach the backend server. Please verify backend service on port 5000.'
-        : `⚠️ Connection error: ${err.message || 'Failed to connect'}`;
+        ? 'Cannot reach the backend server. Please verify backend service on port 5000.'
+        : `Connection error: ${err.message || 'Failed to connect'}`;
       setMessages(prev => [...prev, { role: 'assistant', content: msg }]);
     } finally {
       setLoading(false);
@@ -198,7 +198,7 @@ export default function ChatTab({ onOpenHelp }: ChatTabProps = {}) {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Message StockSense..."
+                placeholder="Message Nifty50GPT..."
                 rows={1}
                 disabled={loading}
                 onInput={e => {
@@ -288,12 +288,12 @@ function WelcomeHero({ onSelectPrompt }: { onSelectPrompt: (p: string) => void }
   return (
     <div className="welcome-hero-v2">
       <div className="page-header-main">
-          <h1>StockSense AI</h1>
+          <h1>Nifty50GPT</h1>
         </div>
 
       <h2 className="hero-title">What would you like to analyze today?</h2>
       <p className="hero-subtitle">
-        Ask StockSense AI anything about live Indian equities, F&O derivatives, market news, or your active portfolio.
+        Ask Nifty50GPT anything about live Indian equities, F&O derivatives, market news, or your active portfolio.
       </p>
 
       {/* Feature cards grid */}
@@ -353,8 +353,7 @@ function AssistantBubble({
       <div className="msg-content-v2">
         <div className="msg-header-v2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="msg-name-v2 font-semibold text-sm">StockSense AI</span>
-            <span className="msg-engine-badge">NSE Real-Time Intelligence</span>
+            <span className="msg-name-v2 font-semibold text-sm">Nifty50GPT</span>
           </div>
           <button 
             className="copy-btn-v2 flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200"
@@ -377,13 +376,13 @@ function AssistantBubble({
             className="ma-chip" 
             onClick={() => onSuggestPrompt('Summarize key takeaways in 3 bullet points')}
           >
-            📌 Key Takeaways
+             Key Takeaways
           </button>
           <button 
             className="ma-chip" 
             onClick={() => onSuggestPrompt('What are the risks or downside scenarios?')}
           >
-            ⚠️ Key Risks
+             Key Risks
           </button>
         </div>
       </div>
@@ -431,7 +430,7 @@ function SettingsModal({
               <Settings className="w-4 h-4 sg-icon-primary" />
             </div>
             <div>
-              <span className="font-bold text-sm block">Copilot Preferences</span>
+              <span className="font-bold text-sm block">Nifty50GPT Preferences</span>
               <span className="sm-subtext">Customize AI detail level & risk alerts</span>
             </div>
           </div>

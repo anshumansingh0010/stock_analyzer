@@ -341,3 +341,163 @@ export async function fetchRealMovers() {
 
   return { gainers, losers, allStocks: stocks, source: "Live Market (NSE)" };
 }
+
+export interface RealAnalystData {
+  ticker?: string;
+  targetPrice: number;
+  lowTarget: number;
+  medianTarget: number;
+  highTarget: number;
+  upsidePct: number;
+  totalAnalysts: number;
+  buyCount: number;
+  holdCount: number;
+  sellCount: number;
+  buyPct: number;
+  holdPct: number;
+  sellPct: number;
+  consensus: 'STRONG BUY' | 'BUY' | 'HOLD' | 'UNDERPERFORM' | 'SELL';
+  recommendationMean?: number;
+  source: string;
+}
+
+interface YahooSession {
+  cookie: string;
+  crumb: string;
+  expiresAt: number;
+}
+
+let activeYahooSession: YahooSession | null = null;
+
+async function getYahooCrumbSession(forceRefresh = false): Promise<{ cookie: string; crumb: string } | null> {
+  if (!forceRefresh && activeYahooSession && Date.now() < activeYahooSession.expiresAt) {
+    return { cookie: activeYahooSession.cookie, crumb: activeYahooSession.crumb };
+  }
+
+  const browserHeaders = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "*/*",
+  };
+
+  try {
+    const res1 = await axios.get("https://fc.yahoo.com", {
+      headers: browserHeaders,
+      maxRedirects: 0,
+      validateStatus: () => true,
+      timeout: 5000,
+    });
+
+    const setCookies = res1.headers["set-cookie"] || [];
+    const cookie = setCookies.map((c: string) => c.split(";")[0]).join("; ");
+    if (!cookie) return null;
+
+    const res2 = await axios.get("https://query2.finance.yahoo.com/v1/test/getcrumb", {
+      headers: { ...browserHeaders, Cookie: cookie },
+      timeout: 5000,
+    });
+
+    const crumb = typeof res2.data === "string" ? res2.data.trim() : "";
+    if (!crumb || crumb.includes("Too Many Requests")) return null;
+
+    activeYahooSession = {
+      cookie,
+      crumb,
+      expiresAt: Date.now() + 4 * 60 * 60 * 1000, // 4 hours
+    };
+
+    return { cookie, crumb };
+  } catch (err: any) {
+    console.warn("[YahooFinance] Failed to acquire Yahoo crumb session:", err.message);
+    return null;
+  }
+}
+
+/**
+ * Fetches real consensus analyst price targets and recommendation breakdown from Yahoo Finance.
+ */
+export async function fetchRealYahooAnalyst(ticker: string, currentPrice?: number): Promise<RealAnalystData | null> {
+  const symbol = getYahooSymbol(ticker);
+
+  let session = await getYahooCrumbSession();
+  if (!session) {
+    session = await getYahooCrumbSession(true);
+  }
+  if (!session) return null;
+
+  try {
+    const url = `https://query2.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=financialData,recommendationTrend&crumb=${encodeURIComponent(session.crumb)}`;
+    const res = await axios.get(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Cookie: session.cookie,
+      },
+      timeout: 6000,
+    });
+
+    const result = res.data?.quoteSummary?.result?.[0];
+    if (!result) return null;
+
+    const fin = result.financialData || {};
+    const trends = result.recommendationTrend?.trend || [];
+    const trend = trends[0] || {};
+
+    const price = currentPrice || fin.currentPrice?.raw || fin.targetMedianPrice?.raw || 1000;
+
+    const strongBuy = trend.strongBuy || 0;
+    const buy = trend.buy || 0;
+    const hold = trend.hold || 0;
+    const sell = trend.sell || 0;
+    const strongSell = trend.strongSell || 0;
+
+    const buyCount = strongBuy + buy;
+    const holdCount = hold;
+    const sellCount = sell + strongSell;
+    const totalAnalysts = (buyCount + holdCount + sellCount) || fin.numberOfAnalystOpinions?.raw || 0;
+
+    const medianTarget = fin.targetMedianPrice?.raw || fin.targetMeanPrice?.raw || Math.round(price * 1.12);
+    const lowTarget = fin.targetLowPrice?.raw || Math.round(price * 0.92);
+    const highTarget = fin.targetHighPrice?.raw || Math.round(price * 1.25);
+    const targetPrice = medianTarget;
+
+    const upsidePct = price > 0 ? parseFloat((((targetPrice - price) / price) * 100).toFixed(1)) : 12.5;
+
+    const buyPct = totalAnalysts > 0 ? Math.round((buyCount / totalAnalysts) * 100) : 70;
+    const holdPct = totalAnalysts > 0 ? Math.round((holdCount / totalAnalysts) * 100) : 20;
+    const sellPct = totalAnalysts > 0 ? Math.max(0, 100 - buyPct - holdPct) : 10;
+
+    let consensus: 'STRONG BUY' | 'BUY' | 'HOLD' | 'UNDERPERFORM' | 'SELL' = 'BUY';
+    const recKey = (fin.recommendationKey || '').toLowerCase();
+    if (recKey === 'strong_buy') consensus = 'STRONG BUY';
+    else if (recKey === 'buy') consensus = 'BUY';
+    else if (recKey === 'hold') consensus = 'HOLD';
+    else if (recKey === 'underperform') consensus = 'UNDERPERFORM';
+    else if (recKey === 'sell') consensus = 'SELL';
+    else {
+      consensus = buyPct >= 75 ? 'STRONG BUY' : buyPct >= 55 ? 'BUY' : holdPct >= 50 ? 'HOLD' : 'SELL';
+    }
+
+    return {
+      ticker: ticker.toUpperCase(),
+      targetPrice,
+      lowTarget,
+      medianTarget,
+      highTarget,
+      upsidePct,
+      totalAnalysts,
+      buyCount,
+      holdCount,
+      sellCount,
+      buyPct,
+      holdPct,
+      sellPct,
+      consensus,
+      recommendationMean: fin.recommendationMean?.raw ? parseFloat(Number(fin.recommendationMean.raw).toFixed(1)) : undefined,
+      source: 'Consensus Analytics (Institutional Consensus - Yahoo Finance Feed)',
+    };
+  } catch (err: any) {
+    if (err.response?.status === 401) {
+      activeYahooSession = null;
+    }
+    return null;
+  }
+}

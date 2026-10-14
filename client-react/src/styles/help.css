@@ -223,7 +223,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm, 10px);
   overflow: hidden;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
   min-width: 0;                    /* critical: prevents expansion */
   max-width: 100%;
 }
@@ -247,6 +247,10 @@
   font-weight: 600;
   text-align: left;
   cursor: pointer;
+}
+
+.faq-header-btn:active {
+  transform: none;
 }
 
 .faq-header-btn span {
@@ -412,7 +416,7 @@
   padding: 10px 20px;
   border-radius: var(--radius-sm, 8px);
   background: var(--accent-primary);
-  color: #fff;
+  color: var(--bg-base);
   border: none;
   font-size: 0.85rem;
   font-weight: 600;
@@ -422,7 +426,6 @@
 
 .feedback-submit-btn:hover {
   opacity: 0.9;
-  transform: translateY(-1px);
 }
 
 .feedback-submit-btn:disabled {

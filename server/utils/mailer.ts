@@ -20,12 +20,12 @@ export async function sendOtpEmail(toEmail: string, otpCode: string): Promise<bo
     });
 
     const mailOptions = {
-      from: `"Stock Sense Security" <${user}>`,
+      from: `"NIfty50GPT Security" <${user}>`,
       to: toEmail,
-      subject: "Your Stock Sense Login Code",
+      subject: "Your NIfty50GPT Login Code",
       html: `
         <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-          <h2 style="color: #2563eb; margin-top: 0;">Stock Sense Login</h2>
+          <h2 style="color: #2563eb; margin-top: 0;">NIfty50GPT Login</h2>
           <p>Hello,</p>
           <p>You requested a one-time password to log into your account. Please use the following 6-digit code:</p>
           <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; text-align: center; margin: 24px 0;">
@@ -77,14 +77,14 @@ export async function sendFeedbackEmail(payload: FeedbackEmailPayload): Promise<
     const stars = payload.rating ? "★".repeat(payload.rating) + "☆".repeat(Math.max(0, 5 - payload.rating)) : "N/A";
 
     const mailOptions = {
-      from: `"Stock Sense Feedback" <${user}>`,
+      from: `"NIfty50GPT Feedback" <${user}>`,
       to: receiver,
       replyTo: payload.userEmail,
       subject: `[Feedback: ${categoryBadge}] ${payload.subject}`,
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 10px; background-color: #ffffff; color: #1e293b;">
           <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 14px; margin-bottom: 20px;">
-            <h2 style="color: #0f172a; margin: 0 0 8px 0; font-size: 20px;">New StockSense User Feedback</h2>
+            <h2 style="color: #0f172a; margin: 0 0 8px 0; font-size: 20px;">New Nifty50GPT User Feedback</h2>
             <span style="display: inline-block; background-color: #eff6ff; color: #2563eb; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; letter-spacing: 0.5px;">
               CATEGORY: ${categoryBadge}
             </span>
@@ -112,7 +112,7 @@ export async function sendFeedbackEmail(payload: FeedbackEmailPayload): Promise<
           </div>
 
           <p style="font-size: 12px; color: #94a3b8; margin: 0; border-top: 1px solid #f1f5f9; padding-top: 12px;">
-            Received automatically from the StockSense AI Help & Feedback Center · Reply directly to this email to reply to the user.
+            Received automatically from the Nifty50GPT Help & Feedback Center · Reply directly to this email to reply to the user.
           </p>
         </div>
       `,

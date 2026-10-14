@@ -1,8 +1,8 @@
-# Stock Sense (Nifty50GPT)
+# Nifty50GPT
 
 > **AI-Powered Financial Intelligence & Market Analysis Engine for Indian Nifty 50 Stocks**
 
-Stock Sense (Nifty50GPT) is a modern full-stack web application designed for analyzing Nifty 50 stocks, tracking Indian market trends, conducting sentiment analysis on financial news feeds, and delivering AI-assisted financial insight with a multi-layer analytical engine.
+Nifty50GPT is a modern full-stack web application designed for analyzing Nifty 50 stocks, tracking Indian market trends, conducting sentiment analysis on financial news feeds, and delivering AI-assisted financial insight with a multi-layer analytical engine.
 
 ---
 
@@ -300,7 +300,7 @@ Stock_Sense/
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you'd like to improve Stock Sense or add new capabilities:
+Contributions are welcome! If you'd like to improve NIfty50GPT or add new capabilities:
 
 1. Fork the project repository.
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`).

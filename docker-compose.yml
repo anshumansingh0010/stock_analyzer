@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mongodb:
     image: docker.io/library/mongo:latest
-    container_name: stocksense-mongodb
+    container_name: nifty50gpt-mongodb
     restart: always
     ports:
       - "27017:27017"
@@ -21,7 +21,7 @@ services:
 
   backend:
     image: node:18-alpine
-    container_name: stocksense-backend
+    container_name: nifty50gpt-backend
     working_dir: /app
     volumes:
       - .:/app
@@ -41,7 +41,7 @@ services:
 
   frontend:
     image: node:18-alpine
-    container_name: stocksense-frontend
+    container_name: nifty50gpt-frontend
     working_dir: /app/client-react
     volumes:
       - .:/app

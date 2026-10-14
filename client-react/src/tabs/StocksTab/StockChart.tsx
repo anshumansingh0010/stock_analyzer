@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { API_BASE } from '../../utils/api';
 
 interface RawCandle {
   time: string;
@@ -79,54 +80,93 @@ export function StockChart({ ticker, stockName, price = 2840 }: { ticker: string
   const [candles, setCandles] = useState<CandleData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [dataSource, setDataSource] = useState<string>('Live Market (NSE)');
+  const requestIdRef = useRef<number>(0);
+  const priceRef = useRef<number>(price);
+  priceRef.current = price;
 
   const fetchCandles = async () => {
+    const currentId = ++requestIdRef.current;
     setLoading(true);
+    setHoverIndex(null);
+    const startTime = performance.now();
+
     try {
       const intervalParam = timeframe === '1D' ? '15m' : '1d';
       const daysParam = timeframe === '1D' ? 3 : timeframe === '3M' ? 90 : 30;
 
-      const res = await fetch(`/api/marketdata/candles/${encodeURIComponent(ticker)}?interval=${intervalParam}&days=${daysParam}`);
+      const res = await fetch(`${API_BASE}/marketdata/candles/${encodeURIComponent(ticker)}?interval=${intervalParam}&days=${daysParam}`);
       if (!res.ok) throw new Error('Failed to fetch candles');
       const data = await res.json();
+
+      if (currentId !== requestIdRef.current) return;
+
       if (data.success && Array.isArray(data.candles) && data.candles.length > 0) {
-        setCandles(computeIndicators(data.candles));
-        setDataSource(data.source || 'Live Market (NSE)');
+        const computed = computeIndicators(data.candles);
+        const src = data.source || 'Live Market (NSE)';
+
+        // Ensure minimum calm duration (~280ms) to avoid frantic sub-millisecond flashing
+        const elapsed = performance.now() - startTime;
+        if (elapsed < 280) {
+          await new Promise(r => setTimeout(r, 280 - elapsed));
+        }
+        if (currentId !== requestIdRef.current) return;
+
+        setCandles(computed);
+        setDataSource(src);
       } else {
         throw new Error('No candle data');
       }
     } catch {
-      // Fallback fallback generator
-      const base = price || 2840;
+      if (currentId !== requestIdRef.current) return;
+
+      // Dynamic calibrated fallback generator tailored to company's price and ticker
+      const base = priceRef.current || 2840;
+      let hash = 0;
+      for (let i = 0; i < ticker.length; i++) hash = (hash << 5) - hash + ticker.charCodeAt(i);
+      const absHash = Math.abs(hash);
+
       const dates = ['Jul 1', 'Jul 2', 'Jul 3', 'Jul 6', 'Jul 7', 'Jul 8', 'Jul 9', 'Jul 10',
                      'Jul 13', 'Jul 14', 'Jul 15', 'Jul 16', 'Jul 17', 'Jul 20', 'Jul 21', 'Jul 22',
                      'Jul 23', 'Jul 24', 'Jul 27', 'Jul 28', 'Jul 29', 'Jul 30', 'Jul 31', 'Aug 3', 'Aug 4'];
 
-      let currentClose = base * 0.94;
+      let currentClose = base * (0.92 + (absHash % 10) / 100);
       const fallbackRaw: RawCandle[] = dates.map((date, idx) => {
-        const change = (Math.sin(idx * 0.7) * 25) + ((Math.random() - 0.45) * 20);
+        const seed = (absHash + idx * 7) % 100;
+        const change = (Math.sin(idx * 0.7 + seed) * (base * 0.015)) + (((seed % 20) - 10) / 100 * base * 0.01);
         const open = currentClose;
-        const close = Math.max(open + change, 100);
-        const high = Math.max(open, close) + Math.random() * 15;
-        const low = Math.min(open, close) - Math.random() * 15;
+        const close = Math.max(open + change, base * 0.6);
+        const spread = (Math.abs(change) * 0.6) + (base * 0.005);
+        const high = Math.max(open, close) + spread;
+        const low = Math.max(Math.min(open, close) - spread, base * 0.5);
         currentClose = close;
-        const volume = Math.floor(1200000 + Math.random() * 2500000);
+        const volume = Math.floor(1200000 + ((absHash + idx * 1000) % 3500000));
         return { time: date, open, high, low, close, volume };
       });
-      setCandles(computeIndicators(fallbackRaw));
+      const computed = computeIndicators(fallbackRaw);
+
+      // Ensure minimum calm duration (~280ms)
+      const elapsed = performance.now() - startTime;
+      if (elapsed < 280) {
+        await new Promise(r => setTimeout(r, 280 - elapsed));
+      }
+      if (currentId !== requestIdRef.current) return;
+
+      setCandles(computed);
       setDataSource('Simulation');
     } finally {
-      setLoading(false);
+      if (currentId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     fetchCandles();
-  }, [ticker, price, timeframe]);
+  }, [ticker, timeframe]);
 
-  if (loading || candles.length === 0) {
+  if (candles.length === 0) {
     return (
-      <div className="market-widget stock-chart-card compact-chart-card p-6 flex flex-col items-center justify-center min-h-[220px]">
+      <div className="market-widget stock-chart-card compact-chart-card p-6 flex flex-col items-center justify-center min-h-[350px]">
         <RefreshCw className="w-6 h-6 animate-spin text-indigo-400 mb-2" />
         <span className="text-sm text-slate-400">Loading Technical Candlesticks for {ticker}...</span>
       </div>
@@ -154,60 +194,83 @@ export function StockChart({ ticker, stockName, price = 2840 }: { ticker: string
   const activeCandle = hoverIndex !== null && hoverIndex < displayCandles.length ? displayCandles[hoverIndex] : displayCandles[displayCandles.length - 1];
 
   return (
-    <div className="market-widget stock-chart-card compact-chart-card">
+    <div className="market-widget stock-chart-card compact-chart-card relative overflow-hidden">
+      
       {/* Chart Header & Compact Indicator Bar */}
-      <div className="widget-header flex flex-wrap items-center justify-between gap-4">
-        <div className="compact-header-title flex flex-col gap-1.5 min-w-0">
-          <h4 className="flex flex-wrap items-center gap-2 m-0">
-            <span className="font-bold">Technical Candlestick Chart ({ticker})</span>
+      <div className="chart-card-header flex flex-col gap-2.5 mb-3.5 pb-2.5 ">
+        {/* Top Row: Title, Data Source & Isolated Right-Aligned Refresh Button */}
+        <div className="flex items-center justify-between gap-3 w-full">
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
+            <span className="font-bold text-sm sm:text-base text-[var(--text-primary)]">Technical Candlestick Chart ({ticker})</span>
+            {loading && (
+              <span className="text-xs px-2 py-0.5 rounded font-mono flex items-center gap-1.5 text-indigo-400 bg-indigo-500/10 border border-indigo-500/20">
+                <RefreshCw className="w-3 h-3 animate-spin" /> Updating
+              </span>
+            )}
             <span className={`text-xs px-2 py-0.5 rounded font-mono flex items-center gap-1 border shrink-0 ${dataSource.includes('Live') || dataSource.includes('NSE') || dataSource.includes('Groww') ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/60'}`}>
               {dataSource}
             </span>
-          </h4>
+          </div>
+
+          {/* Refresh Button placed at the right side of this same line */}
+          <button
+            type="button"
+            className="chart-refresh-btn flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors ml-auto shrink-0 px-2.5 py-1 rounded bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] cursor-pointer"
+            onClick={() => fetchCandles()}
+            disabled={loading}
+            title="Refresh chart data"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
+            <span className="font-mono text-[11px] font-semibold">{loading ? 'Refreshing' : 'Refresh'}</span>
+          </button>
+        </div>
+
+        {/* Second Row: OHLC Legend on the left, Timeframe & Indicator Toggles on the right */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="ohlc-inline-legend flex flex-wrap items-center gap-3 text-xs">
             <span>O: <strong>₹{activeCandle.open.toFixed(1)}</strong></span>
             <span>H: <strong>₹{activeCandle.high.toFixed(1)}</strong></span>
             <span>L: <strong>₹{activeCandle.low.toFixed(1)}</strong></span>
             <span>C: <strong className={activeCandle.close >= activeCandle.open ? 'up' : 'down'}>₹{activeCandle.close.toFixed(1)}</strong></span>
           </div>
-        </div>
 
-        {/* Timeframe & Overlays Controls */}
-        <div className="chart-header-controls">
-          {/* Timeframe Pills */}
-          <div className="timeframe-buttons">
-            {(['1D', '1M', '3M'] as const).map(tf => (
-              <button
-                key={tf}
-                type="button"
-                className={timeframe === tf ? 'tf-active' : 'tf-inactive'}
-                onClick={() => setTimeframe(tf)}
-              >
-                {tf}
-              </button>
-            ))}
-          </div>
+          {/* Timeframe & Overlays Controls */}
+          <div className="chart-header-controls">
+            {/* Timeframe Pills */}
+            <div className="timeframe-buttons">
+              {(['1D', '1M', '3M'] as const).map(tf => (
+                <button
+                  key={tf}
+                  type="button"
+                  className={timeframe === tf ? 'tf-active' : 'tf-inactive'}
+                  onClick={() => setTimeframe(tf)}
+                >
+                  {tf}
+                </button>
+              ))}
+            </div>
 
-          {/* Overlays Selector */}
-          <div className="indicator-toggles flex items-center gap-2 shrink-0">
-            <label className={`ind-toggle ${overlayEma ? 'active' : ''}`}>
-              <input type="checkbox" checked={overlayEma} onChange={e => setOverlayEma(e.target.checked)} />
-              <span>EMA 20</span>
-            </label>
-            <label className={`ind-toggle ${overlayVwap ? 'active' : ''}`}>
-              <input type="checkbox" checked={overlayVwap} onChange={e => setOverlayVwap(e.target.checked)} />
-              <span>VWAP</span>
-            </label>
-            <label className={`ind-toggle ${overlayBB ? 'active' : ''}`}>
-              <input type="checkbox" checked={overlayBB} onChange={e => setOverlayBB(e.target.checked)} />
-              <span>BB Bands</span>
-            </label>
+            {/* Overlays Selector */}
+            <div className="indicator-toggles flex items-center gap-2 shrink-0">
+              <label className={`ind-toggle ${overlayEma ? 'active' : ''}`}>
+                <input type="checkbox" checked={overlayEma} onChange={e => setOverlayEma(e.target.checked)} />
+                <span>EMA 20</span>
+              </label>
+              <label className={`ind-toggle ${overlayVwap ? 'active' : ''}`}>
+                <input type="checkbox" checked={overlayVwap} onChange={e => setOverlayVwap(e.target.checked)} />
+                <span>VWAP</span>
+              </label>
+              <label className={`ind-toggle ${overlayBB ? 'active' : ''}`}>
+                <input type="checkbox" checked={overlayBB} onChange={e => setOverlayBB(e.target.checked)} />
+                <span>BB Bands</span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Candlestick SVG */}
-      <div className="chart-svg-wrap compact-svg-wrap">
+      <div className="chart-svg-wrap compact-svg-wrap" style={{ opacity: loading ? 0.85 : 1, transition: 'opacity 0.25s ease' }}>
         <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="candlestick-svg">
           {/* Price Axis Grid */}
           {[0, 0.5, 1].map((pct, idx) => {
