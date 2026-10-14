@@ -269,7 +269,7 @@ export function StockFundamentals({ ticker, stockName, sector = 'Technology', pr
             <div className="analyst-ratings-header">
               <div className="analyst-title-wrap">
                 <h4>
-                  Analyst Ratings &amp; 12M Price Target
+                  Analyst Ratings &amp; Target Price
                 </h4>
                 <div className="analyst-subtitle">
                   <span>Consensus of {analyst.totalAnalysts} institutional analysts · {analyst.source || 'Live Exchange Data'}</span>
